@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+
+        <div class="col-md-4 text-center">
+            <img src="{{ url_for('static', filename=current_user.avatar) }}"
+                 class="img-fluid rounded-circle mb-3"
+                 style="width: 150px; height: 150px; object-fit: cover;"
+                 alt="User Avatar">
+
+            <h4>{{ current_user.username }}</h4>
+            <p class="text-muted">{{ current_user.email }}</p>
+        </div>
+
+        <div class="col-md-8">
+            <h3>Edit Profile</h3>
+            <form method="POST">
+
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="username" name="username" value="{{ current_user.username }}">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Choose Avatar</label>
+                    <div class="avatar-gallery">
+                        {% for avatar_file in default_avatars %}
+                        <label class="avatar-item">
+                            <input type="radio" name="default_avatar" value="{{ avatar_file }}" class="avatar-radio"
+                                   {% if current_user.avatar == 'avatars/default/' + avatar_file %}checked{% endif %}>
+                            <img src="{{ url_for('static', filename='avatars/default/' + avatar_file) }}" alt="Avatar">
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <hr>
+                <h5>Change Password</h5>
+                 <div class="mb-3">
+                    <label for="old_password" class="form-label">Old Password</label>
+                    <input type="password" class="form-control" id="old_password" name="old_password">
+                </div>
+                <div class="mb-3">
+                    <label for="new_password" class="form-label">New Password</label>
+                    <input type="password" class="form-control" id="new_password" name="new_password">
+                </div>
+
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">Delete Account</button>
+            </form>
+
+            <hr>
+            <h5 class="mt-4">Manage Categories</h5>
+            <form method="POST" action="{{ url_for('profile.add_category') }}" class="input-group mb-3">
+                <input type="text" class="form-control" name="category_name" placeholder="Enter new category name" required>
+                <button class="btn btn-outline-success" type="submit">Add</button>
+            </form>
+
+            <div class="list-group">
+                {% for cat in categories %}
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    {{ cat.name }}
+                    <form method="POST" action="{{ url_for('profile.delete_category', category_id=cat.id) }}">
+                        <button type="submit" class="btn btn-danger btn-sm"
+                                onclick="return confirm('Are you sure?');">
+                            Delete
+                        </button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+
+        </div> </div> <div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="deleteAccountModalLabel">Confirm Account Deletion</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            Are you sure you want to delete your account? This action cannot be undone.
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <form action="{{ url_for('profile.delete_account') }}" method="POST" style="display: inline;">
+              <button type="submit" class="btn btn-danger">Delete My Account</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+</div> {% endblock %}

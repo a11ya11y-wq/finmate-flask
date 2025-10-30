@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}FinMate - Your Personal Finance Assistant{% endblock %}
+
+{% block body %}
+
+<div class="container col-xxl-8 px-4 py-5">
+    <div class="row flex-lg-row-reverse align-items-center g-5 py-5">
+        <div class="col-10 col-sm-8 col-lg-6">
+            <img src="{{ url_for('static', filename='img/hero-image.jpg') }}" class="d-block mx-lg-auto img-fluid" alt="Finance App Illustration" width="700" height="500" loading="lazy">
+        </div>
+        <div class="col-lg-6">
+            <h1 class="display-5 fw-bold text-body-emphasis lh-1 mb-3">Take Control of Your Finances with FinMate</h1>
+            <p class="lead">Easily track your expenses, manage budgets, and achieve your financial goals. FinMate helps you understand where your money goes.</p>
+            <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg px-4 me-md-2">Get Started</a>
+                <a href="{{ url_for('auth.login') }}" class="btn btn-outline-secondary btn-lg px-4">Login</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container px-4 py-5" id="featured-3">
+    <h2 class="pb-2 border-bottom text-center">Why Choose FinMate?</h2>
+    <div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
+      <div class="feature col text-center">
+        <div class="feature-icon d-inline-flex align-items-center justify-content-center text-bg-primary bg-gradient fs-2 mb-3 p-3 rounded-circle">
+          <i class="bi bi-cash-coin"></i>
+        </div>
+        <h3 class="fs-2 text-body-emphasis">Track Expenses</h3>
+        <p>Log your daily expenses and income in seconds. See all your transactions in one place, neatly organized.</p>
+      </div>
+      <div class="feature col text-center">
+        <div class="feature-icon d-inline-flex align-items-center justify-content-center text-bg-primary bg-gradient fs-2 mb-3 p-3 rounded-circle">
+            <i class="bi bi-pie-chart-fill"></i>
+        </div>
+        <h3 class="fs-2 text-body-emphasis">Visualize Reports</h3>
+        <p>Interactive charts and reports help you visualize your spending habits and identify areas for savings.</p>
+      </div>
+      <div class="feature col text-center">
+        <div class="feature-icon d-inline-flex align-items-center justify-content-center text-bg-primary bg-gradient fs-2 mb-3 p-3 rounded-circle">
+            <i class="bi bi-card-checklist"></i>
+        </div>
+        <h3 class="fs-2 text-body-emphasis">Manage Budgets</h3>
+        <p>Set monthly budgets for different categories and get notifications to stay on track with your financial goals.</p>
+      </div>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="p-5 mb-4 bg-light rounded-3">
+        <div class="container-fluid py-5 text-center">
+          <h1 class="display-5 fw-bold">Ready to Get Started?</h1>
+          <p class="fs-4">Sign up for free and start managing your finances like a pro today.</p>
+          <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">Create Your Account</a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,99 @@
+/* HEADER */
+.header__img {
+    height: 128px;
+    width: 128px;
+}
+/* Стили для страниц входа/регистрации */
+.auth-body {
+  background-color: #f8f9fa; /* Светло-серый фон, как в референсе */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.auth-form-container {
+  width: 100%;
+  max-width: 400px; /* Ограничиваем ширину формы */
+  padding: 2rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1); /* Легкая тень */
+  border-radius: 0.5rem; /* Скругленные углы */
+  background-color: white;
+}
+
+.auth-form-container .logo {
+  width: 80px; /* Можно изменить размер логотипа */
+  height: auto;
+  margin-bottom: 1rem;
+}
+
+.flash-container {
+  position: fixed;
+  top: 20px;
+  left: 50%; /* 👈 Сдвигаем левый край блока в центр экрана */
+  transform: translateX(-50%); /* 👈 Смещаем блок влево на половину его ширины */
+  z-index: 1050;
+  width: auto;
+  max-width: 500px; /* Можно немного увеличить ширину для центра */
+}
+.avatar-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.avatar-item {
+    cursor: pointer;
+    position: relative;
+}
+
+.avatar-item img {
+    width: 100%;
+    height: auto;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    transition: border-color 0.2s;
+}
+
+/* Приховуємо саму радіокнопку */
+.avatar-radio {
+    opacity: 0;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+}
+
+/* Стиль для обраного аватара */
+.avatar-radio:checked + img {
+    border-color: #0d6efd; /* Синій колір Bootstrap */
+    box-shadow: 0 0 10px rgba(13, 110, 253, 0.5);
+}
+
+/* --- Анімація для автоматичного зникання flash-повідомлень --- */
+
+/* 1. Описуємо саму анімацію: плавна поява і зникнення */
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1; /* Повідомлення видиме майже до кінця */
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden; /* Повністю ховаємо елемент */
+  }
+}
+
+/* 2. Застосовуємо анімацію до наших повідомлень */
+.flash-container .alert {
+  /* Назва анімації, яку ми створили вище */
+  animation-name: fadeOut;
+
+  /* Загальна тривалість (час видимості + час зникання) */
+  animation-duration: 5s;
+
+  /* Встановлює, що елемент залишиться прихованим після завершення анімації */
+  animation-fill-mode: forwards;
+}

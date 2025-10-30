@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}Settings{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h2>Settings</h2>
+            <hr>
+
+            <form method="POST">
+                <div class="mb-3">
+                    <label for="currency" class="form-label">Default Currency</label>
+                    <select class="form-select" id="currency" name="currency">
+                        <option value="USD" {% if current_user.currency == 'USD' %}selected{% endif %}>USD ($)</option>
+                        <option value="EUR" {% if current_user.currency == 'EUR' %}selected{% endif %}>EUR (€)</option>
+                        <option value="UAH" {% if current_user.currency == 'UAH' %}selected{% endif %}>UAH (₴)</option>
+                        </select>
+                    <div class="form-text">This currency will be used to display amounts throughout the application.</div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Save Settings</button>
+            </form>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

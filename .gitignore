@@ -1,0 +1,13 @@
+.env
+*.env
+
+.venv/
+venv/
+env/
+
+.idea/
+
+pycache/
+*.pyc
+
+TODO.txt
