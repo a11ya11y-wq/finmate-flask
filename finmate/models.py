@@ -4,8 +4,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from finmate import db
 
-#flask db migrate -m " "
-#flask db upgrade
+
 
 class Budget(db.Model):
     __tablename__ = 'budgets'
