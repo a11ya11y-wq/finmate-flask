@@ -1,8 +1,8 @@
 import os
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, RadioField
-from wtforms.validators import DataRequired, Email, EqualTo, ValidationError, Length, Optional
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, RadioField, DecimalField, SelectField, DateField
+from wtforms.validators import DataRequired, Email, EqualTo, ValidationError, Length, Optional, NumberRange
 from flask_login import current_user
 
 from finmate.models import Users, Category, Transactions, Budget
@@ -110,10 +110,26 @@ class CategoryForm(FlaskForm):
             raise ValidationError('A category with this name already exists.')
 
 
-
-
-class DeleteAccountForm(FlaskForm): #TODO: Допилить отдельне модульне окно на подтверждени е пароля для делита акк
+class DeleteForm(FlaskForm): #TODO: Допилить отдельне модульне окно на подтверждение пароля для делита акк
     submit = SubmitField('Delete Account')
+
+
+class TransactionForm(FlaskForm):
+    title = StringField("Title", validators=[DataRequired(), Length(min=1, max=100)])
+    type = RadioField('Type', choices=[('expense', 'Expense'), ('income', 'Income')], validators=[DataRequired()]) #WTForms вимагає тапл з вибору (value, label)
+    amount = DecimalField('Amount', validators=[DataRequired(), NumberRange(min=0.01)])# Встановить мін значение яке можна ввести в форму
+    category = SelectField('Category', coerce=int, validators=[NumberRange(min=1,message='Please, enter a category.')]) # coerce=int автоматично перетворить цей рядок назад на число
+    date = DateField('Date', validators=[Optional()])
+    note = StringField('Note', validators=[Optional(), Length(max=200)])
+    submit = SubmitField('Add Transaction')
+
+    def validate_category(self, category):
+        exsist_category = Category.query.filter_by(id=category.data, user_id=current_user.id).first()
+        if not exsist_category:
+            raise ValidationError('An invalid category has been selected. Please refresh the page.')
+
+
+
 
 
 #TODO: Сделать форми для транзакций, бюджетов і для голов в будущем(Ще не реалізовано), подумать над сетингс мб тоже добавить

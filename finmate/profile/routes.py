@@ -4,7 +4,7 @@ from flask import render_template, request, url_for, flash, current_app
 from flask_login import login_required, logout_user, current_user
 from werkzeug.utils import redirect
 
-from forms import ProfileForm, DeleteAccountForm, CategoryForm
+from forms import ProfileForm, DeleteForm, CategoryForm
 from finmate import db
 from finmate.models import Transactions, Users, Category
 from finmate.profile import bp
@@ -14,7 +14,7 @@ from finmate.profile import bp
 @login_required
 def profile():
     form = ProfileForm(original_username=current_user.username)
-    delete_form = DeleteAccountForm()
+    delete_form = DeleteForm()
     category_form = CategoryForm()
 
     if form.validate_on_submit():

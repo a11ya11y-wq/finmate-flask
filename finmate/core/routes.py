@@ -5,6 +5,7 @@ from flask_login import login_required, current_user
 from sqlalchemy import func
 from werkzeug.utils import redirect
 
+from forms import DeleteForm, TransactionForm
 from finmate import db
 from finmate.core import bp
 from finmate.models import Transactions, Category
@@ -16,42 +17,77 @@ def home():
     return render_template('home.html')
 
 
-@bp.route('/dashboard', methods=['GET'])
+@bp.route('/dashboard', methods=['GET', 'POST'])
 @login_required
 def dashboard():
+    form = TransactionForm()
+    delete_form = DeleteForm()
+
+    categories = Category.query.filter_by(user_id=current_user.id).order_by(Category.name).all()
+    form.category.choices = [(c.id, c.name) for c in categories]
+    form.category.choices.insert(0, (0, 'Choose...'))
+
+    if form.validate_on_submit():
+        title = form.title.data
+        transaction_type = form.type.data
+        amount = form.amount.data
+        created_at = form.date.data if form.date.data else date.today()
+        category_id = form.category.data
+        note = form.note.data
+
+        new_transaction = Transactions(
+            title=title,
+            amount=amount,
+            category_id=category_id,
+            created_at=created_at,
+            user_id=current_user.id,
+            note=note,
+            transaction_type=transaction_type
+        )
+        try:
+            db.session.add(new_transaction)
+            db.session.commit()
+            flash("Transaction added successfully!", 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error adding transaction: {e}', 'danger')
+
+        return redirect(url_for('core.dashboard'))
     base_query = Transactions.query.filter_by(user_id=current_user.id)
     today = date.today()
     period = request.args.get('period', 'all')
 
     if period == 'week':
-        week = today - timedelta(days=7)
-        base_query = base_query.filter(Transactions.created_at >= week)
+        week_ago = today - timedelta(days=7)
+        base_query = base_query.filter(Transactions.created_at >= week_ago)
     elif period == 'month':
         month_ago = today - timedelta(days=30)
         base_query = base_query.filter(Transactions.created_at >= month_ago)
- # Карточки доходов і тд
-    income = base_query.filter_by(transaction_type='income').all()
-    total_income = sum([t.amount for t in income])
 
-    expense = base_query.filter_by(transaction_type='expense').all()
-    total_expense = sum([t.amount for t in expense])
+    transactions = base_query.order_by(Transactions.created_at.desc()).limit(15).all()
 
-    expenses_by_category = base_query.filter( # Пздц а не запрос
+    total_income = base_query.filter(Transactions.transaction_type == 'income') \
+                       .with_entities(func.sum(Transactions.amount)) \
+                       .scalar() or 0.0
+
+    total_expense = base_query.filter(Transactions.transaction_type == 'expense') \
+                        .with_entities(func.sum(Transactions.amount)) \
+                        .scalar() or 0.0
+
+    balance = total_income - total_expense
+
+    expenses_by_category = base_query.filter(
         Transactions.transaction_type == 'expense'
     ).join(Category).group_by(Category.name).with_entities(
         Category.name,
         func.sum(Transactions.amount)
     ).order_by(func.sum(Transactions.amount).desc()).all()
 
-    balance = total_income - total_expense
-#Pie-chart
     category_labels = [item[0] for item in expenses_by_category]
     category_amounts = [float(item[1]) for item in expenses_by_category]
 
-    categories = Category.query.filter_by(user_id=current_user.id).order_by(Category.name).all()
-    transactions = base_query.order_by(Transactions.created_at.desc()).limit(15).all()
-
-    tr_for_balance = base_query.order_by(Transactions.created_at.asc()).all()
+    tr_for_balance = Transactions.query.filter_by(user_id=current_user.id) \
+        .order_by(Transactions.created_at.asc()).all()
     balance_labels = []
     balance_data = []
     current_balance = 0.0
@@ -61,9 +97,9 @@ def dashboard():
             current_balance += t.amount
         else:
             current_balance -= t.amount
-
         balance_labels.append(t.created_at.strftime('%Y-%m-%d'))
         balance_data.append(round(current_balance, 2))
+
     return render_template('dashboard.html',
                            transactions=transactions,
                            period=period,
@@ -74,7 +110,9 @@ def dashboard():
                            category_labels=category_labels,
                            category_amounts=category_amounts,
                            balance_labels=balance_labels,
-                           balance_data=balance_data
+                           balance_data=balance_data,
+                           form=form,
+                           delete_form=delete_form
                            )
 
 

@@ -10,82 +10,77 @@
 <div class="container-fluid">
   <div class="row">
 
-    <!-- Sidebar: Add Transaction -->
     <div class="col-md-3 col-lg-2 bg-light border-end vh-100 p-4">
       <h5 class="mb-3">Add Transaction</h5>
 
-      <form method="POST" action="{{ url_for('transaction.add_transaction') }}">
-        <!-- ... (title, type, amount, category) ... -->
+      <form method="POST" action="" novalidate>
+        {{ form.hidden_tag() }}
+
         <div class="mb-3">
-          <label for="title" class="form-label">Title</label>
-          <input type="text" class="form-control" id="title" name="title" required>
+          {{ form.title.label(class="form-label") }}
+          {{ form.title(class="form-control" + (" is-invalid" if form.title.errors else "")) }}
+          {% for error in form.title.errors %}
+              <div class="invalid-feedback">{{ error }}</div>
+          {% endfor %}
         </div>
 
         <div class="mb-3">
-          <label class="form-label">Type</label>
+          {{ form.type.label(class="form-label") }}
+          {% for subfield in form.type %}
           <div class="form-check">
-            <input class="form-check-input" type="radio" name="transaction_type" id="expense" value="expense" checked>
-            <label class="form-check-label" for="expense">Expense</label>
+            {{ subfield(class="form-check-input") }}
+            {{ subfield.label(class="form-check-label") }}
           </div>
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="transaction_type" id="income" value="income">
-            <label class="form-check-label" for="income">Income</label>
-          </div>
+          {% endfor %}
+          {% for error in form.type.errors %}
+              <div class="text-danger small">{{ error }}</div>
+          {% endfor %}
         </div>
 
         <div class="mb-3">
-          <label for="amount" class="form-label">Amount</label>
-          <input type="number" step="0.01" class="form-control" id="amount" name="amount" required>
+          {{ form.amount.label(class="form-label") }}
+          {{ form.amount(class="form-control" + (" is-invalid" if form.amount.errors else ""), step="0.01") }}
+          {% for error in form.amount.errors %}
+              <div class="invalid-feedback">{{ error }}</div>
+          {% endfor %}
         </div>
 
         <div class="mb-3">
           <div class="d-flex justify-content-between align-items-center mb-1">
-            <label for="category" class="form-label mb-0">Category</label>
+            {{ form.category.label(class="form-label mb-0") }}
           </div>
-
-          <select class="form-select" id="category" name="category_id" required>
-            <option selected disabled value="">Choose...</option>
-            {% for cat in categories %}
-              <option value="{{ cat.id }}">{{ cat.name }}</option>
-            {% endfor %}
-          </select>
-
+          {{ form.category(class="form-select" + (" is-invalid" if form.category.errors else "")) }}
+          {% for error in form.category.errors %}
+              <div class="invalid-feedback">{{ error }}</div>
+          {% endfor %}
           <small class="form-text text-muted text-nowrap" style="font-size: 0.8em;">
             Manage in <a href="{{ url_for('profile.profile') }}">Profile</a>.
           </small>
         </div>
 
-
-        <!-- === ИЗМЕНЕНИЕ ЗДЕСЬ === -->
         <div class="mb-3">
-          <label for="created_at" class="form-label">Date</label>
-          <!-- 1. Убрали 'required'
-               2. Добавили 'value=""' (для Firefox)
-               3. Добавили 'placeholder' -->
-          <input type="date" class="form-control" id="created_at" name="created_at"
-                 value=""
-                 placeholder="Leave blank for today">
+          {{ form.date.label(class="form-label") }}
+          {{ form.date(class="form-control" + (" is-invalid" if form.date.errors else ""), placeholder="Leave blank for today") }}
           <div class="form-text">Leave blank to use today's date.</div>
+          {% for error in form.date.errors %}
+              <div class="invalid-feedback">{{ error }}</div>
+          {% endfor %}
         </div>
-        <!-- === КОНЕЦ ИЗМЕНЕНИЯ === -->
-
 
         <div class="mb-3">
-          <label for="note" class="form-label">Note (optional)</label>
-          <textarea class="form-control" id="note" name="note" rows="2"></textarea>
+          {{ form.note.label(class="form-label") }}
+          {{ form.note(class="form-control" + (" is-invalid" if form.note.errors else ""), rows="2") }}
+          {% for error in form.note.errors %}
+              <div class="invalid-feedback">{{ error }}</div>
+          {% endfor %}
         </div>
 
-        <button type="submit" class="btn btn-primary w-100">Add Transaction</button>
+        {{ form.submit(class="btn btn-primary w-100") }}
       </form>
-    </div>
+    </div> <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
 
-    <!-- Main Dashboard -->
-    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-      <!-- ... (остальной код дашборда) ... -->
-<!-- ... [содержимое дашборда без изменений] ... -->
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <h1 class="h2">Dashboard</h1>
-
         <form method="GET" action="{{ url_for('core.dashboard') }}" class="d-flex justify-content-end">
           <select name="period" class="form-select w-auto" onchange="this.form.submit()">
             <option value="all" {% if period=='all' %}selected{% endif %}>All time</option>
@@ -137,20 +132,18 @@
         </div>
       </div>
 
-    <div class="row mt-4">
+      <div class="row mt-4">
         <div class="col-12">
           <h4 class="mb-3">Balance Dynamics</h4>
           <canvas id="balanceLineChart" width="900" height="300"></canvas>
         </div>
       </div>
 
-      <!-- Charts and Transactions -->
       <div class="row mt-4">
         <div class="col-md-5">
           <h4 class="mb-3">Expenses by Category</h4>
           <canvas id="categoryDonutChart"></canvas>
         </div>
-
         <div class="col-md-7">
           <h4 class="mb-3">Recent Transactions</h4>
           <div class="table-responsive">
@@ -175,16 +168,13 @@
                         <small class="d-block text-muted">{{ t.note }}</small>
                       {% endif %}
                     </td>
-
                     {% if t.transaction_type == 'income' %}
                       <td class="text-success fw-bold">+{{ currency_symbol }}{{ '%.2f'|format(t.amount) }}</td>
                     {% else %}
                       <td class="text-danger">-{{ currency_symbol }}{{ '%.2f'|format(t.amount) }}</td>
                     {% endif %}
-
                     <td>{{ t.category.name }}</td>
                     <td>{{ t.created_at.strftime('%Y-%m-%d') }}</td>
-
                     <td>
                       <button type="button"
                               class="btn btn-primary btn-sm"
@@ -201,6 +191,7 @@
                       </button>
 
                       <form method="POST" action="{{ url_for('transaction.delete_transaction', id=t.id) }}" style="display:inline;">
+                        {{ delete_form.hidden_tag() }}
                         <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?');">
                           Delete
                         </button>
@@ -216,46 +207,84 @@
         </div>
       </div>
 
-      <!-- Chart.js -->
       <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
       <script>
         const ctx = document.getElementById('categoryDonutChart');
-        new Chart(ctx, {
-          type: 'doughnut',
-          data: {
-            labels: {{ category_labels|tojson }},
-            datasets: [{
-              label: 'Expenses',
-              data: {{ category_amounts|tojson }},
-              backgroundColor: [
-                'rgba(255, 99, 132, 0.8)',
-                'rgba(54, 162, 235, 0.8)',
-                'rgba(255, 206, 86, 0.8)',
-                'rgba(75, 192, 192, 0.8)',
-                'rgba(153, 102, 255, 0.8)',
-                'rgba(255, 159, 64, 0.8)'
-              ],
-              borderColor: '#fff',
-              borderWidth: 2
-            }]
-          },
-          options: {
-            responsive: true,
-            plugins: {
-              legend: { position: 'top' }
+        if (ctx) {
+          new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+              labels: {{ category_labels|tojson }},
+              datasets: [{
+                label: 'Expenses',
+                data: {{ category_amounts|tojson }},
+                backgroundColor: [
+                  'rgba(255, 99, 132, 0.8)', 'rgba(54, 162, 235, 0.8)',
+                  'rgba(255, 206, 86, 0.8)', 'rgba(75, 192, 192, 0.8)',
+                  'rgba(153, 102, 255, 0.8)', 'rgba(255, 159, 64, 0.8)'
+                ],
+                borderColor: '#fff',
+                borderWidth: 2
+              }]
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: {
+                  position: 'top',
+                }
+              }
             }
-          }
-        });
+          });
+        } else {
+            console.error("Canvas element for category chart not found!");
+        }
       </script>
-    </main>
-  </div>
-</div>
 
-<!-- Edit Transaction Modal -->
-<div class="modal fade" id="editTransactionModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+      <script>
+        const ctxLine = document.getElementById('balanceLineChart');
+        if (ctxLine) {
+          new Chart(ctxLine, {
+              type: 'line',
+              data: {
+                  labels: {{ balance_labels|tojson }},
+                  datasets: [{
+                      label: 'Balance',
+                      fill: false,
+                      backgroundColor: 'rgba(13, 110, 253, 0.2)',
+                      borderColor: 'rgba(13, 110, 253, 1)',
+                      data: {{ balance_data|tojson }},
+                      tension: 0.2
+                  }]
+              },
+              options: {
+                  responsive: true,
+                  plugins: {
+                      legend: {
+                          display: false
+                      }
+                  },
+                  scales: {
+                      x: { display: true },
+                      y: {
+                          display: true,
+                          beginAtZero: false
+                      }
+                  }
+              }
+          });
+        } else {
+            console.error("Canvas element for balance chart not found!");
+        }
+      </script>
+
+    </main> </div> </div> <div class="modal fade" id="editTransactionModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
-      <form method="POST" id="editTransactionForm">
+      <form method="POST" id="editTransactionForm" novalidate>
+        {{ form.hidden_tag() }}
+
         <div class="modal-header">
           <h5 class="modal-title" id="editModalLabel">Edit Transaction</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -266,39 +295,34 @@
             <label for="edit_title" class="form-label">Title</label>
             <input type="text" class="form-control" id="edit_title" name="title" required>
           </div>
-
           <div class="mb-3">
             <label class="form-label">Type</label>
             <div class="form-check">
-              <input class="form-check-input" type="radio" name="transaction_type" id="edit_expense" value="expense">
+              <input class="form-check-input" type="radio" name="type" id="edit_expense" value="expense">
               <label class="form-check-label" for="edit_expense">Expense</label>
             </div>
             <div class="form-check">
-              <input class="form-check-input" type="radio" name="transaction_type" id="edit_income" value="income">
+              <input class="form-check-input" type="radio" name="type" id="edit_income" value="income">
               <label class="form-check-label" for="edit_income">Income</label>
             </div>
           </div>
-
           <div class="mb-3">
             <label for="edit_amount" class="form-label">Amount</label>
             <input type="number" step="0.01" class="form-control" id="edit_amount" name="amount" required>
           </div>
-
           <div class="mb-3">
             <label for="edit_category" class="form-label">Category</label>
-            <select class="form-select" id="edit_category" name="category_id" required>
+            <select class="form-select" id="edit_category" name="category" required>
               <option disabled value="">Choose...</option>
               {% for cat in categories %}
                 <option value="{{ cat.id }}">{{ cat.name }}</option>
               {% endfor %}
             </select>
           </div>
-
           <div class="mb-3">
             <label for="edit_date" class="form-label">Date</label>
-            <input type="date" class="form-control" id="edit_date" name="created_at" required>
+            <input type="date" class="form-control" id="edit_date" name="date" required>
           </div>
-
           <div class="mb-3">
             <label for="edit_note" class="form-label">Note (optional)</label>
             <textarea class="form-control" id="edit_note" name="note" rows="2"></textarea>
@@ -316,62 +340,35 @@
 
 <script>
   const editModal = document.getElementById('editTransactionModal');
-  editModal.addEventListener('show.bs.modal', function (event) {
-    const button = event.relatedTarget;
+  if (editModal) {
+    editModal.addEventListener('show.bs.modal', function (event) {
+      const button = event.relatedTarget;
+      const transactionId = button.getAttribute('data-bs-transaction-id');
+      const title = button.getAttribute('data-bs-title');
+      const amount = button.getAttribute('data-bs-amount');
+      const type = button.getAttribute('data-bs-type');
+      const categoryId = button.getAttribute('data-bs-category-id');
+      const date = button.getAttribute('data-bs-date');
+      const note = button.getAttribute('data-bs-note');
+      const modalForm = editModal.querySelector('#editTransactionForm');
 
-    const transactionId = button.getAttribute('data-bs-transaction-id');
-    const title = button.getAttribute('data-bs-title');
-    const amount = button.getAttribute('data-bs-amount');
-    const type = button.getAttribute('data-bs-type');
-    const categoryId = button.getAttribute('data-bs-category-id');
-    const date = button.getAttribute('data-bs-date');
-    const note = button.getAttribute('data-bs-note');
+      modalForm.action = `/transaction/edit/${transactionId}`;
 
-    const modalForm = editModal.querySelector('#editTransactionForm');
-    modalForm.action = `/edit/{{ currency_symbol }}${transactionId}`; // 👈 ИСПРАВЬ ЭТУ ОШИБКУ
-    modalForm.querySelector('#edit_title').value = title;
-    modalForm.querySelector('#edit_amount').value = amount;
-    modalForm.querySelector('#edit_category').value = categoryId;
-    modalForm.querySelector('#edit_date').value = date;
-    modalForm.querySelector('#edit_note').value = note;
+      modalForm.querySelector('#edit_title').value = title;
+      modalForm.querySelector('#edit_amount').value = amount;
+      modalForm.querySelector('#edit_category').value = categoryId;
+      modalForm.querySelector('#edit_date').value = date;
+      modalForm.querySelector('#edit_note').value = note;
 
-    if (type === 'income') {
-      modalForm.querySelector('#edit_income').checked = true;
-    } else {
-      modalForm.querySelector('#edit_expense').checked = true;
-    }
-  });
+      if (type === 'income') {
+        modalForm.querySelector('#edit_income').checked = true;
+      } else {
+        modalForm.querySelector('#edit_expense').checked = true;
+      }
+    });
+  } else {
+    console.error("Modal element 'editTransactionModal' not found!");
+  }
 </script>
-    <script>
-        // Переконайся, що Chart.js вже підключено вище
-        const ctxLine = document.getElementById('balanceLineChart');
-        if (ctxLine) { // Додаємо перевірку, чи елемент існує
-          new Chart(ctxLine, {
-              type: 'line',
-              data: {
-                  labels: {{ balance_labels|tojson }}, // 👈 Тобі потрібно передати цю змінну з Python
-                  datasets: [{
-                      label: 'Balance',
-                      fill: false, // Зафарбовуємо область під лінією
-                      backgroundColor: 'rgba(13, 110, 253, 0.2)', // Напівпрозорий синій
-                      borderColor: 'rgba(13, 110, 253, 1)', // Насичений синій
-                      data: {{ balance_data|tojson }}, // 👈 Тобі потрібно передати цю змінну з Python
-                      tension: 0.2 // Робить лінію трохи плавнішою
-                  }]
-              },
-              options: {
-                  responsive: true,
-                  plugins: { legend: { display: false } }, // Легенду можна приховати
-                  scales: {
-                      x: { display: true },
-                      // Баланс може бути від'ємним, тому не починаємо з нуля
-                      y: { display: true, beginAtZero: false }
-                  }
-              }
-          });
-        } else {
-            console.error("Canvas element for balance chart not found!");
-        }
-      </script>
-{% endblock %}
 
+{% endblock %}
