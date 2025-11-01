@@ -13,7 +13,7 @@ from finmate.models import Transactions, Category, Budget
 
 @bp.route('/', methods=['GET'])
 @login_required
-def budgets():
+def budgets():#TODO: Сортировку по процентам заполнения
     categories = Category.query.filter_by(user_id=current_user.id).order_by(Category.name).all()
     user_budgets = Budget.query.filter_by(user_id=current_user.id).all()
     budgets_data = []

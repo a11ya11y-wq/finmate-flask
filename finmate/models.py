@@ -6,7 +6,7 @@ from finmate import db
 
 
 
-class Budget(db.Model):
+class Budget(db.Model): #TODO: Ограничить к-во бюджетов до 5 на одного пользователя
     __tablename__ = 'budgets'
 
     id = db.Column(db.Integer, nullable=False, primary_key = True)
@@ -78,6 +78,8 @@ class Users(db.Model, UserMixin):
     def chek_hash_pwd(self, password):
         return check_password_hash(self.password_hash, password)
 
+
+#TODO: Добавить Голи
 
 
 

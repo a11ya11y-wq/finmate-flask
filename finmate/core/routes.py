@@ -80,7 +80,7 @@ def dashboard():
 
 @bp.route('/settings', methods=['GET', 'POST'])
 @login_required
-def settings():
+def settings():#TODO: Добавить функцию выкачивать данные в джсон файл або ссв
     if request.method == 'POST':
         currency = request.form.get('currency')
         if currency in ['USD', 'EUR', 'UAH']:

@@ -4,6 +4,7 @@ from flask import render_template, request, url_for, flash, current_app
 from flask_login import login_required, logout_user, current_user
 from werkzeug.utils import redirect
 
+from forms import ProfileForm, DeleteAccountForm, CategoryForm
 from finmate import db
 from finmate.models import Transactions, Users, Category
 from finmate.profile import bp
@@ -12,63 +13,61 @@ from finmate.profile import bp
 @bp.route('/', methods=['POST', 'GET'])
 @login_required
 def profile():
-    default_avatars_path = os.path.join(current_app.static_folder, 'avatars/default')
-    default_avatars = os.listdir(default_avatars_path)
-    categories =  Category.query.filter_by(user_id=current_user.id)
+    form = ProfileForm(original_username=current_user.username)
+    delete_form = DeleteAccountForm()
+    category_form = CategoryForm()
 
-    if request.method == 'POST':
-        new_username = request.form.get('username')
-        if new_username and new_username != current_user.username:
-            existing_user = Users.query.filter_by(username=new_username).first()
-            if existing_user:
-                flash(f"Username '{new_username}' is already taken. Please choose another one.", 'danger')
-            else:
-                current_user.username = new_username
-                flash('Username updated!', category='success')
+    if form.validate_on_submit():
+        current_user.username = form.new_username.data
+        current_user.avatar = form.avatar.data
 
-        selected_avatar = request.form.get('default_avatar')
-        if selected_avatar:
-            new_avatar_path = f'avatars/default/{selected_avatar}'
-            if new_avatar_path != current_user.avatar:
-                current_user.avatar = new_avatar_path
-                flash('Avatar updated!', category='success')
+        if form.new_password.data:
+            current_user.set_hash_pwd(form.new_password.data)
+            flash('Password successfully updated!', 'success')
+        try:
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error during update: {e}', 'danger')
+            return redirect(url_for('profile.profile'))
 
-        old_password = request.form.get('old_password')
-        new_password = request.form.get('new_password')
-        if old_password and new_password:
-            if current_user.chek_hash_pwd(old_password):
-                current_user.set_hash_pwd(new_password)
-                flash("Password updated!", category='success')
-            else:
-                flash('Incorect password', category='danger')
+    elif request.method == 'GET':
+        form.new_username.data  = current_user.username
+        form.avatar.data = current_user.avatar
 
-        db.session.commit()
-        return redirect(url_for('profile.profile'))
+    categories = Category.query.filter_by(user_id=current_user.id)
     return render_template('profile.html',
-                           default_avatars=default_avatars,
-                           categories=categories
+                           form=form,
+                           delete_form=delete_form,
+                           categories=categories,
+                           category_form=category_form
                            )
 
 
 @bp.route('/category/add', methods=['POST'])
 @login_required
 def add_category():
-    name = request.form['category_name']
-    user_id = current_user.id
-    # category = Category.query.filter_by(name).first()
-    if name:
-        exist = Category.query.filter_by(name=name,user_id=user_id).first()
-        if not exist:
-            new_category = Category(
-                name=name,
-                user_id=user_id
-            )
+    form = CategoryForm()
+    if form.validate_on_submit():
+        new_category = new_category = Category(
+            name=form.category_name.data,
+            user_id=current_user.id
+        )
+        try:
             db.session.add(new_category)
             db.session.commit()
             flash('Category added!', category='success')
-        else:
-            flash('Category already exists.', category='warning')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'An error occurred: {e}', 'danger')
+        return redirect(url_for('profile.profile'))
+    else:
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f'{form[field].label.text}: {error}', 'danger')
+
     return redirect(url_for('profile.profile'))
+
 
 
 @bp.route('/category/delete/<int:category_id>', methods=['POST'])
