@@ -6,17 +6,53 @@ from flask_login import login_required, current_user
 from sqlalchemy import func
 from werkzeug.utils import redirect
 
+from forms import BudgetForm, DeleteForm
 from finmate import db
 from finmate.budgets import bp
 from finmate.models import Transactions, Category, Budget
 
 
-@bp.route('/', methods=['GET'])
+@bp.route('/', methods=['GET', 'POST'])
 @login_required
 def budgets():#TODO: Сортировку по процентам заполнения
+    form = BudgetForm()
+    delete_form = DeleteForm()
+
     categories = Category.query.filter_by(user_id=current_user.id).order_by(Category.name).all()
     user_budgets = Budget.query.filter_by(user_id=current_user.id).all()
     budgets_data = []
+
+    form.category.choices = [
+        (c.id, c.name) for c in categories
+    ]
+    form.category.choices.insert(0, (0, '-- Select a category --'))
+
+    if form.validate_on_submit():
+        amount = form.amount.data
+        category_id = form.category.data
+        is_recurring = form.is_recurring.data
+
+        budget_exist = Budget.query.filter_by(user_id=current_user.id,
+                                              category_id=category_id).first()
+        if budget_exist:
+            budget_exist.amount = amount
+            budget_exist.is_recurring = is_recurring
+            flash('Budget updated!', 'success')
+        else:
+            new_budget=Budget(
+                amount=amount,
+                category_id=category_id,
+                is_recurring=is_recurring,
+                user_id=current_user.id
+            )
+            db.session.add(new_budget)
+            flash('Budget added!', 'success')
+        try:
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            flash(f'An error occurred during add Budgets: {e}', 'danger')
+        return redirect(url_for('budget.budgets'))
 
     recurring_budgets = [b for b in user_budgets if b.is_recurring]
     recurring_ids = [b.category_id for b in recurring_budgets]
@@ -88,55 +124,28 @@ def budgets():#TODO: Сортировку по процентам заполне
 
     return render_template('budget.html',
                            categories=categories,
-                           budgets_data=budgets_data
+                           budgets_data=budgets_data,
+                           form=form,
+                           delete_form=delete_form
                            )
-
-
-@bp.route('/add', methods=['POST'])
-@login_required
-def add_budgets():
-    if request.method=='POST':
-        amount_str = request.form.get('amount')
-        category_id_str = request.form.get('category')
-        is_recurring_str = request.form.get('is_recurring')
-
-        try:
-            amount = float(amount_str)
-            category_id = int(category_id_str)
-            is_recurring = bool(is_recurring_str)
-        except ValueError:
-            flash('Invalid amount or category format.', 'danger')
-            return redirect(url_for('budget.budgets'))
-
-        budget_exist = Budget.query.filter_by(user_id=current_user.id,
-                                              category_id=category_id).first()
-
-        if budget_exist:
-            budget_exist.amount = amount
-            budget_exist.is_recurring = is_recurring
-            flash('Budget updated!', 'success')
-        else:
-            new_budget=Budget(
-                amount=amount,
-                category_id=category_id,
-                is_recurring=is_recurring,
-                user_id=current_user.id
-            )
-            db.session.add(new_budget)
-            flash('Budget added!', 'success')
-        db.session.commit()
-    return redirect(url_for('budget.budgets'))
 
 
 @bp.route('/delete/<int:budget_id>', methods=['POST'])
 @login_required
 def delete_budget(budget_id):
-    budget_to_delete = Budget.query.get(budget_id)
+    form = DeleteForm()
+    budget_to_delete = Budget.query.get_or_404(budget_id)
     if budget_to_delete.user_id != current_user.id:
         flash('You do not have permission to delete this budget.', 'danger')
         return redirect(url_for('budget.budgets'))
-    if budget_to_delete:
-        db.session.delete(budget_to_delete)
-        db.session.commit()
-        flash('Budget deleted successfully.', category='success')
+    if form.validate_on_submit():
+        try:
+            db.session.delete(budget_to_delete)
+            db.session.commit()
+            flash('Budget deleted successfully.', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error deleting budget: {e}', 'danger')
+    else:
+        flash('Invalid request. Could not delete budget.', 'danger')
     return redirect(url_for('budget.budgets'))

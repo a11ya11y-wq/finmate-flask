@@ -1,3 +1,5 @@
+from enum import unique
+
 from flask_login import UserMixin
 from sqlalchemy import UniqueConstraint, func
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -30,6 +32,7 @@ class Transactions(db.Model):
     title = db.Column(db.String(128))
     note = db.Column(db.String(128), nullable=True)
     created_at = db.Column(db.DateTime(timezone=True), server_default=func.now(), nullable=False)
+    mono_id = db.Column(db.String(50), nullable=True, unique=True)
 
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
@@ -63,6 +66,7 @@ class Users(db.Model, UserMixin):
     avatar = db.Column(db.String(200), nullable=False, default='avatars/default/default.svg')
     currency = db.Column(db.String(5), nullable=False, default='USD')
     password_hash = db.Column(db.String, nullable=False)
+    monobank_api_token = db.Column(db.String, nullable=True, unique=True)
 
     budgets = db.relationship('Budget', back_populates='user', lazy=True, cascade="all, delete-orphan")
     categories = db.relationship('Category', back_populates='user', lazy=True, cascade="all, delete-orphan")

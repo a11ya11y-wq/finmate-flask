@@ -5,7 +5,7 @@ from flask_login import login_required, current_user
 from sqlalchemy import func
 from werkzeug.utils import redirect
 
-from forms import DeleteForm, TransactionForm, CurrencyForm
+from forms import DeleteForm, TransactionForm, CurrencyForm, ApiTokenForm
 from finmate import db
 from finmate.core import bp
 from finmate.models import Transactions, Category
@@ -73,9 +73,10 @@ def dashboard():
     total_expense = base_query.filter(Transactions.transaction_type == 'expense') \
                         .with_entities(func.sum(Transactions.amount)) \
                         .scalar() or 0.0
-
+    print(total_income)
+    print(total_expense)
     balance = total_income - total_expense
-
+    print(balance)
     expenses_by_category = base_query.filter(
         Transactions.transaction_type == 'expense'
     ).join(Category).group_by(Category.name).with_entities(
@@ -120,15 +121,30 @@ def dashboard():
 @login_required
 def settings():#TODO: Добавить функцию выкачивать данные в джсон файл або ссв
     form = CurrencyForm()
-    if form.validate_on_submit():
+    token_form = ApiTokenForm()
+
+    if token_form.validate_on_submit() and token_form.submit.data:
+        #Перевірку від самого апи добать не забути!!
+        current_user.monobank_api_token = token_form.token.data
+        try:
+            db.session.commit()
+            flash('Monobank API token saved!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Token saving error: {e}', 'danger')
+        return redirect(url_for('core.settings'))
+
+    if form.validate_on_submit() and form.submit.data:
         current_user.currency = form.currency.data
         try:
             db.session.commit()
             flash('Currency settings updated!', 'success')
         except Exception as e:
             db.session.rollback()
-            flash(f'Помилка збереження: {e}', 'danger')
+            flash(f'Save error: {e}', 'danger')
         return redirect(url_for('core.settings'))
+
     elif request.method == 'GET':
         form.currency.data = current_user.currency
-    return render_template('settings.html', form=form)
+        token_form.token.data = current_user.monobank_api_token
+    return render_template('settings.html', form=form, token_form=token_form)

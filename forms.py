@@ -135,7 +135,20 @@ class CurrencyForm(FlaskForm):
     submit = SubmitField('Save Settings')
 
 
+class BudgetForm(FlaskForm):
+    category = SelectField('Category', coerce=int, validators=[NumberRange(min=1,message='Please, enter a category.')])
+    amount = DecimalField('Amount', validators=[DataRequired(), NumberRange(min=0.01)])
+    is_recurring = BooleanField('Recurring budget')
+    submit = SubmitField('Set/Update Budget')
 
-#TODO: Сделать форми для транзакций, бюджетов і для голов в будущем(Ще не реалізовано), подумать над сетингс мб тоже добавить
-#TODO: ХТМЛ пересобрать под форми
 
+    def validate_category(self, category):
+        exsist_category = Category.query.filter_by(id=category.data, user_id=current_user.id).first()
+        if not exsist_category:
+            raise ValidationError('An invalid category has been selected. Please refresh the page.')
+
+
+class ApiTokenForm(FlaskForm):
+    token = StringField('MonoBank API Token', validators=[DataRequired(), Length(min=40, max=100)],
+                        render_kw={"placeholder": 'Insert your token from api.monobank.ua'})
+    submit = SubmitField('Save token')
