@@ -110,6 +110,7 @@ class CategoryForm(FlaskForm):
             raise ValidationError('A category with this name already exists.')
 
 
+# Для делита категорий\транзакций і логаута
 class DeleteForm(FlaskForm): #TODO: Допилить отдельне модульне окно на подтверждение пароля для делита акк
     submit = SubmitField('Delete Account')
 
@@ -129,6 +130,9 @@ class TransactionForm(FlaskForm):
             raise ValidationError('An invalid category has been selected. Please refresh the page.')
 
 
+class CurrencyForm(FlaskForm):
+    currency = SelectField('Currency', choices=[('USD', '$ (USD)'), ('EUR', '€ (EUR)'), ('UAH', '₴ (UAH)')], validators=[DataRequired()])
+    submit = SubmitField('Save Settings')
 
 
 

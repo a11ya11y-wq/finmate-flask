@@ -2,7 +2,7 @@ from flask import render_template, request, url_for, flash
 from flask_login import login_user, login_required, logout_user
 from werkzeug.utils import redirect
 
-from forms import LoginForm, RegistrationForm
+from forms import LoginForm, RegistrationForm, DeleteForm
 from finmate import db
 from finmate.auth import bp
 from finmate.decorators import anonymous_user_required
@@ -54,5 +54,7 @@ def login():
 @bp.route('/logout', methods=['GET', 'POST'])
 @login_required
 def logout():
+    form = DeleteForm()
     logout_user()
+    flash('You have logged out of the system.', 'success')
     return redirect(url_for('core.home'))

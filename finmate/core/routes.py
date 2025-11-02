@@ -5,7 +5,7 @@ from flask_login import login_required, current_user
 from sqlalchemy import func
 from werkzeug.utils import redirect
 
-from forms import DeleteForm, TransactionForm
+from forms import DeleteForm, TransactionForm, CurrencyForm
 from finmate import db
 from finmate.core import bp
 from finmate.models import Transactions, Category
@@ -119,13 +119,16 @@ def dashboard():
 @bp.route('/settings', methods=['GET', 'POST'])
 @login_required
 def settings():#TODO: Добавить функцию выкачивать данные в джсон файл або ссв
-    if request.method == 'POST':
-        currency = request.form.get('currency')
-        if currency in ['USD', 'EUR', 'UAH']:
-            current_user.currency = currency
+    form = CurrencyForm()
+    if form.validate_on_submit():
+        current_user.currency = form.currency.data
+        try:
             db.session.commit()
             flash('Currency settings updated!', 'success')
-            return redirect(url_for('core.settings'))
-        else:
-            flash('Invalid currency selected.', 'danger')
-    return render_template('settings.html')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Помилка збереження: {e}', 'danger')
+        return redirect(url_for('core.settings'))
+    elif request.method == 'GET':
+        form.currency.data = current_user.currency
+    return render_template('settings.html', form=form)
