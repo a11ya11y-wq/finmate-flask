@@ -93,17 +93,44 @@ def sync_transaction():
             flash('No new transactions found.', 'info')
             return redirect(url_for('core.dashboard'))
 
+        default_category = Category.query.filter_by(user_id=current_user.id, name="Uncategorized").first()
+
+        if not default_category:
+            default_category = Category(name="Uncategorized", user_id=current_user.id)
+            db.session.add(default_category)
+            try:
+                db.session.commit()
+            except Exception as e :
+                db.session.rollback()
+                flash(f'Could not create default category. {e}', 'danger')
+                return redirect(url_for('core.dashboard'))
+
+        default_category_id = default_category.id
+        mcc_map = {}
+        all_categories = Category.query.filter(Category.user_id == current_user.id).all()
+
+        for cat in all_categories:
+            if cat.mcc_code:
+                codes = cat.mcc_code.split(',')
+                for code in codes:
+                    mcc_map[code.strip()] = cat.id
+
         mono_ids = {t['id'] for t in transactions_from_mono}
 
         existing_ids_query = db.session.query(Transactions.mono_id).filter(
             Transactions.user_id == current_user.id,
             Transactions.mono_id.in_(mono_ids)
         )
+
         existing_ids_set = {str(id_tuple[0]) for id_tuple in existing_ids_query}
         new_transactions_to_add = []
 
         for t_dict in transactions_from_mono:
             if t_dict['id'] not in existing_ids_set:
+
+                mcc_code_str = str(t_dict.get('mcc', ''))
+                assigned_category_id = mcc_map.get(mcc_code_str, default_category_id)
+
                 new_trans = Transactions(
                     title=t_dict['description'],
                     amount=abs(t_dict['amount'] / 100.0),
@@ -111,7 +138,7 @@ def sync_transaction():
                     user_id=current_user.id,
                     mono_id=t_dict['id'],
                     transaction_type='income' if t_dict['amount'] > 0 else 'expense',
-                    category_id = 1
+                    category_id =assigned_category_id
                 )
                 new_transactions_to_add.append(new_trans)
         if not new_transactions_to_add:

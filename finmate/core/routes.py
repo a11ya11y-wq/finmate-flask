@@ -73,13 +73,12 @@ def dashboard():
     total_expense = base_query.filter(Transactions.transaction_type == 'expense') \
                         .with_entities(func.sum(Transactions.amount)) \
                         .scalar() or 0.0
-    print(total_income)
-    print(total_expense)
+
     balance = total_income - total_expense
-    print(balance)
+
     expenses_by_category = base_query.filter(
         Transactions.transaction_type == 'expense'
-    ).join(Category).group_by(Category.name).with_entities(
+    ).outerjoin(Category).group_by(Category.name).with_entities(
         Category.name,
         func.sum(Transactions.amount)
     ).order_by(func.sum(Transactions.amount).desc()).all()
@@ -87,8 +86,7 @@ def dashboard():
     category_labels = [item[0] for item in expenses_by_category]
     category_amounts = [float(item[1]) for item in expenses_by_category]
 
-    tr_for_balance = Transactions.query.filter_by(user_id=current_user.id) \
-        .order_by(Transactions.created_at.asc()).all()
+    tr_for_balance = base_query.order_by(Transactions.created_at.asc()).all()
     balance_labels = []
     balance_data = []
     current_balance = 0.0

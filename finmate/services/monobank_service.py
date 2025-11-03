@@ -26,4 +26,4 @@ class MonoAPI:
         endpoint = f"/personal/statement/{account_id}/{from_date_timestamp}"
         return self._make_request(endpoint)
 
-client = MonoAPI(api_token='u-qhw2Pd8FudBP7D6Kse8Ce7gZab9nKfB9AD6UScl47Q')
+

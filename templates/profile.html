@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
-
 {% block title %}My Profile{% endblock %}
 
 {% block body %}
+    {% include '_flash_messages.html' %}
 <div class="container mt-5">
     <div class="row justify-content-center">
 
@@ -20,7 +20,6 @@
 
             <form method="POST" action="" novalidate>
                 {{ form.hidden_tag() }}
-
                 <div class="mb-3">
                     {{ form.new_username.label(class="form-label") }}
                     {{ form.new_username(class="form-control" + (" is-invalid" if form.new_username.errors else "")) }}
@@ -28,7 +27,6 @@
                         <div class="invalid-feedback">{{ error }}</div>
                     {% endfor %}
                 </div>
-
                 <div class="mb-3">
                     {{ form.avatar.label(class="form-label") }}
                     <div class="avatar-gallery">
@@ -43,10 +41,8 @@
                         <div class="text-danger small">{{ error }}</div>
                     {% endfor %}
                 </div>
-
                 <hr>
                 <h5>Change Password</h5>
-
                 <div class="mb-3">
                     {{ form.old_password.label(class="form-label") }}
                     {{ form.old_password(class="form-control" + (" is-invalid" if form.old_password.errors else "")) }}
@@ -54,7 +50,6 @@
                         <div class="invalid-feedback">{{ error }}</div>
                     {% endfor %}
                 </div>
-
                 <div class="mb-3">
                     {{ form.new_password.label(class="form-label") }}
                     {{ form.new_password(class="form-control" + (" is-invalid" if form.new_password.errors else "")) }}
@@ -62,7 +57,6 @@
                         <div class="invalid-feedback">{{ error }}</div>
                     {% endfor %}
                 </div>
-
                 <div class="mb-3">
                     {{ form.confirm_new_password.label(class="form-label") }}
                     {{ form.confirm_new_password(class="form-control" + (" is-invalid" if form.confirm_new_password.errors else "")) }}
@@ -70,39 +64,68 @@
                         <div class="invalid-feedback">{{ error }}</div>
                     {% endfor %}
                 </div>
-
                 {{ form.submit(class="btn btn-primary") }}
                 <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
                     Delete Account
                 </button>
             </form>
             <hr>
+
             <h5 class="mt-4">Manage Categories</h5>
 
-            <form method="POST" action="{{ url_for('profile.add_category') }}" class="input-group mb-3" novalidate>
+            <form method="POST" action="{{ url_for('profile.add_category') }}" class="mb-3 p-3 border rounded" novalidate>
                 {{ category_form.hidden_tag() }}
 
-                {{ category_form.category_name(class="form-control" + (" is-invalid" if category_form.category_name.errors else ""), placeholder="Enter new category name") }}
+                <div class="mb-3">
+                    {{ category_form.category_name.label(class="form-label") }}
+                    {{ category_form.category_name(class="form-control" + (" is-invalid" if category_form.category_name.errors else ""), placeholder="Enter new category name") }}
+                    {% for error in category_form.category_name.errors %}
+                        <div class="invalid-feedback d-block">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    {{ category_form.mcc_codes.label(class="form-label") }}
+                    {{ category_form.mcc_codes(class="form-control" + (" is-invalid" if category_form.mcc_codes.errors else ""), placeholder="e.g., 5812, 5411, 4121") }}
+                    <div class="form-text">Optional. Enter MCC codes, separated by commas.</div>
+                    {% for error in category_form.mcc_codes.errors %}
+                        <div class="invalid-feedback d-block">{{ error }}</div>
+                    {% endfor %}
+                </div>
 
                 {{ category_form.submit(class="btn btn-outline-success") }}
-
-                {% for error in category_form.category_name.errors %}
-                    <div class="invalid-feedback d-block">{{ error }}</div>
-                {% endfor %}
             </form>
 
             <div class="list-group">
                 {% for cat in categories %}
                 <div class="list-group-item d-flex justify-content-between align-items-center">
-                    {{ cat.name }}
 
-                    <form method="POST" action="{{ url_for('profile.delete_category', category_id=cat.id) }}">
-                        {{ delete_form.hidden_tag() }}
-                        <button type="submit" class="btn btn-danger btn-sm"
-                                onclick="return confirm('Are you sure?');">
-                            Delete
+                    <div>
+                        <h6 class="mb-0">{{ cat.name }}</h6>
+                        {% if cat.mcc_code %}
+                            <small class="text-muted">MCC: {{ cat.mcc_code }}</small>
+                        {% endif %}
+                    </div>
+
+                    <div class="btn-group" role="group" aria-label="Category Actions">
+
+                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                data-bs-toggle="modal"
+                                data-bs-target="#editCategoryModal"
+                                data-bs-cat-id="{{ cat.id }}"
+                                data-bs-cat-name="{{ cat.name }}"
+                                data-bs-cat-mcc="{{ cat.mcc_code | default('', true) }}">
+                            <i class="bi bi-pencil-fill"></i> Edit
                         </button>
-                    </form>
+
+                        <form method="POST" action="{{ url_for('profile.delete_category', category_id=cat.id) }}">
+                            {{ delete_form.hidden_tag() }}
+                            <button type="submit" class="btn btn-outline-danger btn-sm"
+                                    onclick="return confirm('Are you sure you want to delete this category?');">
+                                <i class="bi bi-trash-fill"></i> Delete
+                            </button>
+                        </form>
+                    </div>
                 </div>
                 {% endfor %}
             </div>
@@ -120,7 +143,6 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-
             <form action="{{ url_for('profile.delete_account') }}" method="POST" style="display: inline;">
               {{ delete_form.hidden_tag() }}
               <button type="submit" class="btn btn-danger">Delete My Account</button>
@@ -130,4 +152,66 @@
       </div>
     </div>
 
-</div> {% endblock %}
+    <div class="modal fade" id="editCategoryModal" tabindex="-1" aria-labelledby="editCategoryModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+          <form method="POST" id="editCategoryForm" novalidate>
+            {{ category_form.hidden_tag() }}
+
+            <div class="modal-header">
+              <h5 class="modal-title" id="editCategoryModalLabel">Edit Category</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+              <div class="mb-3">
+                  {{ category_form.category_name.label(class="form-label") }}
+                  {{ category_form.category_name(id="edit_category_name", class="form-control") }}
+              </div>
+              <div class="mb-3">
+                  {{ category_form.mcc_codes.label(class="form-label") }}
+                  {{ category_form.mcc_codes(id="edit_mcc_codes", class="form-control") }}
+                  <div class="form-text">Optional. Enter MCC codes, separated by commas.</div>
+              </div>
+            </div>
+
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              {{ category_form.submit(class="btn btn-primary") }}
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const editCategoryModal = document.getElementById('editCategoryModal');
+      if (editCategoryModal) {
+        editCategoryModal.addEventListener('show.bs.modal', function (event) {
+          const button = event.relatedTarget;
+          const categoryId = button.getAttribute('data-bs-cat-id');
+          const categoryName = button.getAttribute('data-bs-cat-name');
+          const categoryMcc = button.getAttribute('data-bs-cat-mcc');
+
+          const modalForm = editCategoryModal.querySelector('#editCategoryForm');
+          const modalInputName = editCategoryModal.querySelector('#edit_category_name');
+          const modalInputMcc = editCategoryModal.querySelector('#edit_mcc_codes');
+
+          modalForm.action = `/profile/category/edit/${categoryId}`;
+          modalInputName.value = categoryName;
+          modalInputMcc.value = categoryMcc;
+        });
+      }
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            })
+        });
+    </script>
+{% endblock %}

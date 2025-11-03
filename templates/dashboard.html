@@ -5,6 +5,7 @@
 {% endblock %}
 
 {% block body %}
+
     {% include '_flash_messages.html' %}
     {% set currency_symbol = '$' if current_user.currency == 'USD' else '€' if current_user.currency == 'EUR' else '₴' %}
 <div class="container-fluid">
@@ -189,27 +190,28 @@
                     <td>{{ t.category.name }}</td>
                     <td>{{ t.created_at.strftime('%Y-%m-%d') }}</td>
                     <td>
-                      <button type="button"
-                              class="btn btn-primary btn-sm"
-                              data-bs-toggle="modal"
-                              data-bs-target="#editTransactionModal"
-                              data-bs-transaction-id="{{ t.id }}"
-                              data-bs-title="{{ t.title }}"
-                              data-bs-amount="{{ t.amount }}"
-                              data-bs-type="{{ t.transaction_type }}"
-                              data-bs-category-id="{{ t.category_id }}"
-                              data-bs-note="{{ t.note | default('', true) }}"
-                              data-bs-date="{{ t.created_at.strftime('%Y-%m-%d') }}">
-                        Edit
-                      </button>
+  <div class="d-flex align-items-center" style="gap: 0.25rem;"> <button type="button"
+            class="btn btn-primary btn-sm"
+            data-bs-toggle="modal"
+            data-bs-target="#editTransactionModal"
+            data-bs-transaction-id="{{ t.id }}"
+            data-bs-title="{{ t.title }}"
+            data-bs-amount="{{ t.amount }}"
+            data-bs-type="{{ t.transaction_type }}"
+            data-bs-category-id="{{ t.category_id }}"
+            data-bs-note="{{ t.note | default('', true) }}"
+            data-bs-date="{{ t.created_at.strftime('%Y-%m-%d') }}">
+      Edit
+    </button>
 
-                      <form method="POST" action="{{ url_for('transaction.delete_transaction', id=t.id) }}" style="display:inline;">
-                        {{ delete_form.hidden_tag() }}
-                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?');">
-                          Delete
-                        </button>
-                      </form>
-                    </td>
+    <form method="POST" action="{{ url_for('transaction.delete_transaction', id=t.id) }}">
+      {{ delete_form.hidden_tag() }}
+      <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?');">
+        Delete
+      </button>
+    </form>
+
+  </div> </td>
                   </tr>
                 {% else %}
                   <tr><td colspan="6" class="text-center text-muted">No transactions yet</td></tr>

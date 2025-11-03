@@ -35,6 +35,7 @@ def profile():
         form.new_username.data  = current_user.username
         form.avatar.data = current_user.avatar
 
+
     categories = Category.query.filter_by(user_id=current_user.id)
     return render_template('profile.html',
                            form=form,
@@ -50,6 +51,7 @@ def add_category():
     form = CategoryForm()
     if form.validate_on_submit():
         new_category = new_category = Category(
+            mcc_code= form.mcc_codes.data,
             name=form.category_name.data,
             user_id=current_user.id
         )
@@ -68,6 +70,29 @@ def add_category():
 
     return redirect(url_for('profile.profile'))
 
+
+@bp.route('/category/edit/<int:category_id>', methods=['POST'])
+@login_required
+def edit_category(category_id):
+    category = Category.query.get_or_404(category_id)
+    if category.user_id != current_user.id:
+        flash('','')
+        return redirect(url_for('profile.profile'))
+
+    form = CategoryForm()
+    if form.validate_on_submit():
+        category.name = form.category_name.data
+        category.mcc_code = form.mcc_code.data
+        try:
+            db.session.commit()
+            flash('Category updated!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error updating category: {e}', 'danger')
+            return redirect(url_for('profile.profile'))
+
+
+    return redirect(url_for('profile.profile'))
 
 
 @bp.route('/category/delete/<int:category_id>', methods=['POST'])

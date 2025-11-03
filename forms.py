@@ -2,7 +2,7 @@ import os
 
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, RadioField, DecimalField, SelectField, DateField
-from wtforms.validators import DataRequired, Email, EqualTo, ValidationError, Length, Optional, NumberRange
+from wtforms.validators import DataRequired, Email, EqualTo, ValidationError, Length, Optional, NumberRange, Regexp
 from flask_login import current_user
 
 from finmate.models import Users, Category, Transactions, Budget
@@ -101,13 +101,36 @@ class ProfileForm(FlaskForm):
 
 class CategoryForm(FlaskForm):
     category_name = StringField('Enter New Category Name', validators=[DataRequired(message='The category name cannot be empty.')])
+    mcc_codes = StringField('MCC Codes (comma-separated)',validators=[Optional(), Length(max=200),#Regexp дозволяю токо числа коми і пробіли
+                                                                      Regexp(r'^[\d,\s]*$',message="Invalid format. Only numbers, commas, and spaces are allowed.")])
     submit = SubmitField('Add')
 
 
+    def __init__(self, original_name = None, *args, **kwargs):
+        super(CategoryForm, self).__init__(*args, **kwargs)
+        self.original_name = original_name
+
+
     def validate_category_name(self, category_name):
-        category_exsist=  Category.query.filter_by(name=category_name.data, user_id=current_user.id).first()
-        if category_exsist:
-            raise ValidationError('A category with this name already exists.')
+        if category_name.data != self.original_name:
+            existing_category = Category.query.filter_by(
+                name=category_name.data,
+                user_id=current_user.id
+            ).first()
+
+            if existing_category:
+                raise ValidationError('A category with this name already exists.')
+
+
+    def validate_mcc_codes(self, mcc_codes):
+        if mcc_codes.data:
+            codes = mcc_codes.data.split(',')
+            for code in codes:
+                code_trimmed = code.strip()
+                if not code_trimmed.isdigit():
+                    raise ValidationError(f'"{code_trimmed}" is not a valid number.')
+                if len(code_trimmed) != 4:
+                    raise ValidationError(f'"{code_trimmed}" should be a 4-digit number.')
 
 
 # Для делита категорий\транзакций і логаута
