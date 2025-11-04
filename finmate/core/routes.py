@@ -10,13 +10,6 @@ from finmate import db
 from finmate.core import bp
 from finmate.models import Transactions, Category
 
-
-@bp.route('/home')
-@bp.route('/')
-def home():
-    return render_template('home.html')
-
-
 @bp.route('/dashboard', methods=['GET', 'POST'])
 @login_required
 def dashboard():

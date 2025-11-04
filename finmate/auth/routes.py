@@ -65,4 +65,4 @@ def logout():
     form = DeleteForm()
     logout_user()
     flash('You have logged out of the system.', 'success')
-    return redirect(url_for('core.home'))
+    return redirect(url_for('auth.login'))

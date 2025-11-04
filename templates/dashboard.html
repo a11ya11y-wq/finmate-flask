@@ -11,7 +11,9 @@
 <div class="container-fluid">
   <div class="row">
 
-    <div class="col-md-3 col-lg-2 bg-light border-end vh-100 p-4">
+    <div class="col-lg-2 col-md-3 p-3
+                bg-body-tertiary text-body
+                border rounded shadow-sm vh-100">
       <h5 class="mb-3">Add Transaction</h5>
 
       <form method="POST" action="" novalidate>
@@ -70,15 +72,15 @@
 
         <div class="mb-3">
           {{ form.note.label(class="form-label") }}
-          {{ form.note(class="form-control" + (" is-invalid" if form.note.errors else ""), rows="2") }}
+          {{ form.note(class="form-control" + (" is-invalid" if form.note.errors else ""), rows="3") }}
           {% for error in form.note.errors %}
               <div class="invalid-feedback">{{ error }}</div>
           {% endfor %}
         </div>
 
-        {{ form.submit(class="btn btn-primary w-100") }}
+        {{ form.submit(class="btn btn-outline-primary w-100") }}
       </form>
-    </div> <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+    </div> <main class="col-lg-10 col-md-9 ms-sm-auto px-md-4">
 
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <h1 class="h2">Dashboard</h1>
@@ -191,7 +193,7 @@
                     <td>{{ t.created_at.strftime('%Y-%m-%d') }}</td>
                     <td>
   <div class="d-flex align-items-center" style="gap: 0.25rem;"> <button type="button"
-            class="btn btn-primary btn-sm"
+            class="btn btn-outline-primary btn-sm"
             data-bs-toggle="modal"
             data-bs-target="#editTransactionModal"
             data-bs-transaction-id="{{ t.id }}"
@@ -206,7 +208,7 @@
 
     <form method="POST" action="{{ url_for('transaction.delete_transaction', id=t.id) }}">
       {{ delete_form.hidden_tag() }}
-      <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?');">
+      <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Are you sure?');">
         Delete
       </button>
     </form>
@@ -225,6 +227,8 @@
       <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
       <script>
+          const isDarkMode = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+
         const ctx = document.getElementById('categoryDonutChart');
         if (ctx) {
           new Chart(ctx, {
@@ -239,7 +243,7 @@
                   'rgba(255, 206, 86, 0.8)', 'rgba(75, 192, 192, 0.8)',
                   'rgba(153, 102, 255, 0.8)', 'rgba(255, 159, 64, 0.8)'
                 ],
-                borderColor: '#fff',
+                borderColor: isDarkMode ? 'transparent' : '#fff',
                 borderWidth: 2
               }]
             },

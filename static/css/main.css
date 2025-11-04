@@ -5,7 +5,7 @@
 }
 /* Стили для страниц входа/регистрации */
 .auth-body {
-  background-color: #f8f9fa; /* Светло-серый фон, как в референсе */
+  background-color: #f8f9fa; /* Світло-сірий фон */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -14,11 +14,24 @@
 
 .auth-form-container {
   width: 100%;
-  max-width: 400px; /* Ограничиваем ширину формы */
+  max-width: 400px;
   padding: 2rem;
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1); /* Легкая тень */
-  border-radius: 0.5rem; /* Скругленные углы */
-  background-color: white;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+  border-radius: 0.5rem;
+  background-color: #ffffff; /* Білий фон */
+}
+
+/* 2. ❗️❗️❗️ ДОДАЙ ЦЕЙ БЛОК ДЛЯ ТЕМНОЇ ТЕМИ ❗️❗️❗️ */
+/* Він "перебиває" стилі вище,
+      коли 'data-bs-theme="dark"'
+*/
+[data-bs-theme="dark"] .auth-body {
+  background-color: #212529; /* Темний фон */
+}
+
+[data-bs-theme="dark"] .auth-form-container {
+  background-color: #343a40; /* Темно-сірий фон для форми */
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.5);
 }
 
 .auth-form-container .logo {

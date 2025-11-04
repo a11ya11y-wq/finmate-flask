@@ -50,7 +50,7 @@
                         </div>
                     </div>
 
-                    {{ form.submit(class="btn btn-primary w-100") }}
+                    {{ form.submit(class="btn btn-outline-primary w-100") }}
                 </form>
             </div>
         </div>
@@ -73,22 +73,22 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between mb-1">
                                 <h5 class="card-title mb-0">
-                                    {{ budget_info.budget.category.name }}
+    {{ budget_info.budget.category.name }}
 
-                                    {% if budget_info.budget.is_recurring %}
-                                        <span class="badge bg-secondary fw-normal ms-1"
-                                              data-bs-toggle="tooltip"
-                                              title="Resets on the 1st of the month">
-                                            Recurring
-                                        </span>
-                                    {% else %}
-                                        <span class="badge bg-info fw-normal ms-1"
-                                              data-bs-toggle="tooltip"
-                                              title="One-time budget (does not reset)">
-                                            One-Time
-                                        </span>
-                                    {% endif %}
-                                </h5>
+    {% if budget_info.budget.is_recurring %}
+        <span class="badge bg-light text-dark fw-normal ms-1"
+              data-bs-toggle="tooltip"
+              title="Resets on the 1st of the month">
+            Recurring
+        </span>
+    {% else %}
+        <span class="badge bg-primary text-white fw-normal ms-1"
+              data-bs-toggle="tooltip"
+              title="One-time budget (does not reset)">
+            One-Time
+        </span>
+    {% endif %}
+</h5>
                                 <span class="fw-bold">
                                     {{ currency_symbol }}{{ "%.2f"|format(budget_info.total_spent) }}
                                     <span class="text-muted">/ {{ currency_symbol }}{{ "%.2f"|format(budget_info.budget.amount) }}</span>
