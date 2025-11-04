@@ -10,12 +10,18 @@ from finmate.models import Transactions, Users, Category
 from finmate.profile import bp
 
 
+MAX_CATEGORIES_PER_USER = 10
+
 @bp.route('/', methods=['POST', 'GET'])
 @login_required
 def profile():
     form = ProfileForm(original_username=current_user.username)
     delete_form = DeleteForm()
     category_form = CategoryForm()
+
+    current_user_categories = Category.query.filter_by(user_id=current_user.id).count()
+
+    max_category_limit =MAX_CATEGORIES_PER_USER
 
     if form.validate_on_submit():
         current_user.username = form.new_username.data
@@ -41,7 +47,9 @@ def profile():
                            form=form,
                            delete_form=delete_form,
                            categories=categories,
-                           category_form=category_form
+                           category_form=category_form,
+                           current_user_categories=current_user_categories,
+                           max_category_limit=max_category_limit
                            )
 
 
@@ -50,6 +58,13 @@ def profile():
 def add_category():
     form = CategoryForm()
     if form.validate_on_submit():
+
+        current_user_categories = Category.query.filter_by(user_id=current_user.id).count()
+
+        if current_user_categories >= MAX_CATEGORIES_PER_USER:
+            flash(f'You have reached the limit of {MAX_CATEGORIES_PER_USER} categories.','warning')
+            return redirect(url_for('profile.profile'))
+
         new_category = new_category = Category(
             mcc_code= form.mcc_codes.data,
             name=form.category_name.data,

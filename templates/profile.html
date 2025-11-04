@@ -84,6 +84,8 @@
                     {% endfor %}
                 </div>
 
+
+
                 <div class="mb-3">
                     {{ category_form.mcc_codes.label(class="form-label") }}
                     {{ category_form.mcc_codes(class="form-control" + (" is-invalid" if category_form.mcc_codes.errors else ""), placeholder="e.g., 5812, 5411, 4121") }}
@@ -95,6 +97,29 @@
 
                 {{ category_form.submit(class="btn btn-outline-success") }}
             </form>
+
+        <div class="mb-4">
+    <div class="d-flex justify-content-between text-muted">
+        <small>Category limit</small>
+        <small>{{ current_user_categories }} / {{ max_category_limit }} used</small>
+    </div>
+
+    {% set percentage = ((current_user_categories / (max_category_limit or 1)) * 100) | int %}
+
+    {% set bar_color = 'bg-success' %}  {# Зелений за замовчуванням #}
+    {% if percentage > 90 %}
+        {% set bar_color = 'bg-danger' %}   {# Червоний (небезпека) #}
+    {% elif percentage > 70 %}
+        {% set bar_color = 'bg-warning' %}  {# Жовтий (попередження) #}
+    {% endif %}
+
+    <div class="progress" style="height: 5px;"
+         role="progressbar" aria-label="Category limit"
+         aria-valuenow="{{ percentage }}" aria-valuemin="0" aria-valuemax="100">
+
+        <div class="progress-bar {{ bar_color }}" style="width: {{ percentage }}%;"></div>
+    </div>
+</div>
 
             <div class="list-group">
                 {% for cat in categories %}

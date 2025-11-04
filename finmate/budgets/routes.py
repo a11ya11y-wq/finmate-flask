@@ -12,15 +12,19 @@ from finmate.budgets import bp
 from finmate.models import Transactions, Category, Budget
 
 
+MAX_BUDGET_PER_USER = 5
+
 @bp.route('/', methods=['GET', 'POST'])
 @login_required
-def budgets():#TODO: Сортировку по процентам заполнения
+def budgets():
     form = BudgetForm()
     delete_form = DeleteForm()
 
     categories = Category.query.filter_by(user_id=current_user.id).order_by(Category.name).all()
     user_budgets = Budget.query.filter_by(user_id=current_user.id).all()
     budgets_data = []
+    budgets_data_sorted =[]
+
 
     form.category.choices = [
         (c.id, c.name) for c in categories
@@ -28,6 +32,7 @@ def budgets():#TODO: Сортировку по процентам заполне
     form.category.choices.insert(0, (0, '-- Select a category --'))
 
     if form.validate_on_submit():
+
         amount = form.amount.data
         category_id = form.category.data
         is_recurring = form.is_recurring.data
@@ -39,6 +44,11 @@ def budgets():#TODO: Сортировку по процентам заполне
             budget_exist.is_recurring = is_recurring
             flash('Budget updated!', 'success')
         else:
+            # LIMIT BUDGETS
+            current_user_budgets = Budget.query.filter_by(user_id=current_user.id).count()
+            if current_user_budgets >= MAX_BUDGET_PER_USER:
+                flash(f'You have reached the limit of {MAX_BUDGET_PER_USER} budgets', 'warning')
+                return redirect(url_for('budget.budgets'))
             new_budget=Budget(
                 amount=amount,
                 category_id=category_id,
@@ -122,9 +132,15 @@ def budgets():#TODO: Сортировку по процентам заполне
             'deadline_info': deadline_info
         })
 
+        budgets_data_sorted = sorted(
+            budgets_data,
+            key=lambda item: item['percentage'],
+            reverse=True
+        )
+
     return render_template('budget.html',
                            categories=categories,
-                           budgets_data=budgets_data,
+                           budgets_data=budgets_data_sorted,
                            form=form,
                            delete_form=delete_form
                            )

@@ -66,11 +66,23 @@ def dashboard():
 
     transactions = base_query.order_by(Transactions.created_at.desc()).limit(15).all()
 
-    total_income = base_query.filter(Transactions.transaction_type == 'income') \
+    #Total expense/income
+    total_income_by_period = base_query.filter(Transactions.transaction_type == 'income') \
                        .with_entities(func.sum(Transactions.amount)) \
                        .scalar() or 0.0
 
-    total_expense = base_query.filter(Transactions.transaction_type == 'expense') \
+    total_expense_by_period = base_query.filter(Transactions.transaction_type == 'expense') \
+                        .with_entities(func.sum(Transactions.amount)) \
+                        .scalar() or 0.0
+
+    base_query_without_period = Transactions.query.filter_by(user_id=current_user.id)
+
+    # Current balance
+    total_income = base_query_without_period.filter(Transactions.transaction_type == 'income') \
+                       .with_entities(func.sum(Transactions.amount)) \
+                       .scalar() or 0.0
+
+    total_expense = base_query_without_period.filter(Transactions.transaction_type == 'expense') \
                         .with_entities(func.sum(Transactions.amount)) \
                         .scalar() or 0.0
 
@@ -103,8 +115,8 @@ def dashboard():
                            transactions=transactions,
                            period=period,
                            categories=categories,
-                           total_income=total_income,
-                           total_expense=total_expense,
+                           total_income=total_income_by_period,
+                           total_expense=total_expense_by_period,
                            balance=balance,
                            category_labels=category_labels,
                            category_amounts=category_amounts,

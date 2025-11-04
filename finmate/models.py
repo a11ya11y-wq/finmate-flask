@@ -8,7 +8,7 @@ from finmate import db
 
 
 
-class Budget(db.Model): #TODO: Ограничить к-во бюджетов до 5 на одного пользователя
+class Budget(db.Model):
     __tablename__ = 'budgets'
 
     id = db.Column(db.Integer, nullable=False, primary_key = True)
