@@ -5,7 +5,6 @@
 {% endblock %}
 
 {% block body %}
-
     {% include '_flash_messages.html' %}
     {% set currency_symbol = '$' if current_user.currency == 'USD' else '€' if current_user.currency == 'EUR' else '₴' %}
 <div class="container-fluid">
@@ -14,6 +13,7 @@
     <div class="col-lg-2 col-md-3 p-3
                 bg-body-tertiary text-body
                 border rounded shadow-sm vh-100">
+
       <h5 class="mb-3">Add Transaction</h5>
 
       <form method="POST" action="" novalidate>
@@ -72,21 +72,19 @@
 
         <div class="mb-3">
           {{ form.note.label(class="form-label") }}
-          {{ form.note(class="form-control" + (" is-invalid" if form.note.errors else ""), rows="3") }}
+          {{ form.note(class="form-control" + (" is-invalid" if form.note.errors else ""), rows="3") }} {# Змінено 'rows' на 3 #}
           {% for error in form.note.errors %}
               <div class="invalid-feedback">{{ error }}</div>
           {% endfor %}
         </div>
 
-        {{ form.submit(class="btn btn-outline-primary w-100") }}
+        {{ form.submit(class="btn btn-outline-primary w-100") }} {# Змінено на 'outline' #}
       </form>
     </div> <main class="col-lg-10 col-md-9 ms-sm-auto px-md-4">
 
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <h1 class="h2">Dashboard</h1>
-
         <div class="d-flex align-items-center">
-
             <form method="GET" action="{{ url_for('core.dashboard') }}" class="d-flex me-2">
               <select name="period" class="form-select w-auto" onchange="this.form.submit()">
                 <option value="all" {% if period=='all' %}selected{% endif %}>All time</option>
@@ -94,7 +92,6 @@
                 <option value="month" {% if period=='month' %}selected{% endif %}>Last 30 days</option>
               </select>
             </form>
-
             <form method="POST" action="{{ url_for('transaction.sync_transaction') }}">
               {{ delete_form.hidden_tag() }}
               <button type="submit" class="btn btn-outline-primary d-flex align-items-center"
@@ -102,7 +99,6 @@
                 <i class="bi bi-arrow-repeat me-1"></i> Sync
               </button>
             </form>
-
         </div>
       </div>
 
@@ -166,12 +162,12 @@
             <table class="table table-striped">
               <thead>
                 <tr>
-                  <th>#</th>
-                  <th>Title</th>
-                  <th>Amount</th>
-                  <th>Category</th>
-                  <th>Date</th>
-                  <th>Action</th>
+                  <th style="width: 5%;">#</th>
+                  <th style="width: 30%;">Title</th>
+                  <th style="width: 15%;">Amount</th>
+                  <th style="width: 20%;">Category</th>
+                  <th style="width: 15%;">Date</th>
+                  <th style="width: 15%;">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -189,31 +185,31 @@
                     {% else %}
                       <td class="text-danger">-{{ currency_symbol }}{{ '%.2f'|format(t.amount) }}</td>
                     {% endif %}
-                    <td>{{ t.category.name }}</td>
+                    <td>{{ t.category.name if t.category else 'Uncategorized' }}</td>
                     <td>{{ t.created_at.strftime('%Y-%m-%d') }}</td>
                     <td>
-  <div class="d-flex align-items-center" style="gap: 0.25rem;"> <button type="button"
-            class="btn btn-outline-primary btn-sm"
-            data-bs-toggle="modal"
-            data-bs-target="#editTransactionModal"
-            data-bs-transaction-id="{{ t.id }}"
-            data-bs-title="{{ t.title }}"
-            data-bs-amount="{{ t.amount }}"
-            data-bs-type="{{ t.transaction_type }}"
-            data-bs-category-id="{{ t.category_id }}"
-            data-bs-note="{{ t.note | default('', true) }}"
-            data-bs-date="{{ t.created_at.strftime('%Y-%m-%d') }}">
-      Edit
-    </button>
-
-    <form method="POST" action="{{ url_for('transaction.delete_transaction', id=t.id) }}">
-      {{ delete_form.hidden_tag() }}
-      <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Are you sure?');">
-        Delete
-      </button>
-    </form>
-
-  </div> </td>
+                      <div class="d-flex align-items-center" style="gap: 0.25rem;">
+                        <button type="button"
+                                class="btn btn-outline-primary btn-sm"
+                                data-bs-toggle="modal"
+                                data-bs-target="#editTransactionModal"
+                                data-bs-transaction-id="{{ t.id }}"
+                                data-bs-title="{{ t.title }}"
+                                data-bs-amount="{{ t.amount }}"
+                                data-bs-type="{{ t.transaction_type }}"
+                                data-bs-category-id="{{ t.category_id }}"
+                                data-bs-note="{{ t.note | default('', true) }}"
+                                data-bs-date="{{ t.created_at.strftime('%Y-%m-%d') }}">
+                          Edit
+                        </button>
+                        <form method="POST" action="{{ url_for('transaction.delete_transaction', id=t.id) }}">
+                          {{ delete_form.hidden_tag() }}
+                          <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Are you sure?');">
+                            Delete
+                          </button>
+                        </form>
+                      </div>
+                    </td>
                   </tr>
                 {% else %}
                   <tr><td colspan="6" class="text-center text-muted">No transactions yet</td></tr>
@@ -227,8 +223,7 @@
       <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
       <script>
-          const isDarkMode = document.documentElement.getAttribute('data-bs-theme') === 'dark';
-
+        const isDarkMode = document.documentElement.getAttribute('data-bs-theme') === 'dark';
         const ctx = document.getElementById('categoryDonutChart');
         if (ctx) {
           new Chart(ctx, {
@@ -243,7 +238,7 @@
                   'rgba(255, 206, 86, 0.8)', 'rgba(75, 192, 192, 0.8)',
                   'rgba(153, 102, 255, 0.8)', 'rgba(255, 159, 64, 0.8)'
                 ],
-                borderColor: isDarkMode ? 'transparent' : '#fff',
+                borderColor: isDarkMode ? 'transparent' : '#fff', // 👈 Виправлено обводку
                 borderWidth: 2
               }]
             },
@@ -371,6 +366,7 @@
       const note = button.getAttribute('data-bs-note');
       const modalForm = editModal.querySelector('#editTransactionForm');
 
+      // ❗️ ВИПРАВЛЕНО: 'action' тепер вказує на 'transaction.edit_transaction'
       modalForm.action = `/transaction/edit/${transactionId}`;
 
       modalForm.querySelector('#edit_title').value = title;

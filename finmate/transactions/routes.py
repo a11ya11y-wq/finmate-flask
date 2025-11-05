@@ -68,7 +68,7 @@ def delete_transaction(id):
 
 @bp.route('/sync', methods=['POST'])
 @login_required
-def sync_transaction():
+def sync_transaction():#TODO: Захист від спаму (в бд добавить ласт_моно_реквест(Дейттайм))
     form = DeleteForm()
 
     if form.validate_on_submit():
@@ -89,6 +89,20 @@ def sync_transaction():
         from_time = int(thirty_days_ago.timestamp())
 
         transactions_from_mono = api.get_transactions(account_id, from_time)
+
+        if isinstance(transactions_from_mono, dict):
+            error_msg = transactions_from_mono.get('errorDescription', 'Unknown API Error')
+            if error_msg == 'Too many requests':
+                flash('Too many requests! The Monobank API allows 1 request per minute. Please wait.', 'warning')
+            else:
+                flash(f'API Error: {error_msg}', 'danger')
+
+            return redirect(url_for('core.dashboard'))
+
+        if transactions_from_mono is None:
+            flash('Error connecting to Monobank API. Please try again in a moment.', 'danger')
+            return redirect(url_for('core.dashboard'))
+
         if not transactions_from_mono:
             flash('No new transactions found.', 'info')
             return redirect(url_for('core.dashboard'))
