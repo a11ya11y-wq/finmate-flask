@@ -72,17 +72,25 @@ def sync_transaction():#TODO: Захист від спаму (в бд добав
     form = DeleteForm()
 
     if form.validate_on_submit():
-        token = current_user.monobank_api_token
-        if not token:
-            flash('API token not found!', 'danger')
-            return redirect(url_for('core.settings'))
 
-        api = MonoAPI(api_token=token)
-        client_info = api.get_client_info()
+        token_bytes = current_user.monobank_api_token
 
-        if not client_info:
-            flash('Invalid API token or Monobank error.','danger')
-            return redirect(url_for('core.settings'))
+        if not token_bytes:
+            flash('API token not found! Please add it in the settings.','danger')
+            return redirect(url_for('core.dashboard'))
+
+        try:
+            api = MonoAPI(encrypted_token_bytes=token_bytes)
+            client_info = api.get_client_info()
+        except Exception as e:
+            flash(f'Error processing token: {e}. Please update your token.', 'danger')
+            return redirect(url_for('core.dashboard'))
+
+        if not client_info or 'accounts' not in client_info:
+            error_msg = client_info.get('errorDescription', 'Invalid API token') if isinstance(client_info,
+                                                                                               dict) else 'Invalid API token'
+            flash(f'Monobank Error: {error_msg}', 'danger')
+            return redirect(url_for('core.dashboard'))
 
         account_id = client_info['accounts'][0]['id']
         thirty_days_ago = datetime.utcnow() - timedelta(days=30)

@@ -1,10 +1,11 @@
 from datetime import date, timedelta
 
-from flask import render_template, request, url_for, flash
+from flask import render_template, request, url_for, flash, current_app
 from flask_login import login_required, current_user
 from sqlalchemy import func
 from werkzeug.utils import redirect
 
+from cryptography.fernet import Fernet
 from forms import DeleteForm, TransactionForm, CurrencyForm, ApiTokenForm
 from finmate import db
 from finmate.core import bp
@@ -127,15 +128,24 @@ def settings():#TODO: Добавить функцию выкачивать да�
     token_form = ApiTokenForm()
 
     if token_form.validate_on_submit() and token_form.submit.data:
-        #Перевірку від самого апи добать не забути!!
-        current_user.monobank_api_token = token_form.token.data
+        #Шифровка моно токена при сохранении
         try:
+            key = current_app.config['ENCRYPTION_KEY']
+
+            cipher_suite = Fernet(key)
+
+            token_bytes = token_form.token.data.encode()
+            encrypted_token = cipher_suite.encrypt(token_bytes)
+            current_user.monobank_api_token = encrypted_token
+
+
             db.session.commit()
             flash('Monobank API token saved!', 'success')
+
         except Exception as e:
             db.session.rollback()
             flash(f'Token saving error: {e}', 'danger')
-        return redirect(url_for('core.settings'))
+            return redirect(url_for('core.settings'))
 
     if form.validate_on_submit() and form.submit.data:
         current_user.currency = form.currency.data
@@ -149,5 +159,4 @@ def settings():#TODO: Добавить функцию выкачивать да�
 
     elif request.method == 'GET':
         form.currency.data = current_user.currency
-        token_form.token.data = current_user.monobank_api_token
     return render_template('settings.html', form=form, token_form=token_form)

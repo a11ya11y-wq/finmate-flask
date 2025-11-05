@@ -67,7 +67,7 @@ class Users(db.Model, UserMixin):
     avatar = db.Column(db.String(200), nullable=False, default='avatars/default/default.svg')
     currency = db.Column(db.String(5), nullable=False, default='USD')
     password_hash = db.Column(db.String, nullable=False)
-    monobank_api_token = db.Column(db.String, nullable=True, unique=True)
+    monobank_api_token = db.Column(db.LargeBinary, nullable=True)
 
     budgets = db.relationship('Budget', back_populates='user', lazy=True, cascade="all, delete-orphan")
     categories = db.relationship('Category', back_populates='user', lazy=True, cascade="all, delete-orphan")

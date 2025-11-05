@@ -27,9 +27,13 @@ def create_app():
                 template_folder=template_folder,
                 static_folder=static_folder
                 )
+
     load_dotenv()
+
     app.config['SQLALCHEMY_DATABASE_URI'] =  getenv('DATABASE_URL')
     app.config['SECRET_KEY'] = getenv('SECRET_KEY')
+    app.config['ENCRYPTION_KEY'] = os.environ.get('ENCRYPTION_KEY').encode('utf-8')
+
     db.init_app(app)
     migrate = Migrate(app, db)
 
