@@ -175,3 +175,11 @@ class ApiTokenForm(FlaskForm):
     token = StringField('MonoBank API Token', validators=[DataRequired(), Length(min=40, max=100)],
                         render_kw={"placeholder": 'Insert your token from api.monobank.ua'})
     submit = SubmitField('Save token')
+
+class ConfirmDeleteForm(FlaskForm):
+    password = StringField('Enter your password', validators=[DataRequired(message='Enter your password.')])
+    submit = SubmitField('Delete Account')
+
+    def validate_password(self, password):
+        if not current_user.chek_hash_pwd(password.data):
+            raise ValidationError('Incorrect password. Please try again.')

@@ -65,9 +65,11 @@
                     {% endfor %}
                 </div>
                 {{ form.submit(class="btn btn-primary") }}
-                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
-                    Delete Account
-                </button>
+                <button type="button" class="btn btn-danger"
+        data-bs-toggle="modal"
+        data-bs-target="#deleteAccountModal">
+    Delete Account
+</button>
             </form>
             <hr>
 
@@ -132,14 +134,12 @@
                         {% endif %}
                     </div>
 
-                    <div class="btn-group" role="group" aria-label="Category Actions">
-
-                        <button type="button" class="btn btn-outline-primary btn-sm"
+                   <div class="d-flex" style="gap: 0.35rem;"> <button type="button" class="btn btn-outline-primary btn-sm"
                                 data-bs-toggle="modal"
                                 data-bs-target="#editCategoryModal"
                                 data-bs-cat-id="{{ cat.id }}"
                                 data-bs-cat-name="{{ cat.name }}"
-                                data-bs-cat-mcc="{{ cat.mcc_code | default('', true) }}">
+                                data-bs-cat-mcc="{{ cat.mcc_codes | default('', true) }}">
                             <i class="bi bi-pencil-fill"></i> Edit
                         </button>
 
@@ -156,26 +156,47 @@
             </div>
 
         </div>
-    </div> <div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="deleteAccountModalLabel">Confirm Account Deletion</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            Are you sure you want to delete your account? This action cannot be undone.
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <form action="{{ url_for('profile.delete_account') }}" method="POST" style="display: inline;">
-              {{ delete_form.hidden_tag() }}
-              <button type="submit" class="btn btn-danger">Delete My Account</button>
-            </form>
+    </div>
+    <div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <form action="{{ url_for('profile.delete_account') }}" method="POST" novalidate>
+
+        {{ confirm_delete_form.hidden_tag() }} <div class="modal-header">
+          <h5 class="modal-title" id="deleteAccountModalLabel">Confirm Account Deletion</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <p class="text-danger fw-bold">
+            <i class="bi bi-exclamation-triangle-fill"></i> This action cannot be undone!
+
+          </p>
+          <p>
+            Please enter your password to confirm that you want to
+            <strong>permanently</strong> delete your account and all associated data
+(transactions, budgets, categories).
+          </p>
+
+          <div class="form-floating mb-3">
+            {{ confirm_delete_form.password(class="form-control" + (" is-invalid" if confirm_delete_form.password.errors else ""), placeholder="Password") }}
+            {{ confirm_delete_form.password.label }}
+            {% for error in confirm_delete_form.password.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
           </div>
         </div>
-      </div>
-    </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+
+          {{ confirm_delete_form.submit(class="btn btn-danger") }}
+        </div>
+
+      </form> </div>
+  </div>
+</div>
 
     <div class="modal fade" id="editCategoryModal" tabindex="-1" aria-labelledby="editCategoryModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
@@ -210,6 +231,8 @@
         </div>
       </div>
     </div>
+</div>
+
 
     <script>
       const editCategoryModal = document.getElementById('editCategoryModal');

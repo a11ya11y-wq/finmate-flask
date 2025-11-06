@@ -4,7 +4,7 @@ from flask import render_template, request, url_for, flash, current_app
 from flask_login import login_required, logout_user, current_user
 from werkzeug.utils import redirect
 
-from forms import ProfileForm, DeleteForm, CategoryForm
+from forms import ProfileForm, DeleteForm, CategoryForm, ConfirmDeleteForm
 from finmate import db
 from finmate.models import Transactions, Users, Category
 from finmate.profile import bp
@@ -18,6 +18,7 @@ def profile():
     form = ProfileForm(original_username=current_user.username)
     delete_form = DeleteForm()
     category_form = CategoryForm()
+    confirm_delete_form = ConfirmDeleteForm()
 
     current_user_categories = Category.query.filter_by(user_id=current_user.id).count()
 
@@ -49,7 +50,8 @@ def profile():
                            categories=categories,
                            category_form=category_form,
                            current_user_categories=current_user_categories,
-                           max_category_limit=max_category_limit
+                           max_category_limit=max_category_limit,
+                           confirm_delete_form=confirm_delete_form
                            )
 
 
@@ -130,10 +132,22 @@ def delete_category(category_id):
 @bp.route('/delete', methods=['POST'])
 @login_required
 def delete_account():
-    if request.method == 'POST':
+    form = ConfirmDeleteForm()
+
+    if form.validate_on_submit():
         user_to_delete = Users.query.get(current_user.id)
         logout_user()
-        db.session.delete(user_to_delete)
-        db.session.commit()
-    flash('Your account and all associated data have been permanently deleted.', 'success')
-    return redirect(url_for('core.home'))
+        try:
+            db.session.delete(user_to_delete)
+            db.session.commit()
+            flash('Your account and all associated data have been permanently deleted.', 'success')
+            return redirect(url_for('auth.login'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error during deletion: {e}', 'danger')
+            return redirect(url_for('profile.profile'))
+    for field, errors in form.errors.items():
+        for error in errors:
+            flash(f'{form[field].label.text}: {error}', 'danger')
+
+    return redirect(url_for('profile.profile', form=form))
