@@ -20,8 +20,8 @@ def profile():
     category_form = CategoryForm()
     confirm_delete_form = ConfirmDeleteForm()
 
+    #Progres bar
     current_user_categories = Category.query.filter_by(user_id=current_user.id).count()
-
     max_category_limit =MAX_CATEGORIES_PER_USER
 
     if form.validate_on_submit():

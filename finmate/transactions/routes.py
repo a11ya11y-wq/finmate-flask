@@ -51,7 +51,6 @@ def edit_transaction(transaction_id):
         return redirect(url_for('core.dashboard'))
 
 
-
 @bp.route('/delete/<int:id>', methods=['POST'])
 @login_required
 def delete_transaction(id):
@@ -59,9 +58,7 @@ def delete_transaction(id):
     if transaction:
         db.session.delete(transaction)
         db.session.commit()
-        flash("Transaction deleted successfully."
-
-, category='success')
+        flash("Transaction deleted successfully.", category='success')
 
     return redirect(url_for('core.dashboard'))
 

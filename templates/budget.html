@@ -4,13 +4,6 @@
 {% block body %}
     {% include '_flash_messages.html' %}
     {% set currency_symbol = '$' if current_user.currency == 'USD' else '€' if current_user.currency == 'EUR' else '₴' %}
-<div class="row">
-    <div class="col-12">
-        <h1 class="mb-4">Budgets</h1>
-        <p class="lead">Set monthly budget limits for your spending categories to track your financial goals.</p>
-    </div>
-</div>
-
 <div class="row g-5">
 
     <div class="col-md-4">
@@ -59,6 +52,31 @@
     <div class="col-md-8">
         <h2>Your Current Budgets</h2>
         <hr>
+    <div class="row">
+    <div class="col-12 mb-4 mt-1">
+
+    <div class="d-flex justify-content-between text-muted mb-2">
+        <small>Budget limit</small>
+        <small>{{ current_user_budgets }} / {{ max_budgets_limit }} used</small>
+    </div>
+
+    {% set percentage = ((current_user_budgets / (max_budgets_limit or 1)) * 100) | int %}
+
+    {% set bar_color = 'bg-success' %}  {# Зелений за замовчуванням #}
+    {% if percentage > 90 %}
+        {% set bar_color = 'bg-danger' %}   {# Червоний (небезпека) #}
+    {% elif percentage > 70 %}
+        {% set bar_color = 'bg-warning' %}  {# Жовтий (попередження) #}
+    {% endif %}
+
+    <div class="progress" style="height: 5px;"
+         role="progressbar" aria-label="Category limit"
+         aria-valuenow="{{ percentage }}" aria-valuemin="0" aria-valuemax="100">
+
+        <div class="progress-bar {{ bar_color }}" style="width: {{ percentage }}%;"></div>
+    </div>
+</div>
+    </div>
 
         {% if budgets_data %}
             <div class="vstack gap-3">
@@ -76,13 +94,13 @@
     {{ budget_info.budget.category.name }}
 
     {% if budget_info.budget.is_recurring %}
-        <span class="badge bg-light text-dark fw-normal ms-1"
+        <span class="badge bg-success text-light fw-normal ms-1"
               data-bs-toggle="tooltip"
               title="Resets on the 1st of the month">
             Recurring
         </span>
     {% else %}
-        <span class="badge bg-primary text-white fw-normal ms-1"
+        <span class="badge bg-info text-light fw-normal ms-1"
               data-bs-toggle="tooltip"
               title="One-time budget (does not reset)">
             One-Time

@@ -25,6 +25,9 @@ def budgets():
     budgets_data = []
     budgets_data_sorted =[]
 
+    #Progres bar
+    current_user_budgets = Budget.query.filter_by(user_id=current_user.id).count()
+    max_budgets_limit = MAX_BUDGET_PER_USER
 
     form.category.choices = [
         (c.id, c.name) for c in categories
@@ -142,7 +145,9 @@ def budgets():
                            categories=categories,
                            budgets_data=budgets_data_sorted,
                            form=form,
-                           delete_form=delete_form
+                           delete_form=delete_form,
+                           current_user_budgets = current_user_budgets,
+                           max_budgets_limit = max_budgets_limit
                            )
 
 
