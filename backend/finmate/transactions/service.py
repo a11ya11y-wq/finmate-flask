@@ -1,5 +1,10 @@
-from backend.finmate.transactions.repository import TransactionRepository
 from datetime import date
+
+from pydantic import ValidationError
+
+from backend.finmate.transactions.repository import TransactionRepository
+from .schemas import TransactionCreateSchema, TransactionUpdateSchema
+
 
 
 
@@ -11,22 +16,15 @@ class TransactionService:
 
     def create_transaction(self, data, user_id):
 
-        if not data.get('amount'):
-            raise ValueError("Amount is a required field.")
+        try:
+            validated_data =TransactionCreateSchema.model_validate(data)
+        except ValidationError as e:
+            raise ValueError(e.errors())
 
-        if not data.get('transaction_type') or data.get('transaction_type') not in ['income', 'expense']:
-            raise ValueError("Type must be 'income' or 'expense'.")
+        payload = validated_data.model_dump()
+        payload['user_id'] = user_id
 
-        if not data.get('title'):
-            raise ValueError("Title is required.")
-
-        data['user_id'] = user_id
-
-        if not data.get('created_at'):
-            data['created_at'] = date.today()
-
-
-        new_tx = self.repo.create_transaction(data)
+        new_tx = self.repo.create_transaction(payload)
 
         return new_tx
 
@@ -53,24 +51,27 @@ class TransactionService:
         if tx_to_update.user_id != int(user_id):
             raise PermissionError("You are not authorized to edit this transaction.")
 
-        if 'amount' in data and not data['amount']:
-            raise ValueError("Amount cannot be empty.")
-        if 'title' in data and not data['title']:
-            raise ValueError("Title cannot be empty.")
+        try:
+            validated_data  = TransactionUpdateSchema.model_validate(data)
+        except ValidationError as e:
+            raise ValueError(e.errors())
 
-        #TODO: DOPISAT!!
+        update_payload = validated_data.model_dump(exclude_unset=True) #включи до нього ТІЛЬКИ ті поля, які користувач РЕАЛЬНО надіслав
 
-        updated_tx = self.repo.update_transaction(tx_to_update, data)
+        if not update_payload:
+            raise ValueError("No valid fields to update.")
+
+        updated_tx = self.repo.update_transaction(tx_to_update, update_payload)
         return updated_tx
 
 
     def get_transaction(self, tx_id, user_id):
         transaction = self.repo.get_by_id(tx_id)
 
-        if transaction.user_id != int(user_id):
-            raise PermissionError("You are not authorized to view this transaction.")
-
         if not transaction:
             raise ValueError(f"Transaction with id {tx_id} not found.")
+
+        if transaction.user_id != int(user_id):
+            raise PermissionError("You are not authorized to view this transaction.")
 
         return transaction
