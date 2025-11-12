@@ -1,0 +1,114 @@
+from datetime import datetime, timezone
+import calendar
+
+from backend.finmate.budgets.repository import BudgetRepository
+
+
+class BudgetService:
+
+    def __init__(self):
+        self.repo = BudgetRepository()
+        self.MAX_BUDGET_PER_USER = 20  # TODO: Замінити на імпорт з config
+
+
+    def get_all_budgets_with_stats(self, user_id):
+        all_budgets = self.repo.get_all_budgets_by_user(user_id)
+        recurring_spent_map = self.repo.get_recurring_spent_map(user_id)
+        one_time_spent_map = self.repo.get_one_time_spent_map(user_id)
+
+        today = datetime.now(timezone.utc)
+        budgets_data = []
+
+        for budget in all_budgets:
+            total_spent = 0.0
+            deadline_info = ""
+
+            if budget.is_recurring:
+                total_spent = recurring_spent_map.get(budget.category_id, 0.0)# Верне 0 якщо немаэ трат
+
+                days_in_month = calendar.monthrange(today.year, today.month)[1]
+                days_left = days_in_month - today.day
+                if days_left > 1:
+                    deadline_info = f"{days_left} days left"
+                elif days_left == 1:
+                    deadline_info = "1 day left"
+                else:
+                    deadline_info = "Ends today"
+
+            else:
+                total_spent = one_time_spent_map.get(budget.category_id, 0.0)
+
+                aware_created_at = budget.created_at.replace(tzinfo=timezone.utc)
+                days_active = (today - aware_created_at).days
+                if days_active > 1:
+                    deadline_info = f"Active for {days_active} days"
+                elif days_active == 1:
+                    deadline_info = "Active for 1 day"
+                else:
+                    deadline_info = "Started today"
+
+
+            percentage = 0
+            if budget.amount > 0:
+                percentage = (total_spent / float(budget.amount)) * 100
+            remaining = float(budget.amount) - total_spent
+
+            budgets_data.append({
+                'budget': budget.to_dict(),
+                'total_spent': total_spent,
+                'percentage': round(percentage, 2),
+                'remaining': round(remaining, 2),
+                'deadline_info': deadline_info
+            })
+
+        return sorted(
+            budgets_data,
+            key=lambda item: item['percentage'],
+            reverse=True
+        )
+
+
+    def create_or_update_budget(self, user_id, data):
+
+        if not data.get('amount'):
+            raise ValueError('Amount is required')
+
+        if not data.get('category_id'):
+            raise ValueError('Category is required')
+
+        if 'is_recurring' not in data:
+            raise ValueError('is_recurring is required')
+
+        budget_exist = self.repo.get_by_category_and_user(user_id, data.get('category_id'))
+
+        if budget_exist:
+            updated_budget = self.repo.update_budget(budget_exist, data)
+            return updated_budget
+
+        else:
+            current_user_budget_count = self.repo.get_count_by_user(user_id)
+            if current_user_budget_count >= self.MAX_BUDGET_PER_USER:
+                raise PermissionError(f'You have reached the limit of {self.MAX_BUDGET_PER_USER} budgets')
+            else:
+                data['user_id'] = user_id
+
+                new_budget = self.repo.create_budget(data)
+                return new_budget
+
+
+    def delete_budget(self, user_id, budget_id):
+        budget_to_delete = self.repo.get_by_id(budget_id)
+
+        if not budget_to_delete:
+            raise ValueError(f'Budget with id {budget_id} not found.')
+
+        if budget_to_delete.user_id != user_id:
+            raise PermissionError('You are not authorized to delete this budget.')
+
+        self.repo.delete_budget(budget_to_delete)
+
+        return True
+
+
+
+
