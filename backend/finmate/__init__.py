@@ -3,14 +3,13 @@ from os import getenv
 
 from dotenv import load_dotenv
 from flask import Flask
-from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
+from flask_jwt_extended import JWTManager
 
 
 
 db = SQLAlchemy()
-login_manager = LoginManager()
 
 
 # << Folder static/template >>
@@ -33,32 +32,30 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] =  getenv('DATABASE_URL')
     app.config['SECRET_KEY'] = getenv('SECRET_KEY')
     app.config['ENCRYPTION_KEY'] = os.environ.get('ENCRYPTION_KEY').encode('utf-8')
+    app.config['JWT_SECRET_KEY'] = getenv('JWT_SECRET_KEY')
+
+    jwt = JWTManager(app)
 
     db.init_app(app)
     migrate = Migrate(app, db)
 
-    login_manager.init_app(app)
-    @login_manager.user_loader
-    def load_user(user_id):
-        from .models import Users
-        return Users.query.get(user_id)
-    login_manager.login_view = 'auth.login'
-    login_manager.login_message_category = 'info'
-
-    from .auth import bp as auth_bp
-    app.register_blueprint(auth_bp, url_prefix='/auth')
-
-    from .core import bp as core_bp
-    app.register_blueprint(core_bp)
+    from .categories import bp as cat_bp
+    app.register_blueprint(cat_bp, url_prefix='/api/v1/categories')
 
     from .profile import bp as profile_bp
-    app.register_blueprint(profile_bp, url_prefix='/profile')
-
-    from .transactions import bp as trans_bp
-    app.register_blueprint(trans_bp, url_prefix='/transaction')
+    app.register_blueprint(profile_bp, url_prefix='/api/v1/profile')
 
     from .budgets import bp as budget_bp
-    app.register_blueprint(budget_bp, url_prefix='/budgets')
+    app.register_blueprint(budget_bp, url_prefix='/api/v1/budgets')
+
+    from .dashboard import bp as dash_bp
+    app.register_blueprint(dash_bp, url_prefix='/api/v1/dashboard')
+
+    from .transactions import bp as tx_bp
+    app.register_blueprint(tx_bp, url_prefix='/api/v1/transactions')
+
+    from .auth import bp as auth_bp
+    app.register_blueprint(auth_bp, url_prefix='/api/v1/auth')
 
 
     from . import models
