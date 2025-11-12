@@ -12,6 +12,7 @@ __pycache__/
 backend/.idea/
 .idea/
 .vscode/
+*.iml
 
 .env
 *.env
