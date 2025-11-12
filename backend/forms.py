@@ -5,7 +5,7 @@ from wtforms import StringField, PasswordField, BooleanField, SubmitField, Radio
 from wtforms.validators import DataRequired, Email, EqualTo, ValidationError, Length, Optional, NumberRange, Regexp
 from flask_login import current_user
 
-from finmate.models import Users, Category, Transactions, Budget
+from backend.finmate.models import Users, Category
 from flask import current_app
 
 
