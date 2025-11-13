@@ -1,5 +1,3 @@
-from datetime import date
-
 from pydantic import ValidationError
 
 from backend.finmate.transactions.repository import TransactionRepository
@@ -17,7 +15,7 @@ class TransactionService:
     def create_transaction(self, data, user_id):
 
         try:
-            validated_data =TransactionCreateSchema.model_validate(data)
+            validated_data = TransactionCreateSchema.model_validate(data)
         except ValidationError as e:
             raise ValueError(e.errors())
 
