@@ -1,8 +1,10 @@
 from datetime import datetime, timezone
 import calendar
 
-from backend.finmate.budgets.repository import BudgetRepository
+from pydantic import ValidationError
 
+from backend.finmate.budgets.repository import BudgetRepository
+from .schemas import BudgetSchema
 
 class BudgetService:
 
@@ -70,19 +72,17 @@ class BudgetService:
 
     def create_or_update_budget(self, user_id, data):
 
-        if not data.get('amount'):
-            raise ValueError('Amount is required')
+        try:
+            validated_data = BudgetSchema.model_validate(data)
+        except ValidationError as e:
+            raise ValueError(e.errors())
 
-        if not data.get('category_id'):
-            raise ValueError('Category is required')
+        payload = validated_data.model_dump()
 
-        if 'is_recurring' not in data:
-            raise ValueError('is_recurring is required')
-
-        budget_exist = self.repo.get_by_category_and_user(user_id, data.get('category_id'))
+        budget_exist = self.repo.get_by_category_and_user(user_id, payload('category_id'))
 
         if budget_exist:
-            updated_budget = self.repo.update_budget(budget_exist, data)
+            updated_budget = self.repo.update_budget(budget_exist, payload)
             return updated_budget
 
         else:
@@ -90,9 +90,9 @@ class BudgetService:
             if current_user_budget_count >= self.MAX_BUDGET_PER_USER:
                 raise PermissionError(f'You have reached the limit of {self.MAX_BUDGET_PER_USER} budgets')
             else:
-                data['user_id'] = user_id
+                payload['user_id'] = user_id
 
-                new_budget = self.repo.create_budget(data)
+                new_budget = self.repo.create_budget(payload)
                 return new_budget
 
 
