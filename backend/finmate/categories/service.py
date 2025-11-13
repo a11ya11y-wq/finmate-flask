@@ -1,4 +1,7 @@
+from pydantic import ValidationError
+
 from backend.finmate.categories.repository import CategoryRepository
+from .schemas import CategoryCreateSchema, CategoryUpdateSchema
 
 
 
@@ -13,12 +16,17 @@ class CategoryService:
 
 
     def create_category(self, user_id, data):
-        if not data.get('name'):
-            raise ValueError('Name is a required field.')
 
-        data['user_id'] = user_id
+        try:
+            validated_data = CategoryCreateSchema.model_validate(data)
+        except ValidationError as e:
+            raise ValueError(e.errors())
 
-        new_cat = self.repo.create_category(data)
+        payload = validated_data.model_dump()
+
+        payload['user_id'] = user_id
+
+        new_cat = self.repo.create_category(payload)
 
         return new_cat
 
@@ -32,10 +40,14 @@ class CategoryService:
         if cat_to_update.user_id != int(user_id):
             raise PermissionError("You are not authorized to edit this category.")
 
-        if 'name' in data and not data['name']:
-            raise ValueError("Name cannot be empty.")
+        try:
+            validated_data = CategoryUpdateSchema.model_validate(data)
+        except ValidationError as e:
+            raise ValueError(e.errors())
 
-        updated_cat = self.repo.update_category(cat_to_update, data)
+        payload = validated_data.model_dump(exclude_unset=True)
+
+        updated_cat = self.repo.update_category(cat_to_update, payload)
 
         return updated_cat
 
