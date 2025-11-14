@@ -1,9 +1,14 @@
-from .repository import ProfileRepository
+from pydantic import ValidationError
 from werkzeug.security import check_password_hash, generate_password_hash
+from cryptography.fernet import Fernet
+from flask import current_app
+
+from .repository import ProfileRepository
+from  .schemas import ProfileUpdateSchema, CurrencyUpdateSchema, MonoTokenUpdateSchema, PasswordChangeSchema
 
 
 
-class ProfieService:
+class ProfileService:
 
     def __init__(self):
         self.repo = ProfileRepository()
@@ -20,12 +25,17 @@ class ProfieService:
     def update_user(self, user_id, data):
         user = self.get_user_info(user_id)
 
-        if 'username' in data and not data['username']:
-            raise ValueError("Username cannot be empty.")
-        if 'email' in data and not data['email']:
-            raise ValueError("Email cannot be empty.")
+        try:
+            validated_data = ProfileUpdateSchema.model_validate(data)
+        except ValidationError as e:
+            raise ValueError(e.errors())
 
-        updated_user = self.repo.update_user(user_id, data)
+        payload = validated_data.model_dump(exclude_unset=True)
+
+        if not payload:
+            raise ValueError("No valid fields to update.")
+
+        updated_user = self.repo.update_user(user, payload)
 
         return updated_user
 
@@ -42,12 +52,15 @@ class ProfieService:
 
 
     def change_password(self, user_id, data):
-        old_password = data.get('old_password')
-        new_password = data.get('new_password')
-        confirm_password = data.get('confirm_password')
+        try:
+            validated_data = PasswordChangeSchema.model_validate(data)
+        except ValidationError as e:
+            raise ValueError(e.errors())
 
-        if not old_password or not new_password or not confirm_password:
-            raise ValueError("All fields (old_password, new_password, confirm_password) are required.")
+        payload = validated_data.model_dump()
+        new_password = validated_data.new_password
+        old_password = validated_data.old_password
+        confirm_password = validated_data.confirm_password
 
         if new_password == old_password:
             raise ValueError("New password cannot be the same as the old password.")
@@ -68,3 +81,47 @@ class ProfieService:
         self.repo.change_password_hash(user_obj, new_hash)
 
         return True
+
+
+    def update_currency(self, user_id, data):
+        user_obj = self.repo.get_user_info(user_id)
+
+        try:
+            validated_data = CurrencyUpdateSchema.model_validate(data)
+        except ValidationError as e:
+            raise ValueError(e.errors())
+
+        payload = validated_data.model_dump(exclude_unset=True)
+
+        updated_user = self.repo.update_user(user_id, payload)
+        return updated_user
+
+
+    def update_mono_token(self, user_id, data):
+        user_obj = self.repo.get_user_info(user_id)
+
+        try:
+            validated_data = MonoTokenUpdateSchema.model_validate(data)
+        except ValidationError as e:
+            raise ValueError(e.errors())
+
+        try:
+            key = current_app.config['ENCRYPTION_KEY']
+            cipher_suite = Fernet(key)
+
+            raw_token_bytes = validated_data.token.encode('utf-8')
+
+            encrypted_token = cipher_suite.encrypt(raw_token_bytes)
+
+        except Exception as e:
+            raise Exception(f"Token encryption failed: {e}")
+
+        payload = {
+            "monobank_api_token": encrypted_token
+        }
+
+        updated_user = self.repo.update_user(user_obj, payload)
+        return updated_user
+
+
+
