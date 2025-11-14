@@ -9,11 +9,11 @@ class AuthRepository:
         return Users.query.filter_by(email=email).first()
 
 
-    def create_user_with_cat(self, username, email, hashed_password):
+    def create_user_with_cat(self, data):
         new_user = Users(
-            username=username,
-            email=email,
-            password_hash= hashed_password
+            username=data.get('username'),
+            email=data.get('email'),
+            password_hash=data.get('hashed_password')
         )
         try:
             db.session.add(new_user)
