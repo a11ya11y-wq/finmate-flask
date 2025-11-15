@@ -1,5 +1,5 @@
 
-from backend.finmate import  db
+from backend.finmate.db import db
 from backend.finmate.models import Category, Users
 
 

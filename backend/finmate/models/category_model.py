@@ -1,4 +1,4 @@
-from backend.finmate import db
+from backend.finmate.db import db
 from sqlalchemy import UniqueConstraint
 
 

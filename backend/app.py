@@ -1,6 +1,6 @@
 from backend.finmate import create_app, db
 
-app = create_app()
+app = create_app(config_name="development")
 
 if __name__ == '__main__':
     with app.app_context():

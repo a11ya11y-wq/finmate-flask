@@ -1,6 +1,6 @@
 from datetime import date, timedelta
 
-from backend.finmate import  db
+from backend.finmate.db import db
 from sqlalchemy import func
 from backend.finmate.models import Category, Transactions
 
