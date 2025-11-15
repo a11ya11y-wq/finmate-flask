@@ -5,6 +5,10 @@ from backend.finmate.models import Category, Users
 
 class AuthRepository:
 
+
+    def firn_user_by_name(self, username):
+        return Users.query.filter_by(username=username).first()
+
     def find_user_by_email(self, email):
         return Users.query.filter_by(email=email).first()
 

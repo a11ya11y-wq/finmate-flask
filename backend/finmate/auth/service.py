@@ -48,6 +48,9 @@ class AuthService:
         if self.repo.find_user_by_email(validated_data.email):
             raise ValueError("Email already registered.")
 
+        if self.repo.firn_user_by_name(validated_data.username):
+            raise ValueError("Username already registered")
+
         hashed_password = generate_password_hash(validated_data.password)
 
         user_data_payload = {
