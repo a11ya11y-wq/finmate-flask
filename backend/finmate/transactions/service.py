@@ -1,6 +1,7 @@
 from pydantic import ValidationError
 
 from backend.finmate.transactions.repository import TransactionRepository
+from backend.finmate.categories.repository import CategoryRepository
 from .schemas import TransactionCreateSchema, TransactionUpdateSchema
 
 
@@ -10,6 +11,7 @@ class TransactionService:
 
     def __init__(self):
         self.repo = TransactionRepository()
+        self.cat_repo = CategoryRepository()
 
 
     def create_transaction(self, data, user_id):
@@ -18,6 +20,13 @@ class TransactionService:
             validated_data = TransactionCreateSchema.model_validate(data)
         except ValidationError as e:
             raise ValueError(e.errors())
+
+        category_id = validated_data.category_id
+
+        cat_obj = self.cat_repo.get_by_id_and_user(category_id, user_id)
+
+        if not cat_obj:
+            raise PermissionError(f"Category {category_id} not found or access denied.")
 
         payload = validated_data.model_dump()
         payload['user_id'] = user_id

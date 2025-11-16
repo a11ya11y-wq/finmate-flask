@@ -3,6 +3,14 @@ import pytest
 from backend.finmate import create_app, db
 
 
+BASE_REGISTER_JSON = {
+    "username": "auth_test_user",
+    "email": "auth_test@example.com",
+    "password": "ValidPassword123",
+    "confirm_password": "ValidPassword123"
+}
+
+
 @pytest.fixture(scope='session')
 def app():
     app = create_app(config_name='testing')
@@ -24,3 +32,20 @@ def db_session(app):
         yield db.session
 
         db.session.rollback()
+
+
+@pytest.fixture(scope="function")
+def auth_headers(client, db_session):
+    client.post("/api/v1/auth/register", json=BASE_REGISTER_JSON)
+    login_data = {
+        "email": BASE_REGISTER_JSON["email"],
+        "password": BASE_REGISTER_JSON["password"]
+    }
+
+    response = client.post("/api/v1/auth/login", json=login_data)
+    json_data = response.get_json()
+    token = json_data.get('access_token')
+
+    return {
+        "Authorization": f"Bearer {token}"
+    }

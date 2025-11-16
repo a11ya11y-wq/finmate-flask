@@ -13,6 +13,13 @@ class CategoryRepository:
         return Category.query.get(cat_id)
 
 
+    def get_by_id_and_user(self, category_id, user_id):
+        return Category.query.filter_by(
+            id=category_id,
+            user_id=user_id
+        ).first()
+
+
     def create_category(self, data):
         new_category = Category(
             name=data.get('name'),

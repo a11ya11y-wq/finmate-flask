@@ -105,6 +105,7 @@ class TestRegister:
 
 @pytest.mark.usefixtures("db_session")
 class TestLogin:
+
     def test_login_success(self, client):
         client.post("/api/v1/auth/register", json=BASE_REGISTER_JSON)
         login_data = {

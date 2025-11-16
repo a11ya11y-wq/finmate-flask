@@ -12,7 +12,7 @@ service = TransactionService()
 @jwt_required()
 def create_transaction():
 
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     data = request.get_json()
 
     if not data:
@@ -24,6 +24,9 @@ def create_transaction():
 
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
+
+    except PermissionError as e:
+        return jsonify({"error": str(e)}), 403
 
     except Exception as e:
         return jsonify({"error": f"An unexpected error occurred: {e}"}), 500
