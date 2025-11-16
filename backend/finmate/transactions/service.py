@@ -22,12 +22,15 @@ class TransactionService:
             raise ValueError(e.errors())
 
         category_id = validated_data.category_id
+        print(user_id)
+        print(category_id)
 
         cat_obj = self.cat_repo.get_by_id_and_user(category_id, user_id)
-
+        print(cat_obj)
         if not cat_obj:
+            print("RAISE")
             raise PermissionError(f"Category {category_id} not found or access denied.")
-
+        print("AFTER RAISE")
         payload = validated_data.model_dump()
         payload['user_id'] = user_id
 
@@ -37,13 +40,10 @@ class TransactionService:
 
 
     def delete_transaction(self, tx_id, user_id):
-        tx_to_delete = self.repo.get_by_id(tx_id)
+        tx_to_delete = self.repo.get_by_id_and_user(user_id, tx_id)
 
         if not tx_to_delete:
-            raise ValueError(f"Transaction with id {tx_id} not found.")
-
-        if tx_to_delete.user_id != int(user_id):
-            raise PermissionError("You are not authorized to delete this transaction.")
+            raise PermissionError(f"Transaction {tx_id} not found or access denied.")
 
         self.repo.delete_transaction(tx_to_delete)
 
@@ -51,12 +51,10 @@ class TransactionService:
 
 
     def update_transaction(self, tx_id, user_id, data):
-        tx_to_update = self.repo.get_by_id(tx_id)
+        tx_to_update = self.repo.get_by_id_and_user(user_id, tx_id)
 
         if not tx_to_update:
-            raise ValueError(f"Transaction with id {tx_id} not found.")
-        if tx_to_update.user_id != int(user_id):
-            raise PermissionError("You are not authorized to edit this transaction.")
+            raise PermissionError(f"Transaction {tx_id} not found or access denied.")
 
         try:
             validated_data  = TransactionUpdateSchema.model_validate(data)
@@ -73,12 +71,9 @@ class TransactionService:
 
 
     def get_transaction(self, tx_id, user_id):
-        transaction = self.repo.get_by_id(tx_id)
+        transaction = self.repo.get_by_id_and_user(user_id, tx_id)
 
         if not transaction:
-            raise ValueError(f"Transaction with id {tx_id} not found.")
-
-        if transaction.user_id != int(user_id):
-            raise PermissionError("You are not authorized to view this transaction.")
+            raise PermissionError(f"Transaction {tx_id} not found or access denied.")
 
         return transaction

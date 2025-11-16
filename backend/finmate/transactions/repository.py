@@ -90,6 +90,10 @@ class TransactionRepository:
         return Transactions.query.get(tx_id)
 
 
+    def get_by_id_and_user(self, user_id, tx_id):
+        return Transactions.query.filter_by(user_id=user_id, id=tx_id).first()
+
+
     def delete_transaction(self, transaction_obj):
         try:
             db.session.delete(transaction_obj)

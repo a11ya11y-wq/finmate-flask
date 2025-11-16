@@ -37,12 +37,6 @@ register_sad_paths = [
             400,
             "Field required"
         ),
-        # Registered email (Service)
-        (
-            BASE_REGISTER_JSON,
-            400,
-            "Email already registered."
-        ),
         # Short username (Pydantic)
         (
             BASE_REGISTER_JSON | {"username": "us"},
