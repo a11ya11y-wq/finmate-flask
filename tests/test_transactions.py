@@ -213,3 +213,55 @@ class TestUpdateTransactions:
         assert response.status_code == expected_status
         json_data = response.get_json()
         assert expected_error_fragment in str(json_data)
+
+
+
+@pytest.mark.usefixtures("db_session")
+class TestDeleteTransactions:
+
+    def test_delete_transaction_success(self, client, auth_headers):
+        response_post = client.post("/api/v1/transactions/",
+                                    json=BASE_TRANSACTION_JSON,
+                                    headers=auth_headers
+                                    )
+        assert response_post.status_code == 201
+        created_tx_id = response_post.get_json()['id']
+
+        response = client.delete(f"/api/v1/transactions/{created_tx_id}", headers=auth_headers)
+        assert response.status_code == 204
+
+    def test_delete_transaction_failed(self, client, auth_headers):
+        response_post = client.post("/api/v1/transactions/",
+                                   json=BASE_TRANSACTION_JSON,
+                                   headers=auth_headers
+                                   )
+        assert response_post.status_code == 201
+
+        response = client.delete("/api/v1/transactions/100", headers=auth_headers)
+        assert response.status_code == 403
+
+    def test_delete_transaction_wo_auth(self, client):
+        response = client.delete("/api/v1/transactions/1")
+        assert response.status_code == 401
+
+
+class TestGetTransactions:
+
+    def test_get_transaction_success(self, client, auth_headers):
+        response_post = client.post("/api/v1/transactions/",
+                                   json=BASE_TRANSACTION_JSON,
+                                   headers=auth_headers
+                                   )
+        assert response_post.status_code == 201
+        created_tx_id = response_post.get_json()['id']
+
+        response = client.get(f"/api/v1/transactions/{created_tx_id}",  headers=auth_headers)
+        assert response.status_code == 200
+
+    def test_get_transaction_failed(self, client, auth_headers):
+        response = client.get("/api/v1/transactions/1",  headers=auth_headers)
+        assert response.status_code == 403
+
+    def test_get_transaction_wo_auth(self, client):
+        response = client.get("/api/v1/transactions/1")
+        assert response.status_code == 401
