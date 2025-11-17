@@ -19,6 +19,6 @@ class TransactionUpdateSchema(BaseModel):
     amount: Optional[Decimal] = Field(None, gt=0, decimal_places=2)
     title: Optional[str] = Field(None, min_length=1, max_length=128)
     transaction_type: Optional[Literal['income', 'expense']] = None
-    category_id: Optional[int]
+    category_id: Optional[int] = None
     created_at: Optional[datetime] = None
     note: Optional[str] = Field(None, max_length=128)

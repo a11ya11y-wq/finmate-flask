@@ -22,15 +22,12 @@ class TransactionService:
             raise ValueError(e.errors())
 
         category_id = validated_data.category_id
-        print(user_id)
-        print(category_id)
 
         cat_obj = self.cat_repo.get_by_id_and_user(category_id, user_id)
-        print(cat_obj)
+
         if not cat_obj:
-            print("RAISE")
             raise PermissionError(f"Category {category_id} not found or access denied.")
-        print("AFTER RAISE")
+
         payload = validated_data.model_dump()
         payload['user_id'] = user_id
 
@@ -65,6 +62,13 @@ class TransactionService:
 
         if not update_payload:
             raise ValueError("No valid fields to update.")
+
+        if 'category_id' in update_payload:
+            new_cat_id = update_payload['category_id']
+            cat_obj = self.cat_repo.get_by_id_and_user(new_cat_id, user_id)
+
+            if not cat_obj:
+                raise PermissionError(f"Category {new_cat_id} not found or access denied.")
 
         updated_tx = self.repo.update_transaction(tx_to_update, update_payload)
         return updated_tx

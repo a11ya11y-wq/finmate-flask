@@ -35,7 +35,7 @@ def create_transaction():
 @bp.route('/<int:tx_id>', methods=['DELETE'])
 @jwt_required()
 def delete_transaction(tx_id):
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     try:
         service.delete_transaction(tx_id, user_id)
         return '', 204
@@ -53,7 +53,7 @@ def delete_transaction(tx_id):
 @bp.route('/<int:tx_id>', methods=['PUT'])
 @jwt_required()
 def update_transaction(tx_id):
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     data = request.get_json()
 
     if not data:
@@ -77,7 +77,7 @@ def update_transaction(tx_id):
 @bp.route('/<int:tx_id>', methods=['GET'])
 @jwt_required()
 def get_transaction(tx_id):
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     try:
         transaction = service.get_transaction(tx_id, user_id)
         return jsonify(transaction.to_dict()), 200

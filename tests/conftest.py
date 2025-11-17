@@ -30,17 +30,7 @@ def db_session(app):
     with app.app_context():
         db.drop_all()
         db.create_all()
-
-        connection = db.engine.connect()
-        trans = connection.begin()
-
-        db.session.bind = connection
-
         yield db.session
-
-        trans.rollback()
-        connection.close()
-
 
 @pytest.fixture(scope="function")
 def auth_headers(client, db_session):
