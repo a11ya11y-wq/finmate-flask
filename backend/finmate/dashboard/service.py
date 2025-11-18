@@ -21,28 +21,29 @@ class DashboardService:
         current_balance_for_chart = 0.0
 
         for t in balance_chart_raw:
+            amount_float = float(t.amount)
             if t.transaction_type == 'income':
-                current_balance_for_chart += t.amount
+                current_balance_for_chart += amount_float
             else:
-                current_balance_for_chart -= t.amount
+                current_balance_for_chart -= amount_float
             balance_labels.append(t.created_at.strftime('%Y-%m-%d'))
             balance_data.append(round(current_balance_for_chart, 2))
 
         return {
-            "stats": {
-                "total_income": total_income,
-                "total_expense": total_expense,
-                "current_balance": balance
+        "stats": {
+            "total_income": float(total_income),
+            "total_expense": float(total_expense),
+            "current_balance": float(balance)
+        },
+        "charts": {
+            "expenses_by_category": {
+                "labels": category_labels,
+                "data": category_amounts
             },
-            "charts": {
-                "expenses_by_category": {
-                    "labels": category_labels,
-                    "data": category_amounts
-                },
-                "balance_dynamics": {
-                    "labels": balance_labels,
-                    "data": balance_data
-                }
-            },
-            "recent_transactions": [tx.to_dict() for tx in recent_transactions]
-        }
+            "balance_dynamics": {
+                "labels": balance_labels,
+                "data": balance_data
+            }
+        },
+        "recent_transactions": [tx.to_dict() for tx in recent_transactions]
+    }

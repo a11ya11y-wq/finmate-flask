@@ -248,3 +248,5 @@ class TestGetBudgets:
     def test_get_all_budgets_wo_auth(self, client):
         response = client.get("/api/v1/budgets/")
         assert response.status_code == 401
+
+    #TODO: Додати перевірку ізоляції данних

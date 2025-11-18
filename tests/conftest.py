@@ -2,6 +2,7 @@ import pytest
 
 from backend.finmate import create_app, db
 
+#TODO: Добавить тест юзер і переписать ДБ_Сешн
 
 BASE_REGISTER_JSON = {
     "username": "auth_test_user",
