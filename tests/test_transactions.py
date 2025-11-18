@@ -231,12 +231,6 @@ class TestDeleteTransactions:
         assert response.status_code == 204
 
     def test_delete_transaction_failed(self, client, auth_headers):
-        response_post = client.post("/api/v1/transactions/",
-                                   json=BASE_TRANSACTION_JSON,
-                                   headers=auth_headers
-                                   )
-        assert response_post.status_code == 201
-
         response = client.delete("/api/v1/transactions/100", headers=auth_headers)
         assert response.status_code == 403
 

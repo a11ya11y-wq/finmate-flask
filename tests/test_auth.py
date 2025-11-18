@@ -133,3 +133,5 @@ class TestLogin:
         assert response.status_code == 401
         assert "Invalid email or password" in str(response.get_json())
 
+
+#TODO: Add and test logout

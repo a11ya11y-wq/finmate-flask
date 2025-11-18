@@ -42,6 +42,12 @@ def create_category():
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 
+    except PermissionError as e:
+        return jsonify({"error": str(e)}), 403
+
+    except FileExistsError as e:
+        return jsonify({"error": str(e)}), 409
+
     except Exception as e:
         return jsonify({"error": f"An unexpected error occurred: {e}"}), 500
 
@@ -65,6 +71,9 @@ def update_category(cat_id):
 
     except PermissionError as e:
         return jsonify({"error": str(e)}), 403
+
+    except FileExistsError as e:
+        return jsonify({"error": str(e)}), 409
 
     except Exception as e:
         return jsonify({"error": f"An unexpected error occurred: {e}"}), 500

@@ -9,6 +9,7 @@ class CategoryService:
 
     def __init__(self):
         self.repo = CategoryRepository()
+        self.MAX_CATEGORIES_PER_USER = 10 #TODO: Замінити на імпорт з config
 
 
     def get_all_categories(self, user_id):
@@ -17,13 +18,21 @@ class CategoryService:
 
     def create_category(self, user_id, data):
 
+        if self.MAX_CATEGORIES_PER_USER <= self.repo.get_count_by_user(user_id):
+            raise PermissionError(f'You have reached the limit of {self.MAX_CATEGORIES_PER_USER} categories')
+
         try:
             validated_data = CategoryCreateSchema.model_validate(data)
         except ValidationError as e:
             raise ValueError(e.errors())
 
-        payload = validated_data.model_dump()
+        name = validated_data.name
+        existing_category = self.repo.get_by_name_and_user(name, user_id)
 
+        if existing_category:
+            raise FileExistsError(f"Category with name {name} already exists.")
+
+        payload = validated_data.model_dump()
         payload['user_id'] = user_id
 
         new_cat = self.repo.create_category(payload)
@@ -32,18 +41,20 @@ class CategoryService:
 
 
     def update_category(self, user_id, data, cat_id):
-        cat_to_update = self.repo.get_cat_by_id(cat_id)
+        cat_to_update = self.repo.get_cat_by_id_and_user(cat_id, user_id)
 
         if not cat_to_update:
-            raise ValueError(f'Category with {cat_id} not found.')
-
-        if cat_to_update.user_id != int(user_id):
-            raise PermissionError("You are not authorized to edit this category.")
+            raise PermissionError(f"Category {cat_to_update} not found or access denied.")
 
         try:
             validated_data = CategoryUpdateSchema.model_validate(data)
         except ValidationError as e:
             raise ValueError(e.errors())
+
+        if validated_data.name:
+            existing_category = self.repo.get_by_name_and_user(validated_data.name, user_id)
+            if existing_category and existing_category.id != cat_id:
+                raise FileExistsError(f"Category with name {validated_data.name} already exists.")
 
         payload = validated_data.model_dump(exclude_unset=True)
 
@@ -53,13 +64,10 @@ class CategoryService:
 
 
     def delete_category(self, cat_id, user_id):
-        cat_to_delete = self.repo.get_cat_by_id(cat_id)
+        cat_to_delete = self.repo.get_cat_by_id_and_user(cat_id, user_id)
 
         if not cat_to_delete:
-            raise ValueError(f"Category with id {cat_id} not found.")
-
-        if cat_to_delete.user_id != int(user_id):
-            raise PermissionError('You are not authorized to delete this category.')
+            raise PermissionError(f"Category {cat_to_delete} not found or access denied.")
 
         self.repo.delete_category(cat_to_delete)
 

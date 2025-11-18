@@ -5,9 +5,10 @@ from pydantic import BaseModel, Field
 
 class CategoryCreateSchema(BaseModel):
     name : str = Field(min_length=1, max_length=128)
-    mcc_code : str | None = Field(max_length=200)
+    mcc_code : str | None = Field(None, max_length=200)
+    #TODO: Логіку для валідації мсс кодов добавить
 
 
 class CategoryUpdateSchema(BaseModel):
-    name : str | None = Field(min_length=1, max_length=128)
-    mcc_code: str | None = Field(max_length=200)
+    name : str | None = Field(None, min_length=1, max_length=128)
+    mcc_code: str | None = Field(None, max_length=200)

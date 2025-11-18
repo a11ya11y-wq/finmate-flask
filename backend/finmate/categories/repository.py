@@ -13,6 +13,20 @@ class CategoryRepository:
         return Category.query.get(cat_id)
 
 
+    def get_cat_by_id_and_user(self, cat_id, user_id):
+        return Category.query.filter_by(id=cat_id, user_id=user_id).first()
+
+
+    def get_count_by_user(self, user_id):
+        return Category.query.filter_by(user_id=user_id).count()
+
+    def get_by_name_and_user(self, name, user_id):
+        return Category.query.filter_by(
+            name=name,
+            user_id=user_id
+        ).first()
+
+
     def get_by_id_and_user(self, category_id, user_id):
         return Category.query.filter_by(
             id=category_id,
