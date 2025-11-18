@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from typing import Literal
 
 
@@ -10,6 +10,14 @@ class PasswordChangeSchema(BaseModel):
     old_password: str = Field(min_length=1)
     new_password : str = Field(min_length=6, max_length=32)
     confirm_password : str = Field(min_length=1)
+
+    @model_validator(mode='after')
+    def check_passwords_match(self):
+        if self.new_password != self.confirm_password:
+            raise ValueError('New password and confirmation do not match')
+        if self.new_password == self.old_password:
+            raise ValueError('New password cannot be the same as old password')
+        return self
 
 
 class CurrencyUpdateSchema(BaseModel):

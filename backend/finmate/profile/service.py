@@ -57,16 +57,8 @@ class ProfileService:
         except ValidationError as e:
             raise ValueError(e.errors())
 
-        payload = validated_data.model_dump()
         new_password = validated_data.new_password
         old_password = validated_data.old_password
-        confirm_password = validated_data.confirm_password
-
-        if new_password == old_password:
-            raise ValueError("New password cannot be the same as the old password.")
-
-        if new_password != confirm_password:
-            raise ValueError("New password and confirmation do not match.")
 
         user_obj = self.get_user_info(user_id)
 
@@ -93,7 +85,7 @@ class ProfileService:
 
         payload = validated_data.model_dump(exclude_unset=True)
 
-        updated_user = self.repo.update_user(user_id, payload)
+        updated_user = self.repo.update_user(user_obj, payload)
         return updated_user
 
 
