@@ -6,7 +6,7 @@ from backend.finmate.models import Category, Users
 class AuthRepository:
 
 
-    def firn_user_by_name(self, username):
+    def find_user_by_name(self, username):
         return Users.query.filter_by(username=username).first()
 
     def find_user_by_email(self, email):
@@ -19,9 +19,10 @@ class AuthRepository:
             email=data.get('email'),
             password_hash=data.get('hashed_password')
         )
+        categories_to_add = []
         try:
             db.session.add(new_user)
-            default_categories_with_mcc = [
+            default_categories_with_mcc = [ #TODO: Придумати куда перенести цей список + дополнить його
                                 ('Food', '5411, 5812, 5814, 5499'),
                                 ('Transport', '5541, 5542, 4121, 4111, 4784'),
                                 ('Entertainment', '5813, 7832, 7922, 7996, 7999'),
@@ -31,8 +32,10 @@ class AuthRepository:
                                 ('Uncategorized', None)
                             ]
             for cat_name, mcc_code in default_categories_with_mcc:
-                        new_category = Category(name=cat_name, user=new_user, mcc_code=mcc_code)
-                        db.session.add(new_category)
+                new_category = Category(name=cat_name, user=new_user, mcc_code=mcc_code)
+                categories_to_add.append(new_category)
+
+            db.session.add_all(categories_to_add)
             db.session.commit()
             return new_user
         except Exception as e:
