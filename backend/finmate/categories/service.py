@@ -67,7 +67,7 @@ class CategoryService:
         cat_to_delete = self.repo.get_cat_by_id_and_user(cat_id, user_id)
 
         if not cat_to_delete:
-            raise PermissionError(f"Category {cat_to_delete} not found or access denied.")
+            raise PermissionError(f"Category {cat_id} not found or access denied.")
 
         self.repo.delete_category(cat_to_delete)
 

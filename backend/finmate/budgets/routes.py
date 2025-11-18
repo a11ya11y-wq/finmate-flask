@@ -31,6 +31,8 @@ def create_or_update_budget():
     try:
         user_id = int(get_jwt_identity())
         data = request.get_json()
+        if not data:
+            return jsonify({"error": "No JSON data provided"}), 400
         budget = service.create_or_update_budget(user_id, data)
         return jsonify(budget.to_dict()), 201
 

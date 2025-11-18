@@ -18,6 +18,10 @@ class BudgetRepository:
         return Budget.query.get(budget_id)
 
 
+    def get_by_id_and_user(self, budget_id, user_id):
+        return Budget.query.filter_by(id=budget_id, user_id=user_id).first()
+
+
     def get_by_category_and_user(self, user_id, cat_id):
         return Budget.query.filter_by(user_id=user_id, category_id=cat_id).first()
 

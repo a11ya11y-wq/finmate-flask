@@ -4,13 +4,15 @@ import calendar
 from pydantic import ValidationError
 
 from backend.finmate.budgets.repository import BudgetRepository
+from backend.finmate.categories.repository import CategoryRepository
 from .schemas import BudgetSchema
 
 class BudgetService:
 
     def __init__(self):
         self.repo = BudgetRepository()
-        self.MAX_BUDGET_PER_USER = 20  # TODO: Замінити на імпорт з config
+        self.cat_repo = CategoryRepository()
+        self.MAX_BUDGET_PER_USER = 5  # TODO: Замінити на імпорт з config
 
 
     def get_all_budgets_with_stats(self, user_id):
@@ -79,7 +81,12 @@ class BudgetService:
 
         payload = validated_data.model_dump()
 
-        budget_exist = self.repo.get_by_category_and_user(user_id, payload('category_id'))
+        category_id = payload['category_id']
+        category = self.cat_repo.get_by_id_and_user(category_id, user_id)
+        if not category:
+            raise PermissionError(f"Category {category_id} not found or access denied.")
+
+        budget_exist = self.repo.get_by_category_and_user(user_id, payload['category_id'])
 
         if budget_exist:
             updated_budget = self.repo.update_budget(budget_exist, payload)
@@ -97,13 +104,10 @@ class BudgetService:
 
 
     def delete_budget(self, user_id, budget_id):
-        budget_to_delete = self.repo.get_by_id(budget_id)
+        budget_to_delete = self.repo.get_by_id_and_user(budget_id, user_id)
 
         if not budget_to_delete:
-            raise ValueError(f'Budget with id {budget_id} not found.')
-
-        if budget_to_delete.user_id != user_id:
-            raise PermissionError('You are not authorized to delete this budget.')
+            raise PermissionError(f"Budget {budget_id} not found or access denied.")
 
         self.repo.delete_budget(budget_to_delete)
 
