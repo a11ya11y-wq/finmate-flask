@@ -3,6 +3,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from .service import CategoryService
 from  . import bp
+from backend.finmate.exceptions import ConflictError
 
 
 service = CategoryService()
@@ -21,6 +22,7 @@ def get_all_categories():
 
     except PermissionError as e:
         return jsonify({"error": str(e)}), 403
+
 
     except Exception as e:
         return jsonify({"error": f"An unexpected error occurred: {e}"}), 500
@@ -45,8 +47,8 @@ def create_category():
     except PermissionError as e:
         return jsonify({"error": str(e)}), 403
 
-    except FileExistsError as e:
-        return jsonify({"error": str(e)}), 409
+    except ConflictError as e:
+        return jsonify({"error": str(e)}), ConflictError.status_code
 
     except Exception as e:
         return jsonify({"error": f"An unexpected error occurred: {e}"}), 500

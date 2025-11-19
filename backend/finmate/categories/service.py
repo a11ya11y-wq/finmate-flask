@@ -2,7 +2,7 @@ from pydantic import ValidationError
 
 from backend.finmate.categories.repository import CategoryRepository
 from .schemas import CategoryCreateSchema, CategoryUpdateSchema
-
+from backend.finmate.exceptions import ConflictError
 
 
 class CategoryService:
@@ -54,7 +54,7 @@ class CategoryService:
         if validated_data.name:
             existing_category = self.repo.get_by_name_and_user(validated_data.name, user_id)
             if existing_category and existing_category.id != cat_id:
-                raise FileExistsError(f"Category with name {validated_data.name} already exists.")
+                raise ConflictError(f"Category with name {validated_data.name} already exists.")
 
         payload = validated_data.model_dump(exclude_unset=True)
 

@@ -4,8 +4,14 @@ class DashboardService:
 
     def __init__(self):
         self.tx_repo = TransactionRepository()
+        self.VALID_PERIODS = ['all', 'week', 'month']
 
     def get_dashboard_data(self, user_id, period):
+
+
+        if period not in self.VALID_PERIODS:
+            raise ValueError(f"Invalid period '{period}'. Must be one of: {', '.join(VALID_PERIODS)}.")
+
         total_income = self.tx_repo.get_total_income(user_id, period)
         total_expense = self.tx_repo.get_total_expense(user_id, period)
         balance = self.tx_repo.get_current_balance(user_id)
