@@ -116,3 +116,23 @@ class TransactionRepository:
         except Exception as e:
             db.session.rollback()
             raise Exception(f"Error while updating transaction in DB: {e}")
+
+    def get_existing_mono_ids(self, user_id: int, mono_ids: set) -> set:
+        stmt = db.select(Transactions.mono_id).filter(
+            Transactions.user_id == user_id,
+            Transactions.mono_id.in_(mono_ids)
+        )
+
+        result = db.session.execute(stmt).scalars().all()
+
+        return {str(id) for id in result}
+
+
+    def bulk_insert_transactions(self, transactions_to_add):
+        try:
+            db.session.add_all(transactions_to_add)
+            db.session.commit()
+            return len(transactions_to_add)
+        except Exception as e:
+            db.session.rollback()
+            raise Exception(f"Error while creating transactions in DB: {e}")

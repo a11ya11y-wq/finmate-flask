@@ -41,6 +41,9 @@ def create_app(config_name='default'):
         from .auth import bp as auth_bp
         app.register_blueprint(auth_bp, url_prefix='/api/v1/auth')
 
+        from .monobank import bp as mono_bp
+        app.register_blueprint(mono_bp, url_prefix='/api/v1/monobank')
+
         from . import models
 
     return app
