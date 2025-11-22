@@ -30,7 +30,7 @@ class CategoryService:
         existing_category = self.repo.get_by_name_and_user(name, user_id)
 
         if existing_category:
-            raise FileExistsError(f"Category with name {name} already exists.")
+            raise ConflictError(f"Category with name {name} already exists.")
 
         payload = validated_data.model_dump()
         payload['user_id'] = user_id
