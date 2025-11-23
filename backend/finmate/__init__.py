@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 from flask import Flask
+from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 
@@ -18,6 +19,7 @@ def create_app(config_name='default'):
     app.config.from_object(config[config_name])
     app.config['ENCRYPTION_KEY'] = app.config['ENCRYPTION_KEY'].encode('utf-8')
 
+    CORS(app, resources={r"/api/*": {"origins": "*"}})
     jwt.init_app(app)
     db.init_app(app)
     migrate.init_app(app, db)
