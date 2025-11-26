@@ -5,108 +5,61 @@
 }
 /* Стили для страниц входа/регистрации */
 .auth-body {
-  background-color: #f8f9fa; /* Світло-сірий фон */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
+    /* Забезпечуємо повний екран і центрування */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
 }
 
 .auth-form-container {
-  width: 100%;
-  max-width: 400px;
-  padding: 2rem;
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
-  border-radius: 0.5rem;
-  background-color: #ffffff; /* Білий фон */
-}
-
-/* 2. ❗️❗️❗️ ДОДАЙ ЦЕЙ БЛОК ДЛЯ ТЕМНОЇ ТЕМИ ❗️❗️❗️ */
-/* Він "перебиває" стилі вище,
-      коли 'data-bs-theme="dark"'
-*/
-[data-bs-theme="dark"] .auth-body {
-  background-color: #212529; /* Темний фон */
-}
-
-[data-bs-theme="dark"] .auth-form-container {
-  background-color: #343a40; /* Темно-сірий фон для форми */
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.5);
+    width: 100%;
+    max-width: 400px;
+    padding: 2rem;
+    /* Тільки рамка та тінь - Bootstrap відповідає за background-color */
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+    border-radius: 0.5rem;
 }
 
 .auth-form-container .logo {
-  width: 80px; /* Можно изменить размер логотипа */
-  height: auto;
-  margin-bottom: 1rem;
-}
-
-.flash-container {
-  position: fixed;
-  top: 20px;
-  left: 50%; /* 👈 Сдвигаем левый край блока в центр экрана */
-  transform: translateX(-50%); /* 👈 Смещаем блок влево на половину его ширины */
-  z-index: 1050;
-  width: auto;
-  max-width: 500px; /* Можно немного увеличить ширину для центра */
-}
-.avatar-gallery {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-    gap: 10px;
-    margin-bottom: 15px;
-}
-
-.avatar-item {
-    cursor: pointer;
-    position: relative;
-}
-
-.avatar-item img {
-    width: 100%;
+    width: 80px;
     height: auto;
-    border-radius: 50%;
-    border: 2px solid transparent;
-    transition: border-color 0.2s;
+    margin-bottom: 1rem;
 }
 
-/* Приховуємо саму радіокнопку */
-.avatar-radio {
-    opacity: 0;
-    position: absolute;
-    width: 1px;
-    height: 1px;
+/* ❌ ВИДАЛЕНО: ВСІ СТИЛІ ДЛЯ [data-bs-theme="dark"]
+   BOOTSTRAP ЗРОБИТЬ ЦЕ САМ, КОЛИ ВИКЛИЧЕ CSS-ЗМІННІ ❌
+*/
+
+/* -------------------------------------------------------------------------- */
+/* --- СТИЛІ WTFORMS (для чистого відображення помилок) --- */
+/* Ці стилі необхідні для правильного відображення в Bootstrap 5 */
+.form-floating .invalid-feedback {
+    display: block;
+    height: auto;
+    margin-top: -1.25rem;
+    margin-bottom: 1rem;
+    font-size: .875em;
 }
 
-/* Стиль для обраного аватара */
-.avatar-radio:checked + img {
-    border-color: #0d6efd; /* Синій колір Bootstrap */
-    box-shadow: 0 0 10px rgba(13, 110, 253, 0.5);
+/* --- СТИЛІ ДЛЯ АНІМАЦІЇ FLASH-ПОВІДОМЛЕНЬ --- */
+.flash-container {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1050;
+    width: auto;
+    max-width: 500px;
 }
-
-/* --- Анімація для автоматичного зникання flash-повідомлень --- */
-
-/* 1. Описуємо саму анімацію: плавна поява і зникнення */
 @keyframes fadeOut {
-  0% {
-    opacity: 1;
-  }
-  90% {
-    opacity: 1; /* Повідомлення видиме майже до кінця */
-  }
-  100% {
-    opacity: 0;
-    visibility: hidden; /* Повністю ховаємо елемент */
-  }
+  0% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { opacity: 0; visibility: hidden; }
 }
 
-/* 2. Застосовуємо анімацію до наших повідомлень */
 .flash-container .alert {
-  /* Назва анімації, яку ми створили вище */
   animation-name: fadeOut;
-
-  /* Загальна тривалість (час видимості + час зникання) */
   animation-duration: 5s;
-
-  /* Встановлює, що елемент залишиться прихованим після завершення анімації */
   animation-fill-mode: forwards;
 }
