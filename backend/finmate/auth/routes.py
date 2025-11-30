@@ -1,4 +1,4 @@
-from flask import request, jsonify
+from flask import request, jsonify, make_response
 
 from .service import AuthService
 from backend.finmate.auth import bp
@@ -14,7 +14,11 @@ def login():
         return jsonify({"error": "Email and password are required"}), 400
     try:
         token = service.login_user(data)
-        return jsonify(access_token=token), 200
+        # Return token and set cookie as fallback for clients that can't persist localStorage
+        resp = make_response(jsonify(access_token=token), 200)
+        # Set cookie for current origin; not HttpOnly so frontend can read if needed in dev
+        resp.set_cookie('finmate_token', token, path='/', samesite='Lax')
+        return resp
     except ValueError as e:
         return jsonify({"error": str(e)}), 401
     except Exception as e:

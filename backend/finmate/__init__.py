@@ -19,7 +19,20 @@ def create_app(config_name='default'):
     app.config.from_object(config[config_name])
     app.config['ENCRYPTION_KEY'] = app.config['ENCRYPTION_KEY'].encode('utf-8')
 
-    CORS(app, resources={r"/api/*": {"origins": "*"}})
+    # <-- COPILOT -->
+    app.config['CORS_HEADERS'] = 'Content-Type,Authorization'
+    # Allow dev frontend origins explicitly and enable credentials (so Authorization header/cookies work)
+    allowed_origins = [
+        'http://localhost:5173',
+        'http://127.0.0.1:5173',
+        # include backend origin for same-origin requests in production if needed
+        'http://127.0.0.1:5000',
+    ]
+    CORS(app, resources={r"/api/*": {"origins": allowed_origins}}, supports_credentials=True)
+
+    # Disable strict slashes to avoid automatic redirects (which break CORS preflight OPTIONS)
+    app.url_map.strict_slashes = False
+
     jwt.init_app(app)
     db.init_app(app)
     migrate.init_app(app, db)

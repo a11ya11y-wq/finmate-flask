@@ -10,7 +10,7 @@ class DashboardService:
 
 
         if period not in self.VALID_PERIODS:
-            raise ValueError(f"Invalid period '{period}'. Must be one of: {', '.join(VALID_PERIODS)}.")
+            raise ValueError(f"Invalid period '{period}'. Must be one of: {', '.join(self.VALID_PERIODS)}.")
 
         total_income = self.tx_repo.get_total_income(user_id, period)
         total_expense = self.tx_repo.get_total_expense(user_id, period)

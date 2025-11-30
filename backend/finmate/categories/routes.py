@@ -23,7 +23,6 @@ def get_all_categories():
     except PermissionError as e:
         return jsonify({"error": str(e)}), 403
 
-
     except Exception as e:
         return jsonify({"error": f"An unexpected error occurred: {e}"}), 500
 
