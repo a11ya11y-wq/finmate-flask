@@ -19,8 +19,8 @@ class DashboardService:
         balance_chart_raw = self.tx_repo.get_transactions_for_balance_chart(user_id, period)
         recent_transactions = self.tx_repo.get_recent_transactions(user_id, period)
 
-        category_labels = [item[0] for item in expenses_by_cat_raw]
-        category_amounts = [float(item[1]) for item in expenses_by_cat_raw]
+        category_labels = [item[0] if item[0] is not None else 'Uncategorized' for item in expenses_by_cat_raw]
+        category_amounts = [float(item[1]) if item[1] is not None else 0.0 for item in expenses_by_cat_raw]
 
         balance_labels = []
         balance_data = []

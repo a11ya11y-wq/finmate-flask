@@ -28,26 +28,31 @@ class TransactionRepository:
 
     def get_total_income(self, user_id, period):
         query = self.get_base_query(user_id, period)
-        return query.filter(Transactions.transaction_type == 'income') \
+        result = query.filter(Transactions.transaction_type == 'income') \
                        .with_entities(func.sum(Transactions.amount)) \
-                       .scalar() or 0.0
+                       .scalar()
+        return float(result) if result is not None else 0.0
 
 
     def get_total_expense(self, user_id, period):
         query = self.get_base_query(user_id, period)
-        return query.filter(Transactions.transaction_type == 'expense') \
+        result = query.filter(Transactions.transaction_type == 'expense') \
                         .with_entities(func.sum(Transactions.amount)) \
-                        .scalar() or 0.0
+                        .scalar()
+        return float(result) if result is not None else 0.0
 
 
     def get_current_balance(self, user_id):
         base_query = Transactions.query.filter_by(user_id=user_id)
         total_income = base_query.filter(Transactions.transaction_type == 'income') \
                        .with_entities(func.sum(Transactions.amount)) \
-                       .scalar() or 0.0
+                       .scalar()
         total_expense = base_query.filter(Transactions.transaction_type == 'expense') \
                         .with_entities(func.sum(Transactions.amount)) \
-                        .scalar() or 0.0
+                        .scalar()
+
+        total_income = float(total_income) if total_income is not None else 0.0
+        total_expense = float(total_expense) if total_expense is not None else 0.0
 
         return total_income - total_expense
 
