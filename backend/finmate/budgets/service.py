@@ -57,13 +57,15 @@ class BudgetService:
                 percentage = (total_spent / float(budget.amount)) * 100
             remaining = float(budget.amount) - total_spent
 
-            budgets_data.append({
-                'budget': budget.to_dict(),
+            budget_dict = budget.to_dict()
+
+            budget_dict.update({
                 'total_spent': total_spent,
                 'percentage': round(percentage, 2),
                 'remaining': round(remaining, 2),
                 'deadline_info': deadline_info
             })
+            budgets_data.append(budget_dict)
 
         return sorted(
             budgets_data,

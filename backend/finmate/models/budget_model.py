@@ -20,9 +20,9 @@ class Budget(db.Model):
     def to_dict(self):
         return {
             "id": self.id,
-            "amount": self.amount,
+            "amount": float(self.amount),
+            "category_name": self.category.name if self.category else 'Unknown Category',
             "category_id": self.category_id,
-            "user_id": self.user_id,
             "created_at": self.created_at,
             "is_recurring": self.is_recurring
         }
