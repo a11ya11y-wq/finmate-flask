@@ -1,0 +1,857 @@
+/* --- ЗМІННІ ТА ОСНОВНІ НАЛАШТУВАННЯ --- */
+:root{
+  --fm-bg:#0b0f12;
+  --fm-surface:linear-gradient(180deg,#0f1417 0%, #0b0f12 100%);
+  --fm-card:#0f1316;
+  --fm-accent:#3aa0ff;
+  --fm-accent-2:#6ad0ff;
+  --fm-text:#e9eef2; /* Світло-сірий основний текст */
+  --fm-muted:#9aa1a6;
+  --fm-muted-2:rgba(154,161,166,0.18);
+  --fm-glass: rgba(255,255,255,0.03);
+  --fm-radius:12px;
+}
+html,body{height:100%;margin:0;padding:0;background:radial-gradient(1000px 500px at 10% 10%, rgba(58,160,255,0.03), transparent), var(--fm-bg);color:var(--fm-text);font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial;overflow-x:hidden}
+.container{max-width:1200px;margin:0 auto;padding:28px;overflow:visible !important}
+.header__img{height:56px;width:auto}
+
+/* ✅ ХЕДЕР - нормальна ширина в межах container */
+header, .header, .app-header {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 20px 0 !important;
+  margin: 0 0 1.5rem 0 !important;
+  box-sizing: border-box !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-bottom: none !important;
+}
+
+/* ✅ Блок з Dashboard і кнопками - БЕЗ ОБРІЗАННЯ */
+.dashboard-header {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 1.5rem 0 !important;
+  margin: 0 0 2rem 0 !important;
+  box-sizing: border-box !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  overflow: visible !important;
+}
+
+.dashboard-header .d-flex {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.dashboard-header-controls,
+.d-flex.justify-content-between.align-items-center.mb-4 {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 0 !important;
+  margin: 0 0 1.5rem 0 !important;
+  box-sizing: border-box !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  overflow: visible !important;
+}
+
+/* Додаткова підтримка для d-flex блоку всередині container */
+.container > .d-flex,
+.container > .dashboard-header {
+  width: 100% !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+
+/* --- КАРТКИ ТА ЗНАЧЕННЯ --- */
+.card{background:var(--fm-card);border-radius:var(--fm-radius);padding:14px;box-shadow:0 6px 18px rgba(2,6,10,0.6);border:1px solid rgba(255,255,255,0.02);transition:transform .15s ease, box-shadow .15s ease}
+.card:hover{transform:translateY(-4px);box-shadow:0 10px 28px rgba(2,6,10,0.75)}
+.card .card-body{padding:10px}
+.card .label{font-size:12px;color:var(--fm-muted);text-transform:uppercase;letter-spacing:0.08em}
+.card .value{font-size:1.6rem;font-weight:700;margin-top:6px}
+
+/* ✅ FIX: Забезпечуємо, щоб текст у кольорових картках був СВІТЛИМ */
+.card.bg-success-subtle .text-success,
+.card.bg-danger-subtle .text-danger,
+.card.bg-primary-subtle .text-primary,
+#current-balance { /* 👈 Включно з CURRENT BALANCE */
+  color: var(--fm-text) !important;
+}
+.card.bg-primary-subtle .text-primary {
+  color: var(--fm-accent) !important;
+}
+
+/* ✅ ВИДАЛЕНО КОНФЛІКТУЮЧІ GRID ПРАВИЛА - Bootstrap grid працює сам */
+
+/* --- ТАБЛИЦІ (ГОЛОВНИЙ ФІКС) --- */
+.table{width:100%;border-collapse:separate;border-spacing:0 8px;font-size:14px}
+
+/* ❗️ КРИТИЧНИЙ ФІКС: Скидаємо вертикальне відображення, яке спричинило помилку */
+.table thead th, .table tbody td, .transactions-table thead th, .transactions-table tbody td {
+    /* ❌ Усунення вертикального тексту */
+    writing-mode: horizontal-tb !important;
+    text-orientation: mixed !important;
+    transform: none !important;
+    /* ✅ Забезпечуємо нормальний вигляд */
+    white-space: nowrap;
+    padding: 12px 14px;
+    border: none;
+    color: var(--fm-text);
+}
+.table thead th{
+  color:var(--fm-muted);
+  font-size:12px;
+  text-transform:uppercase;
+  white-space:nowrap;
+}
+.table tbody tr{background:linear-gradient(180deg, rgba(255,255,255,0.008), rgba(255,255,255,0.006));border-radius:8px}
+.table tbody tr:hover{background:linear-gradient(90deg, rgba(58,160,255,0.02), transparent)}
+
+/* Quick form */
+.quick-card{display:flex;flex-direction:column;gap:10px}
+.quick-card .form-control,.quick-card .form-select{background:transparent;border:1px solid var(--fm-muted-2);color:var(--fm-text);padding:10px;border-radius:8px}
+
+/* Table buttons inline and compact */
+.table td .btn{display:inline-flex;padding:4px 6px;font-size:0.85rem}
+
+/* Modal */
+.modal .modal-content{
+  /* Теплий темний фон, майже непрозорий */
+  background: linear-gradient(180deg, rgba(15,19,22,0.98), rgba(11,15,18,0.98));
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,0.03);
+  /* Легке розмиття фону під модалкою — додає глибини, опціонально */
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+.modal .modal-header{border-bottom:1px solid rgba(255,255,255,0.04)}
+.modal .modal-footer{border-top:1px solid rgba(255,255,255,0.04)}
+
+/* Backdrop: робимо затемнення більш помітним */
+.modal-backdrop{ background-color: rgba(2,6,10,0.65) !important; }
+.modal-backdrop.fade{ opacity:1 !important; }
+.modal-backdrop.show{ opacity:1 !important; }
+
+/* small helpers */
+.text-muted{color:var(--fm-muted)}
+.small{font-size:0.85rem}
+
+/* Цей клас (bg-primary-subtle) має синій фон, тому текст має бути світлим */
+.card.bg-primary-subtle .text-primary {
+  /* Використовуємо наш світлий колір, а не Bootstrap'івський синій */
+  color: var(--fm-text) !important;
+}
+/* Це необхідно, щоб сам текст балансу, який має class="text-primary", був світлим */
+#current-balance {
+  color: var(--fm-text) !important;
+}
+
+
+/* --- ✅ FIX 2: Фікс білого дропдауну (Select) --- */
+
+/* Заглушуємо стилі Bootstrap для select/input і примусово робимо їх темними */
+.form-select {
+  background-color: var(--fm-card) !important; /* Фон картки */
+  color: var(--fm-text) !important; /* Колір тексту */
+  border-color: var(--fm-muted-2) !important; /* Колір рамки */
+  opacity: 1 !important; /* ✅ Завжди повна непрозорість */
+  font-weight: 500 !important; /* ✅ Жирніший шрифт для кращої видимості */
+}
+
+/* ✅ Стиль при фокусі - підсвічування */
+.form-select:focus {
+  border-color: rgba(58, 160, 255, 0.6) !important;
+  box-shadow: 0 0 0 0.2rem rgba(58, 160, 255, 0.25) !important;
+  outline: none !important;
+}
+
+/* ✅ Стиль при hover - легке підсвічування */
+.form-select:hover {
+  border-color: rgba(58, 160, 255, 0.4) !important;
+}
+
+/* Якщо опції (Options) в дропдауні білі, змушуємо їх бути темними */
+.form-select option{
+  background-color: var(--fm-card) !important;
+  color: var(--fm-text) !important;
+}
+
+/* ✅ Спеціальний стиль для селектора періоду - завжди підсвічений */
+#time-period-select {
+  background-color: rgba(58, 160, 255, 0.08) !important; /* Легкий блакитний фон */
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='rgba(58, 160, 255, 0.8)' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+  border: 1px solid rgba(58, 160, 255, 0.3) !important; /* Блакитна рамка */
+  color: rgba(58, 160, 255, 0.95) !important; /* Яскравий блакитний текст */
+  font-weight: 600 !important; /* Жирний шрифт */
+  padding: 0.5rem 2.5rem 0.5rem 0.75rem !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
+}
+
+/* ✅ Стилі для budget category select */
+#budgetCategory {
+  display: block !important;
+  width: 100% !important;
+  padding: 10px 14px !important;
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 8px !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  cursor: pointer !important;
+  appearance: auto !important;
+  -webkit-appearance: menulist !important;
+  -moz-appearance: menulist !important;
+}
+
+#budgetCategory option {
+  background-color: #1a1f28 !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  padding: 8px !important;
+}
+
+#budgetCategory:disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+}
+
+#time-period-select:hover {
+  background-color: rgba(58, 160, 255, 0.12) !important;
+  border-color: rgba(58, 160, 255, 0.5) !important;
+  color: rgba(58, 160, 255, 1) !important;
+}
+
+#time-period-select:focus {
+  background-color: rgba(58, 160, 255, 0.15) !important;
+  border-color: rgba(58, 160, 255, 0.7) !important;
+  box-shadow: 0 0 0 0.2rem rgba(58, 160, 255, 0.25) !important;
+}
+
+
+/* --- ✅ FIX 3: Приховуємо зайву кнопку "Balance" на графіку --- */
+.chartjs-legend, #balanceLegend {
+    display: none !important;
+}
+
+canvas {
+  max-width: 100% !important;
+  height: auto !important;
+  display: block;
+}
+
+.transactions-table td,
+.transactions-table th {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.col-md-4, .col-md-8 {
+  min-width: 0; /* дозволяє flex стискати колонки */
+}
+
+/* --- ДОДАТКОВІ СТИЛІ --- */
+.row.align-top{align-items:flex-start;}
+
+/* Make columns sit side-by-side on wide screens, wrap on small screens */
+@media(min-width:1100px){
+  /* Strong grid layout: left column fixed-ish for donut, right column flexible for table */
+  .row.align-top{display:grid !important; grid-template-columns: minmax(320px,36%) 1fr !important; grid-column-gap:24px !important; align-items:start}
+  /* ensure the column children behave as grid items and don't force full width */
+  .row.align-top > .col-md-4{width:auto !important;flex:0 0 auto !important;max-width:none !important}
+  .row.align-top > .col-md-8{width:auto !important;flex:1 1 auto !important;max-width:none !important}
+  /* Additional strong fallback: enforce flex layout if grid is ignored by other styles */
+  .container .row.align-top{display:flex !important; flex-wrap:nowrap !important; align-items:flex-start !important; gap:24px !important}
+  .container .row.align-top > .col-md-4{flex:0 0 36% !important; max-width:36% !important}
+  .container .row.align-top > .col-md-8{flex:0 0 62% !important; max-width:62% !important}
+  .container .row.align-top > .col-md-4 .card, .container .row.align-top > .col-md-8 .card{width:100%}
+}
+
+/* ✅ CHART HEIGHT FIX: Set both charts to same container height */
+/* Container cards for charts should have uniform height and flex layout */
+.row.align-top .chart-card {
+  min-height: 420px !important;
+  height: 420px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  padding: 20px !important;
+}
+
+/* Chart card titles should have consistent spacing */
+.chart-card h4 {
+  margin-bottom: 16px !important;
+  flex-shrink: 0;
+}
+
+/* Donut chart wrapper and canvas */
+.chart-card .donut-wrap {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 280px !important;
+  height: 280px !important;
+  min-width: 280px !important;
+  min-height: 280px !important;
+  max-width: 280px !important;
+  max-height: 280px !important;
+  position: relative;
+  margin: 0 auto;
+  padding: 0;
+}
+
+#categoryDonutChart {
+  width: 280px !important;
+  height: 280px !important;
+  min-width: 280px !important;
+  min-height: 280px !important;
+  max-width: 280px !important;
+  max-height: 280px !important;
+  display: block;
+}
+
+/* Balance line chart canvas - same height as donut */
+#balanceLineChart {
+  width: 100% !important;
+  height: 370px !important;
+  max-height: 370px !important;
+  display: block;
+  flex: 1;
+}
+
+.chart-card canvas {
+  display: block;
+  max-width: 100%;
+}
+
+#categoryLegend {
+  margin-top: 12px;
+  flex-shrink: 0;
+}
+
+/* Hide balance legend as requested */
+#balanceLegend {
+  display: none !important;
+}
+
+/* reduce bottom margin of donut card so it sits nicely next to table */
+.row.align-top .card.mb-3{margin-bottom:0}
+
+/* Defensive: if some parent forces columns to 100%, prevent it for wide screens */
+@media(min-width:1100px){
+  .col-md-4, .col-md-8 { width: auto !important; }
+}
+
+/* Ensure fm-two-col behaves like the intended two-column layout */
+.fm-two-col{width:100%}
+@media(min-width:1100px){
+  .fm-two-col{display:grid !important; grid-template-columns: minmax(320px,36%) 1fr !important; grid-column-gap:24px !important; align-items:start}
+  .fm-two-col > .col-lg-4, .fm-two-col > .col-md-5, .fm-two-col > .col-md-4{width:auto !important;flex:0 0 auto !important;max-width:none !important}
+  .fm-two-col > .col-lg-8, .fm-two-col > .col-md-7, .fm-two-col > .col-md-8{width:auto !important;flex:1 1 auto !important;max-width:none !important}
+  /* fallback flex enforcement */
+  .container .fm-two-col{display:flex !important;flex-wrap:nowrap !important;align-items:flex-start !important;gap:24px !important}
+  .container .fm-two-col > .col-lg-4, .container .fm-two-col > .col-md-5{flex:0 0 36% !important; max-width:36% !important}
+  .container .fm-two-col > .col-lg-8, .container .fm-two-col > .col-md-7{flex:0 0 62% !important; max-width:62% !important}
+}
+
+/* Force transactions table to use fixed layout so columns don't expand with long content */
+.transactions-table{
+  table-layout: fixed !important;
+  width: 100% !important;
+}
+
+/* DESCRIPTION column: ensure ellipsis when content overflows */
+.transactions-table td.td-desc,
+.transactions-table th.td-desc{
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  max-width: 100% !important;
+}
+
+/* Ensure amount column doesn't shrink too small */
+.transactions-table td.td-amount{ min-width:120px !important; }
+
+/* ✅ FIX: User dropdown menu z-index (should be above sticky header) */
+#user-dropdown .dropdown-menu {
+  z-index: 1060 !important;
+  position: absolute !important;
+}
+
+/* Ensure dropdown container has proper stacking when open */
+#user-dropdown .dropdown.show {
+  position: relative !important;
+  z-index: 1060 !important;
+}
+
+/* Alternative: set z-index on dropdown wrapper */
+#user-dropdown {
+  position: relative !important;
+  z-index: 1060 !important;
+}
+
+/* Make action buttons not force width; allow them to wrap inside cell if needed */
+.transactions-table td.td-actions .btn{ white-space: nowrap; }
+
+/* Column width tuning to avoid clipping of Amount/Date while keeping table-layout: fixed */
+.transactions-table th:nth-child(1), .transactions-table td:nth-child(1){ width:48px !important; min-width:48px !important; }
+/* DESCRIPTION column: set to 37% as requested */
+.transactions-table th:nth-child(2), .transactions-table td:nth-child(2){ width:37% !important; min-width:180px !important; max-width:37% !important; overflow:hidden; text-overflow:ellipsis; }
+/* CATEGORY column: increase to 15% */
+.transactions-table th:nth-child(3), .transactions-table td:nth-child(3){ width:15% !important; min-width:100px !important; max-width:15% !important; }
+/* AMOUNT - keep fixed-ish to ensure currency fits */
+.transactions-table th:nth-child(4), .transactions-table td:nth-child(4){ width:160px !important; min-width:120px !important; max-width:220px !important; text-align:right !important; }
+/* DATE */
+.transactions-table th:nth-child(5), .transactions-table td:nth-child(5){ width:140px !important; min-width:120px !important; max-width:180px !important; }
+/* ACTIONS */
+.transactions-table th:nth-child(6), .transactions-table td:nth-child(6){ width:140px !important; min-width:120px !important; text-align:center !important; }
+
+/* Slightly increase amount cell padding to make currency visible */
+.transactions-table td.td-amount{ padding-right:22px !important; }
+
+/* On smaller screens allow description to wrap instead of overflowing */
+@media (max-width: 1100px){
+  .transactions-table{ table-layout: auto !important; }
+  .transactions-table td.td-desc, .transactions-table th.td-desc{ white-space: normal !important; text-overflow: clip !important; }
+}
+
+/* Box sizing for table cells to prevent horizontal scroll and ensure predictable widths */
+.transactions-table th, .transactions-table td { box-sizing: border-box; }
+
+/* Chart heights are now managed above in unified section */
+
+/* Add Transaction button styling */
+#add-transaction-button {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+#add-transaction-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+#add-transaction-button:active {
+  transform: translateY(0);
+}
+
+/* ✅ FIX: Prevent auto-scroll when modal opens */
+body.modal-open {
+  overflow: hidden !important;
+  /* Do NOT use position: fixed here - it causes scroll jump */
+  /* JS will handle scroll restoration */
+}
+
+/* Ensure modal backdrop doesn't cause scroll jumps */
+.modal-backdrop {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+}
+
+/* Ensure modal dialog is properly centered without scrolling page */
+.modal.show {
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+}
+
+.modal-dialog {
+  margin: 1.75rem auto !important;
+  position: relative !important;
+}
+
+/* ================================
+   MODAL IMPROVEMENTS - COMPACT & NO SCROLLBAR
+   ================================ */
+
+/* Модальне вікно - компактне та без скролбарів */
+.modal-dialog {
+  max-width: 500px !important;
+  margin: 1rem auto !important;
+}
+
+.modal-content {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 16px !important;
+  max-height: 90vh !important;
+  overflow: hidden !important;
+}
+
+.modal-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  padding: 1rem 1.5rem !important;
+  background: rgba(58, 160, 255, 0.05) !important;
+}
+
+.modal-title {
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  color: var(--fm-text) !important;
+}
+
+.modal-body {
+  padding: 1.25rem 1.5rem !important;
+  max-height: calc(90vh - 140px) !important;
+  overflow-y: auto !important;
+  /* Приховуємо скролбар але залишаємо функціонал */
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* IE/Edge */
+}
+
+.modal-body::-webkit-scrollbar {
+  display: none !important; /* Chrome/Safari/Opera */
+}
+
+.modal-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  padding: 1rem 1.5rem !important;
+  background: rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Компактні поля форми в модалці */
+.modal-body .mb-3 {
+  margin-bottom: 1rem !important;
+}
+
+.modal-body label {
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  color: var(--fm-muted) !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.modal-body input,
+.modal-body select,
+.modal-body textarea {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: var(--fm-text) !important;
+  border-radius: 8px !important;
+  padding: 0.625rem 0.875rem !important;
+  font-size: 0.9375rem !important;
+}
+
+.modal-body textarea {
+  min-height: 80px !important;
+  resize: vertical !important;
+}
+
+.modal-body input:focus,
+.modal-body select:focus,
+.modal-body textarea:focus {
+  border-color: rgba(58, 160, 255, 0.6) !important;
+  box-shadow: 0 0 0 0.2rem rgba(58, 160, 255, 0.15) !important;
+  outline: none !important;
+}
+
+/* Зелений акцентний колір тільки для Add Transaction модального вікна */
+#addTransactionModal .modal-body input:focus,
+#addTransactionModal .modal-body select:focus,
+#addTransactionModal .modal-body textarea:focus {
+  border-color: rgba(16, 185, 129, 0.6) !important;
+  box-shadow: 0 0 0 0.2rem rgba(16, 185, 129, 0.15) !important;
+}
+
+/* Radio buttons для Type (Expense/Income) */
+.modal-body input[type="radio"] {
+  width: 18px !important;
+  height: 18px !important;
+  margin-right: 0.5rem !important;
+  cursor: pointer !important;
+  accent-color: #3aa0ff !important;
+}
+
+.modal-body input[type="radio"]:checked {
+  accent-color: #3aa0ff !important;
+}
+
+/* Зелений колір radio buttons тільки для Add Transaction модального вікна */
+#addTransactionModal .modal-body input[type="radio"] {
+  accent-color: #10b981 !important;
+}
+
+#addTransactionModal .modal-body input[type="radio"]:checked {
+  accent-color: #10b981 !important;
+}
+
+.modal-body label[for*="type"] {
+  display: inline-flex !important;
+  align-items: center !important;
+  margin-right: 1.5rem !important;
+  cursor: pointer !important;
+}
+
+/* Кнопки в модалці */
+.modal-footer .btn {
+  padding: 0.625rem 1.5rem !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  font-size: 0.9375rem !important;
+  transition: all 0.2s ease !important;
+}
+
+.modal-footer .btn-secondary {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: var(--fm-muted) !important;
+}
+
+.modal-footer .btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: var(--fm-text) !important;
+}
+
+.modal-footer .btn-primary,
+.modal-footer .btn-success {
+  background: linear-gradient(135deg, #3aa0ff, #2563eb) !important;
+  border: none !important;
+  color: #fff !important;
+  min-width: 160px !important;
+  max-width: 200px !important;
+}
+
+.modal-footer .btn-primary:hover,
+.modal-footer .btn-success:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+  box-shadow: 0 4px 12px rgba(58, 160, 255, 0.4) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Зелена кнопка тільки для Add Transaction модального вікна */
+#addTransactionModal .modal-footer .btn-success,
+#addTransactionModal .modal-footer .btn-success-modern {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  border: none !important;
+  color: #fff !important;
+  min-width: 160px !important;
+  max-width: 200px !important;
+}
+
+#addTransactionModal .modal-footer .btn-success:hover,
+#addTransactionModal .modal-footer .btn-success-modern:hover {
+  background: linear-gradient(135deg, #059669, #047857) !important;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Синя кнопка для Edit Transaction модального вікна */
+#editTransactionModal .modal-footer .btn-primary-modern {
+  background: linear-gradient(135deg, #3aa0ff, #2563eb) !important;
+  border: none !important;
+  color: #fff !important;
+  min-width: 160px !important;
+  max-width: 200px !important;
+}
+
+#editTransactionModal .modal-footer .btn-primary-modern:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+  box-shadow: 0 4px 12px rgba(58, 160, 255, 0.4) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Backdrop затемнення */
+.modal-backdrop {
+  background: rgba(0, 0, 0, 0.75) !important;
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+}
+
+/* Кнопка закриття - стилі перенесені в main.css */
+
+/* ===== BUDGET PAGE STYLES ===== */
+.budget-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s ease !important;
+}
+
+.budget-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4), 0 0 20px rgba(58, 160, 255, 0.15) !important;
+  border-color: rgba(58, 160, 255, 0.3) !important;
+}
+
+/* Budget buttons styling */
+.edit-budget-btn,
+.delete-budget-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  min-width: 38px;
+  height: 38px;
+  cursor: pointer;
+}
+
+.edit-budget-btn:hover,
+.delete-budget-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.edit-budget-btn:active,
+.delete-budget-btn:active {
+  transform: translateY(0);
+}
+
+/* Progress bar animations */
+.progress-bar {
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Badge animations */
+.badge {
+  animation: fadeInScale 0.3s ease;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Form sticky positioning */
+@media (min-width: 992px) {
+  .col-lg-4 .card {
+    position: sticky !important;
+    top: 100px !important;
+  }
+}
+
+/* Cancel button styling */
+#cancelEditBtn {
+  transition: all 0.2s ease;
+}
+
+#cancelEditBtn:hover {
+  background: rgba(239, 68, 68, 0.2) !important;
+  border-color: rgba(239, 68, 68, 0.4) !important;
+  transform: translateY(-1px);
+}
+
+#cancelEditBtn:active {
+  transform: translateY(0);
+}
+
+/* Modern form controls */
+.form-control-modern,
+.form-select {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 8px !important;
+  padding: 10px 14px !important;
+  transition: all 0.2s ease;
+}
+
+.form-control-modern::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Form validation states */
+.form-control-modern:focus,
+.form-select:focus {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(58, 160, 255, 0.5) !important;
+  box-shadow: 0 0 0 3px rgba(58, 160, 255, 0.1) !important;
+  outline: none;
+}
+
+.form-control-modern:disabled,
+.form-select:disabled {
+  background: rgba(255, 255, 255, 0.03) !important;
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Select dropdown styling */
+.form-select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='rgba(255,255,255,0.6)' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px 12px;
+  padding-right: 36px !important;
+  cursor: pointer !important;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  min-height: 42px !important;
+}
+
+.form-select:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* ✅ CRITICAL: Make option elements always visible */
+.form-select option,
+select option,
+option {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  background: #1a1f28 !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  padding: 10px !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  min-height: 30px !important;
+}
+
+.form-select option:hover,
+.form-select option:checked,
+.form-select option:focus {
+  background: rgba(58, 160, 255, 0.2) !important;
+  color: #fff !important;
+}
+
+/* ✅ Make sure select itself is always visible */
+select,
+.form-select {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Ensure budget category select specifically is visible */
+#budgetCategory {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+#budgetCategory option {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+
+

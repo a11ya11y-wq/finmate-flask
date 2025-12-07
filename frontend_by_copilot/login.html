@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login - FinMate</title>
+  <link rel="icon" href="/favicon.png">
+  <!-- Styles imported via modules -->
+  <script type="module">
+    import 'bootstrap/dist/css/bootstrap.min.css'
+    import 'bootstrap-icons/font/bootstrap-icons.css'
+    import '/src/styles/custom.css'
+    import '/src/styles/main.css'
+    import '/src/styles/auth.css'
+  </script>
+</head>
+<body class="auth-body">
+  <div class="auth-background">
+    <div class="auth-shape auth-shape-1"></div>
+    <div class="auth-shape auth-shape-2"></div>
+    <div class="auth-shape auth-shape-3"></div>
+  </div>
+
+  <div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center">
+    <div class="row w-100 justify-content-center">
+      <div class="col-11 col-sm-10 col-md-8 col-lg-5 col-xl-4">
+        <div class="auth-card">
+          <div class="auth-card-header text-center">
+            <img src="/img/finmatelogo1.png" alt="FinMate Logo" class="auth-logo mb-3" width="80" height="80">
+            <h2 class="auth-title mb-2">Welcome Back</h2>
+            <p class="auth-subtitle text-muted">Sign in to your account to continue</p>
+          </div>
+
+          <div class="auth-card-body">
+            <div id="status_message" class="alert alert-danger alert-dismissible fade show d-none" role="alert">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i>
+              <span class="status-text"></span>
+              <button type="button" class="btn-close" onclick="document.getElementById('status_message').classList.add('d-none')"></button>
+            </div>
+
+            <form id="loginForm" novalidate>
+              <div class="mb-3">
+                <label for="email" class="form-label">
+                  <i class="bi bi-envelope me-1"></i> Email Address
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text bg-transparent border-end-0">
+                    <i class="bi bi-at"></i>
+                  </span>
+                  <input type="email" id="email" class="form-control border-start-0 ps-0" placeholder="your.email@example.com" required autocomplete="email">
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label for="password" class="form-label">
+                  <i class="bi bi-lock me-1"></i> Password
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text bg-transparent border-end-0">
+                    <i class="bi bi-key"></i>
+                  </span>
+                  <input type="password" id="password" class="form-control border-start-0 border-end-0 ps-0" placeholder="Enter your password" required autocomplete="current-password">
+                  <button class="btn btn-outline-secondary border-start-0 toggle-password" type="button" tabindex="-1">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                </div>
+              </div>
+
+
+              <button type="submit" class="btn btn-primary w-100 btn-lg mb-3 auth-submit-btn">
+                <span class="btn-text">Sign In</span>
+                <span class="spinner-border spinner-border-sm d-none ms-2" role="status" aria-hidden="true"></span>
+              </button>
+
+              <div class="text-center">
+                <p class="text-muted mb-0">
+                  Don't have an account?
+                  <a href="/register.html" class="text-decoration-none fw-semibold">Create one</a>
+                </p>
+              </div>
+            </form>
+          </div>
+
+          <div class="auth-card-footer text-center">
+            <p class="small text-muted mb-0">
+              <i class="bi bi-shield-check me-1"></i> Secured by FinMate
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/auth/login.js"></script>
+  <script>
+    // Toggle password visibility
+    document.querySelector('.toggle-password')?.addEventListener('click', function() {
+      const input = document.getElementById('password');
+      const icon = this.querySelector('i');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('bi-eye', 'bi-eye-slash');
+      } else {
+        input.type = 'password';
+        icon.classList.replace('bi-eye-slash', 'bi-eye');
+      }
+    });
+  </script>
+</body>
+</html>

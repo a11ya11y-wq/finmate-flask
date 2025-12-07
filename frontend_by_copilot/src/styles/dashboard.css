@@ -1,0 +1,1051 @@
+/* ===================================
+   MODERN DASHBOARD STYLES
+   =================================== */
+
+/* --- Global Dashboard Layout --- */
+.dashboard-container {
+  min-height: 100vh;
+  background: radial-gradient(ellipse at top, rgba(58, 160, 255, 0.06), transparent 50%),
+              radial-gradient(ellipse at bottom right, rgba(106, 208, 255, 0.04), transparent 50%),
+              linear-gradient(180deg, #0b0f12 0%, #0f1417 100%);
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* --- Animated Background Particles --- */
+.dashboard-bg-particles {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: rgba(58, 160, 255, 0.3);
+  border-radius: 50%;
+  animation: float-particle 15s infinite ease-in-out;
+}
+
+.particle:nth-child(1) { left: 10%; animation-delay: 0s; }
+.particle:nth-child(2) { left: 30%; animation-delay: -3s; }
+.particle:nth-child(3) { left: 50%; animation-delay: -6s; }
+.particle:nth-child(4) { left: 70%; animation-delay: -9s; }
+.particle:nth-child(5) { left: 90%; animation-delay: -12s; }
+
+@keyframes float-particle {
+  0%, 100% {
+    transform: translateY(100vh) translateX(0) scale(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(90vh) translateX(20px) scale(1);
+  }
+  90% {
+    opacity: 1;
+    transform: translateY(10vh) translateX(-20px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(0) translateX(0) scale(0);
+  }
+}
+
+/* --- Header Improvements --- */
+.dashboard-header {
+  position: sticky; /* Прикріплюється до верху при скролі */
+  top: 0; /* Прилипає до самого верху */
+  z-index: 1030;
+  padding: 1.5rem 0;
+  margin-bottom: 2rem;
+  background: linear-gradient(
+    180deg,
+    rgba(15, 19, 22, 0.98) 0%,
+    rgba(15, 19, 22, 0.95) 60%,
+    rgba(15, 19, 22, 0.85) 90%,
+    rgba(15, 19, 22, 0.4) 100%
+  );
+  backdrop-filter: blur(30px) saturate(120%);
+  -webkit-backdrop-filter: blur(30px) saturate(120%);
+  border-radius: 0;
+  border: none;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+/* Контейнер всередині header - обмежена ширина */
+.dashboard-header-content {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding-left: 2rem;
+  padding-right: 2rem;
+  width: 100%;
+}
+
+@media (min-width: 1400px) {
+  .dashboard-header-content {
+    max-width: 1320px;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-header-content {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+.dashboard-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--fm-text, #e9eef2);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.dashboard-title i {
+  color: #3aa0ff;
+  font-size: 2rem;
+}
+
+/* Stats Grid Layout */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Stats Cards */
+.stat-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 1.75rem;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fadeInUp 0.6s ease-out backwards;
+}
+
+.stat-card:nth-child(1) { animation-delay: 0.1s; }
+.stat-card:nth-child(2) { animation-delay: 0.2s; }
+.stat-card:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, var(--card-accent, #3aa0ff), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.stat-card:hover::before {
+  opacity: 1;
+}
+
+.stat-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+    0 0 60px rgba(58, 160, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Card Color Variants */
+.stat-card.income-card {
+  --card-accent: #10b981;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(16, 185, 129, 0.02));
+}
+
+.stat-card.expense-card {
+  --card-accent: #ef4444;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(239, 68, 68, 0.02));
+}
+
+.stat-card.balance-card {
+  --card-accent: #3aa0ff;
+  background: linear-gradient(135deg, rgba(58, 160, 255, 0.08), rgba(58, 160, 255, 0.02));
+}
+
+.stat-card-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover .stat-card-icon {
+  transform: rotate(5deg) scale(1.1);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.stat-card-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--fm-muted, #9aa1a6);
+  margin-bottom: 0.5rem;
+}
+
+.stat-card-value {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: var(--fm-text, #e9eef2);
+  line-height: 1.2;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.stat-card-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.stat-card-trend.positive {
+  color: #10b981;
+}
+
+.stat-card-trend.negative {
+  color: #ef4444;
+}
+
+/* --- Charts Section --- */
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  max-width: 100%;
+}
+
+/* Category chart container (left) - narrower */
+.charts-grid > .chart-container:first-child {
+  max-width: 420px;
+  flex: 1;
+}
+
+/* Balance chart container (right) - wider */
+.charts-grid > .chart-container:last-child {
+  min-width: 0;
+  flex: 2;
+}
+
+@media (max-width: 1200px) {
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chart-container {
+  position: relative;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 2rem 1.5rem;
+  overflow: hidden;
+  animation: fadeInUp 0.6s ease-out 0.4s backwards;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Fix chart card height alignment */
+.card.h-100 {
+  display: flex;
+  flex-direction: column;
+}
+
+.card.h-100 > div[style*="height"] {
+  flex-shrink: 0;
+}
+
+.chart-container:hover {
+  border-color: rgba(58, 160, 255, 0.2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+.chart-container::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at 70% 30%, rgba(58, 160, 255, 0.06), transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.chart-container canvas {
+  position: relative;
+  z-index: 1;
+  min-height: 280px;
+}
+
+/* Balance line chart - WIDER column, responsive height */
+#balanceLineChart {
+  height: 100% !important;
+  width: 100% !important;
+  min-height: 280px !important;
+}
+
+/* Category donut chart - proportional sizing */
+#categoryDonutChart {
+  max-width: 100%;
+  max-height: 360px;
+  display: block;
+  margin: 0 auto;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.chart-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--fm-text, #e9eef2);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.chart-title i {
+  font-size: 1.5rem;
+  opacity: 0.9;
+}
+
+/* Add glow effect to chart canvas on hover */
+.chart-container:hover canvas {
+  filter: drop-shadow(0 0 20px rgba(58, 160, 255, 0.1));
+}
+
+/* Donut chart center styling - COMPACT & CIRCULAR */
+.donut-wrap {
+  position: relative;
+  width: 280px !important;
+  height: 280px !important;
+  min-width: 280px !important;
+  min-height: 280px !important;
+  max-width: 280px !important;
+  max-height: 280px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  overflow: visible !important;
+}
+
+.donut-wrap canvas {
+  width: 280px !important;
+  height: 280px !important;
+  min-width: 280px !important;
+  min-height: 280px !important;
+  max-width: 280px !important;
+  max-height: 280px !important;
+  display: block !important;
+  aspect-ratio: 1 / 1 !important;
+  object-fit: contain !important;
+}
+
+.donut-wrap::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 38%;
+  height: 38%;
+  min-width: 110px;
+  min-height: 110px;
+  max-width: 200px;
+  max-height: 200px;
+  background: radial-gradient(circle, rgba(58, 160, 255, 0.12), rgba(58, 160, 255, 0.04) 60%, transparent 80%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Custom HTML legend styles (beautiful legend with large color boxes) */
+.chart-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 0.5rem;
+  width: 100%;
+}
+
+.chart-legend::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chart-legend::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 3px;
+}
+
+.chart-legend::-webkit-scrollbar-thumb {
+  background: rgba(58, 160, 255, 0.3);
+  border-radius: 3px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0.375rem 0.625rem;
+  border-radius: 6px;
+}
+
+.legend-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateX(4px);
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+}
+
+/* --- Transactions Table (Modern Card Design) --- */
+.transactions-container {
+  position: relative;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 2rem;
+  animation: fadeInUp 0.6s ease-out 0.5s backwards;
+  overflow-x: auto;
+  overflow-y: visible;
+}
+
+.transactions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.transactions-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--fm-text, #e9eef2);
+  margin: 0;
+}
+
+/* Modern Table Styling */
+.table-modern {
+  width: 100%;
+  margin: 0;
+  border-collapse: separate;
+  border-spacing: 0 0.75rem;
+}
+
+.table-modern thead th {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--fm-muted, #9aa1a6);
+  padding: 0.75rem 1rem;
+  border: none;
+  background: transparent;
+}
+
+.table-modern thead th:first-child {
+  padding-left: 1rem;
+  width: 48px;
+  text-align: center;
+}
+
+.table-modern thead th:last-child {
+  padding-right: 1rem;
+}
+
+.table-modern tbody tr {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  min-height: 60px;
+}
+
+.table-modern tbody tr:hover {
+  background: linear-gradient(135deg, rgba(58, 160, 255, 0.08), rgba(58, 160, 255, 0.03));
+  transform: translateY(-2px);
+  box-shadow:
+    inset 4px 0 0 rgba(58, 160, 255, 0.8),
+    inset -4px 0 0 rgba(58, 160, 255, 0.8),
+    0 4px 12px rgba(58, 160, 255, 0.2);
+}
+
+.table-modern tbody td {
+  padding: 1rem 1rem;
+  border: none;
+  vertical-align: middle;
+  line-height: 1.5;
+  overflow: visible;
+}
+
+.table-modern tbody tr td:first-child {
+  padding-left: 1rem;
+  border-radius: 12px 0 0 12px;
+  width: 48px;
+  text-align: center;
+}
+
+.table-modern tbody tr td:last-child {
+  padding-right: 1rem;
+  border-radius: 0 12px 12px 0;
+}
+
+/* Column-specific styles */
+.table-modern .td-num {
+  width: 48px;
+  text-align: center;
+  color: var(--fm-muted);
+}
+
+.table-modern .td-desc {
+  max-width: 300px;
+  overflow: visible;
+  white-space: normal;
+}
+
+.table-modern .td-cat {
+  min-width: 140px;
+}
+
+.table-modern .td-amount {
+  text-align: right;
+  min-width: 120px;
+  white-space: nowrap;
+}
+
+.table-modern .td-date {
+  min-width: 120px;
+  color: var(--fm-muted);
+  font-size: 0.875rem;
+}
+
+.table-modern .td-actions {
+  min-width: 140px;
+  white-space: nowrap;
+  padding-right: 0.75rem !important;
+}
+
+/* Transaction Category Badge */
+.category-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.875rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.category-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+}
+
+/* Amount Styling */
+.amount-positive {
+  color: #10b981;
+  font-weight: 700;
+}
+
+.amount-negative {
+  color: #ef4444;
+  font-weight: 700;
+}
+
+/* Action Buttons */
+.action-btn-group {
+  display: flex;
+  gap: 0.375rem;
+  justify-content: flex-start;
+}
+
+.action-btn {
+  padding: 0.5rem 0.875rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--fm-text, #e9eef2);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.action-btn:hover {
+  background: rgba(58, 160, 255, 0.15);
+  border-color: rgba(58, 160, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.action-btn.btn-edit {
+  color: #3aa0ff;
+}
+
+.action-btn.btn-delete {
+  color: #ef4444;
+}
+
+.action-btn.btn-delete:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* --- Period Selector --- */
+.period-selector {
+  display: inline-flex;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 0.25rem;
+  gap: 0.25rem;
+  overflow: visible; /* Prevent focus ring clipping on period buttons */
+}
+
+.period-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: transparent;
+  color: var(--fm-muted, #9aa1a6);
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+/* ✅ Активна кнопка періоду - ЗАВЖДИ підсвічена, навіть без фокусу */
+.period-btn.active {
+  background: rgba(58, 160, 255, 0.2) !important;
+  color: #3aa0ff !important;
+  box-shadow: 0 2px 8px rgba(58, 160, 255, 0.3) !important;
+}
+
+/* ✅ Активна кнопка при hover - ще яскравіша */
+.period-btn.active:hover {
+  background: rgba(58, 160, 255, 0.25) !important;
+  box-shadow: 0 3px 12px rgba(58, 160, 255, 0.4) !important;
+}
+
+/* ✅ Активна кнопка при focus - зберігає активний стиль */
+.period-btn.active:focus,
+.period-btn.active:focus-visible {
+  background: rgba(58, 160, 255, 0.2) !important;
+  color: #3aa0ff !important;
+  box-shadow: 0 2px 8px rgba(58, 160, 255, 0.3) !important;
+  outline: 2px solid rgba(58, 160, 255, 0.5);
+  outline-offset: 2px;
+}
+
+/* ✅ Активна кнопка при втраті фокусу - НЕ міняється */
+.period-btn.active:not(:focus) {
+  background: rgba(58, 160, 255, 0.2) !important;
+  color: #3aa0ff !important;
+}
+
+/* ✅ Додаткові правила з високою специфічністю для .active стану */
+button.period-btn.active,
+.period-selector .period-btn.active,
+.action-buttons .period-selector .period-btn.active {
+  background: rgba(58, 160, 255, 0.2) !important;
+  color: #3aa0ff !important;
+  box-shadow: 0 2px 8px rgba(58, 160, 255, 0.3) !important;
+}
+
+/* ✅ Неактивні кнопки при hover */
+.period-btn:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--fm-text, #e9eef2);
+}
+
+/* ✅ Переконуємося, що :active (при кліку) не перезаписує наш стиль */
+.period-btn.active:active {
+  background: rgba(58, 160, 255, 0.25) !important;
+  color: #3aa0ff !important;
+}
+
+/* --- Action Buttons (Add, Sync) --- */
+.action-buttons {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  overflow: visible; /* Prevent focus ring clipping */
+}
+
+/* Специфічні стилі для кнопок на Dashboard */
+.dashboard-header .action-buttons .btn-primary-modern,
+.dashboard-header .action-buttons .btn-success-modern {
+  min-width: 100px;
+  max-width: 130px;
+}
+
+.btn-modern {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-modern::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+}
+
+.btn-modern:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.btn-modern span {
+  position: relative;
+  z-index: 1;
+}
+
+.btn-modern {
+  padding: 0.625rem 1.25rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-modern:active {
+  transform: translateY(0);
+}
+
+.btn-primary-modern {
+  background: linear-gradient(135deg, #3aa0ff, #2563eb);
+  color: white;
+  box-shadow: 0 4px 12px rgba(58, 160, 255, 0.3);
+}
+
+.btn-primary-modern:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(58, 160, 255, 0.4);
+}
+
+.btn-success-modern {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-success-modern:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+
+/* --- Modal Colored Stripes --- */
+.modal-add-transaction {
+  position: relative;
+  overflow: hidden;
+}
+
+.modal-add-transaction::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  z-index: 1;
+}
+
+.modal-edit-transaction {
+  position: relative;
+  overflow: hidden;
+}
+
+.modal-edit-transaction::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: linear-gradient(135deg, #3aa0ff, #2563eb);
+  z-index: 1;
+}
+
+.modal-delete-transaction {
+  position: relative;
+  overflow: hidden;
+}
+
+.modal-delete-transaction::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  z-index: 1;
+}
+
+/* --- Loading States --- */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 25%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.03) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* --- Empty State --- */
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: var(--fm-muted, #9aa1a6);
+}
+
+.empty-state-icon {
+  font-size: 4rem;
+  opacity: 0.3;
+  margin-bottom: 1rem;
+}
+
+.empty-state-text {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.empty-state-subtext {
+  font-size: 0.875rem;
+  opacity: 0.7;
+}
+
+/* --- Chart Empty State --- */
+.chart-empty-state {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: var(--fm-muted, #9aa1a6);
+  width: 100%;
+  padding: 2rem;
+  pointer-events: none;
+  z-index: 10;
+  opacity: 1;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.chart-empty-state .empty-state-icon {
+  font-size: 3rem;
+  opacity: 0.25;
+  margin-bottom: 0.75rem;
+  animation: pulse-subtle 2s ease-in-out infinite;
+}
+
+.chart-empty-state .empty-state-text {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.chart-empty-state .empty-state-subtext {
+  font-size: 0.8125rem;
+  opacity: 0.6;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Плавна анімація для canvas графіків */
+#balanceLineChart,
+#categoryDonutChart {
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* Тонка анімація пульсації для іконки empty state */
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+
+/* --- Dark Mode Enhancements --- */
+@media (prefers-color-scheme: dark) {
+  .dashboard-container {
+    background: radial-gradient(ellipse at top, rgba(58, 160, 255, 0.08), transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(106, 208, 255, 0.05), transparent 50%),
+                linear-gradient(180deg, #0b0f12 0%, #0f1417 100%);
+  }
+}
+
+/* --- Accessibility Improvements --- */
+.stat-card:focus-visible,
+.action-btn:focus-visible,
+.btn-modern:focus-visible {
+  outline: 2px solid rgba(58, 160, 255, 0.5);
+  outline-offset: 2px;
+}
+
+/* ✅ Period-btn має окремі стилі для :focus-visible вище (для .active стану) */
+.period-btn:focus-visible:not(.active) {
+  outline: 2px solid rgba(255, 255, 255, 0.3);
+  outline-offset: 2px;
+}
+
+/* --- Print Styles --- */
+@media print {
+  .dashboard-bg-particles,
+  .action-buttons,
+  .action-btn-group {
+    display: none !important;
+  }
+
+  .stat-card,
+  .chart-container,
+  .transactions-container {
+    break-inside: avoid;
+  }
+}
+
+/* ===================================
+   BUDGET PAGE STYLES
+   =================================== */
+
+/* Budget cards hover effect */
+.budget-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(58, 160, 255, 0.3) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* Budget card progress bars */
+.budget-card .progress-bar {
+  transition: width 0.6s ease;
+}
+
+/* Responsive adjustments for budget page */
+@media (max-width: 991px) {
+  .budget-card {
+    margin-bottom: 1rem !important;
+  }
+}

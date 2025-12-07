@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard | FinMate</title>
+  <link rel="icon" href="/favicon.png">
+  <!-- CSS is imported via /src/main.js (bootstrap, bootstrap-icons, then local styles) -->
+
+  <!-- ✅ КРИТИЧНІ СТИЛІ: Inline стилі мають найвищий пріоритет для гарантованого збереження активного стану кнопок -->
+  <style>
+    /* Гарантоване підсвічування активної кнопки періоду */
+    .period-btn.active,
+    button.period-btn.active,
+    .period-selector .period-btn.active,
+    .period-btn.active:not(:focus),
+    .period-btn.active:not(:hover) {
+      background: rgba(58, 160, 255, 0.2) !important;
+      color: #3aa0ff !important;
+      box-shadow: 0 2px 8px rgba(58, 160, 255, 0.3) !important;
+    }
+
+    .period-btn.active:hover {
+      background: rgba(58, 160, 255, 0.25) !important;
+      box-shadow: 0 3px 12px rgba(58, 160, 255, 0.4) !important;
+    }
+
+    .period-btn.active:focus,
+    .period-btn.active:focus-visible {
+      background: rgba(58, 160, 255, 0.2) !important;
+      color: #3aa0ff !important;
+      outline: 2px solid rgba(58, 160, 255, 0.5);
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+<body class="dashboard-container">
+  <div id="app"></div>
+
+  <!-- For local development use Vite -> module entry. Avoid remote CDN scripts which may be blocked by tracking prevention. -->
+  <!-- Note: Bootstrap JS intentionally not loaded here to avoid mixing multiple copies (we use manual modal fallback). -->
+  <script type="module" src="/src/main.js"></script>
+  <script type="module" src="/src/pages/dashboard.js"></script>
+
+
+
+
+  <!-- In production or if you prefer CDN, add Chart.js and Bootstrap JS here. For dev, install via npm: `npm install chart.js bootstrap bootstrap-icons` and import in your modules. -->
+
+  <!-- Fallback helper: якщо dev-сервер не доступний, покажемо підказку (легкий банер, не блокує інтерфейс) -->
+  <script>
+  (async function(){
+    try{
+      const timeoutMs = 1200
+      const controller = new AbortController()
+      const timer = setTimeout(()=> controller.abort(), timeoutMs)
+      let devAvailable = false
+      try{
+        const res = await fetch('/src/main.js', { method: 'GET', cache: 'no-store', signal: controller.signal })
+        if(res && res.ok) devAvailable = true
+      }catch(e){ devAvailable = false }
+      clearTimeout(timer)
+
+      // Якщо dev сервер не відповів і додаток ще не ініціалізований — покажемо неперешкоджаючий банер
+      var app = document.getElementById('app')
+      if(!devAvailable && (!app || !app.innerHTML || !app.innerHTML.trim())){
+        var hint = document.createElement('div')
+        hint.className = 'container p-2 text-center text-light'
+        // легкий стиль банера, не абсолютний, щоб не перекривати модальні вікна
+        hint.style.background = 'rgba(33,37,41,0.95)'
+        hint.style.borderBottom = '1px solid rgba(255,255,255,0.04)'
+        hint.style.position = 'relative'
+        hint.style.zIndex = '1040'
+        hint.style.fontSize = '14px'
+        hint.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px">\n          <div style="text-align:left">\n            <strong>Frontend did not initialize.</strong> Можливо не запущено dev-сервер Vite або модулі завантажились повільно.\n            <div style="font-size:12px;opacity:0.9;margin-top:4px">Запустіть frontend dev сервер і відкрийте <a href="http://localhost:5173/dashboard.html">http://localhost:5173/dashboard.html</a> або перевірте консоль (F12).</div>\n          </div>\n          <div><button id="fm-close-hint" class="btn btn-sm btn-light">Закрити</button></div>\n        </div>'
+        document.body.insertBefore(hint, document.body.firstChild)
+        var btn = document.getElementById('fm-close-hint')
+        if(btn) btn.addEventListener('click', function(){ hint.remove() })
+        console.warn('FinMate frontend: app not initialized. If you are developing, run `npm run dev` in frontend_by_copilot and open http://localhost:5173/dashboard.html')
+      }
+    }catch(e){ console.warn('Fallback check failed', e) }
+  })();
+  </script>
+
+
+</body>
+</html>
