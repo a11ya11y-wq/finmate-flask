@@ -116,5 +116,19 @@ def change_token():
         return jsonify({"error": f"An unexpected error occurred: {e}"}), 500
 
 
+@bp.route('/delete-token', methods=['DELETE'])
+@jwt_required()
+def delete_token():
+    try:
+        user_id = int(get_jwt_identity())
+        service.delete_mono_token(user_id)
+        return '', 204
+
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+
+    except Exception as e:
+        return jsonify({"error": f"An unexpected error occurred: {e}"}), 500
+
 
 

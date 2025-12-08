@@ -24,6 +24,16 @@ class ProfileRepository:
             raise Exception(f"Error while updating transaction in DB: {e}")
 
 
+    def delete_monobank_token(self, user_obj):
+        try:
+            user_obj.monobank_api_token = None
+            db.session.commit()
+            return True
+        except Exception as e:
+            db.session.rollback()
+            raise Exception(f"Error while deleting Monobank token in DB: {e}")
+
+
     def delete_user(self, user_obj):
         try:
             db.session.delete(user_obj)

@@ -41,10 +41,8 @@ class ProfileService:
 
 
     def delete_user(self, user_id):
-        user_to_delete = self.repo.get_user_info(user_id)
+        user_to_delete = self.get_user_info(user_id)
 
-        if not user_to_delete:
-            raise ValueError(f"User with id {user_id} not found.")
 
         self.repo.delete_user(user_to_delete)
 
@@ -62,9 +60,6 @@ class ProfileService:
 
         user_obj = self.get_user_info(user_id)
 
-        if not user_obj:
-            raise ValueError('User not found.')
-
         if not user_obj.chek_hash_pwd(old_password):
             raise ValueError("Invalid old password.")
 
@@ -76,7 +71,7 @@ class ProfileService:
 
 
     def update_currency(self, user_id, data):
-        user_obj = self.repo.get_user_info(user_id)
+        user_obj = self.get_user_info(user_id)
 
         try:
             validated_data = CurrencyUpdateSchema.model_validate(data)
@@ -90,7 +85,7 @@ class ProfileService:
 
 
     def update_mono_token(self, user_id, data):
-        user_obj = self.repo.get_user_info(user_id)
+        user_obj = self.get_user_info(user_id)
 
         try:
             validated_data = MonoTokenUpdateSchema.model_validate(data)
@@ -114,6 +109,13 @@ class ProfileService:
 
         updated_user = self.repo.update_user(user_obj, payload)
         return updated_user
+
+
+    def delete_mono_token(self, user_id):
+        user_obj = self.get_user_info(user_id)
+
+        self.repo.delete_monobank_token(user_obj)
+        return True
 
 
 
