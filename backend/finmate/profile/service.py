@@ -4,7 +4,7 @@ from cryptography.fernet import Fernet
 from flask import current_app
 
 from .repository import ProfileRepository
-from  .schemas import ProfileUpdateSchema, CurrencyUpdateSchema, MonoTokenUpdateSchema, PasswordChangeSchema
+from  .schemas import ProfileUpdateSchema, MonoTokenUpdateSchema, PasswordChangeSchema
 
 
 
@@ -70,20 +70,6 @@ class ProfileService:
         return True
 
 
-    def update_currency(self, user_id, data):
-        user_obj = self.get_user_info(user_id)
-
-        try:
-            validated_data = CurrencyUpdateSchema.model_validate(data)
-        except ValidationError as e:
-            raise ValueError(e.errors())
-
-        payload = validated_data.model_dump(exclude_unset=True)
-
-        updated_user = self.repo.update_user(user_obj, payload)
-        return updated_user
-
-
     def update_mono_token(self, user_id, data):
         user_obj = self.get_user_info(user_id)
 
@@ -100,7 +86,7 @@ class ProfileService:
 
             encrypted_token = cipher_suite.encrypt(raw_token_bytes)
 
-        except Exception as e:
+        except Exception as e: #TODO: Ловити конкретніші помилки з Фернет
             raise Exception(f"Token encryption failed: {e}")
 
         payload = {

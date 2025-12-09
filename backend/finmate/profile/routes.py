@@ -31,7 +31,7 @@ def update_user():
         return jsonify(updated_user.to_dict()), 200
 
     except ValueError as e:
-        status_code = 404 if "not found" in str(e).lower() else 400
+        status_code = 404 if "not found" in str(e).lower() else 400 #TODO: Кастом ексепшн зробити (UserNotFound, ValidationError)
         return jsonify({"error": str(e)}), status_code
 
     except PermissionError as e:
@@ -76,29 +76,9 @@ def change_password():
         return jsonify({"error": f"An unexpected error occurred: {e}"}), 500
 
 
-@bp.route('/change-currency', methods=['PUT'])
+@bp.route('/monobank', methods=['PUT'])
 @jwt_required()
-def change_currency():
-    try:
-        user_id = int(get_jwt_identity())
-        data = request.get_json()
-
-        if not data:
-            return jsonify({"error": "No JSON data provided"}), 400
-
-        updated_user = service.update_currency(user_id, data)
-        return jsonify(updated_user.to_dict()), 200
-
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 400
-
-    except Exception as e:
-        return jsonify({"error": f"An unexpected error occurred: {e}"}), 500
-
-
-@bp.route('/change-token', methods=['PUT'])
-@jwt_required()
-def change_token():
+def update_monobank_integration():
     try:
         user_id = int(get_jwt_identity())
         data = request.get_json()
@@ -116,9 +96,9 @@ def change_token():
         return jsonify({"error": f"An unexpected error occurred: {e}"}), 500
 
 
-@bp.route('/delete-token', methods=['DELETE'])
+@bp.route('/monobank', methods=['DELETE'])
 @jwt_required()
-def delete_token():
+def delete_monobank_token():
     try:
         user_id = int(get_jwt_identity())
         service.delete_mono_token(user_id)

@@ -10,11 +10,12 @@ class ProfileRepository:
         return Users.query.get(user_id)
 
 
-    def update_user(self, user_obj, data):
+    def update_user(self, user_obj : Users, data): #TODO: Розібратись і зробити з допомогою setattr
         try:
             user_obj.username = data.get('username', user_obj.username)
             user_obj.email = data.get('email', user_obj.email)
             user_obj.currency = data.get('currency',   user_obj.currency)
+            user_obj.avatar = data.get('avatar', user_obj.avatar)
             if 'monobank_api_token' in data:
                 user_obj.monobank_api_token = data.get('monobank_api_token')
             db.session.commit()

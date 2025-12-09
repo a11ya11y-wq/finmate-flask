@@ -34,5 +34,6 @@ class Users(db.Model):
             "email": self.email,
             "username": self.username,
             "currency": self.currency,
-            "monobank_token_is_set": self.monobank_api_token is not None
+            "monobank_token_is_set": self.monobank_api_token is not None,
+            "avatar": self.avatar
         }

@@ -4,6 +4,8 @@ from typing import Literal
 
 class ProfileUpdateSchema(BaseModel):
     username : str | None = Field(None, min_length=4, max_length=32)
+    currency: Literal['USD', 'EUR', 'UAH'] | None = None
+    avatar : str | None = Field(None, min_length=5, max_length=200)
 
 
 class PasswordChangeSchema(BaseModel):
@@ -18,10 +20,6 @@ class PasswordChangeSchema(BaseModel):
         if self.new_password == self.old_password:
             raise ValueError('New password cannot be the same as old password')
         return self
-
-
-class CurrencyUpdateSchema(BaseModel):
-    currency : Literal['USD', 'EUR', 'UAH']
 
 
 class MonoTokenUpdateSchema(BaseModel):
