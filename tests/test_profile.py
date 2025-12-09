@@ -138,7 +138,7 @@ class TestChangePassword:
 class TestChangeCurrency:
 
     def test_change_currency_success(self, client, auth_headers):
-        response = client.put("/api/v1/profile/change-currency",
+        response = client.put("/api/v1/profile/me",
                               headers=auth_headers,
                               json={"currency": "UAH"}
                               )
@@ -146,7 +146,7 @@ class TestChangeCurrency:
 
 
     def test_change_currency_failed(self, client, auth_headers):
-        response = client.put("/api/v1/profile/change-currency",
+        response = client.put("/api/v1/profile/me",
                               headers=auth_headers,
                               json={"currency": "Invslid DATA"}
                               )
@@ -154,7 +154,7 @@ class TestChangeCurrency:
 
 
     def test_change_currency_wo_auth(self, client):
-        response = client.put("/api/v1/profile/change-currency")
+        response = client.put("/api/v1/profile/me")
         assert response.status_code == 401
 
 
@@ -162,7 +162,7 @@ class TestChangeCurrency:
 class TestChangeToken:
 
     def test_change_token_success(self, client, auth_headers):
-        response = client.put("/api/v1/profile/change-token",
+        response = client.put("/api/v1/profile/monobank",
                               headers=auth_headers,
                               json={"token": "TESTMONOTOKEN"}
                               )
@@ -170,14 +170,14 @@ class TestChangeToken:
 
 
     def test_change_token_failed(self, client, auth_headers):
-        response = client.put("/api/v1/profile/change-token",
+        response = client.put("/api/v1/profile/monobank",
                               headers=auth_headers,
                               json={"token": "TEST"}
                               )
         assert response.status_code == 400
 
     def test_change_token_no_data(self, client, auth_headers):
-        response = client.put("/api/v1/profile/change-token",
+        response = client.put("/api/v1/profile/monobank",
                               headers=auth_headers,
                               json={}
                               )
@@ -185,11 +185,11 @@ class TestChangeToken:
 
 
     def test_change_token_wo_auth(self, client):
-        response = client.put("/api/v1/profile/change-token",
+        response = client.put("/api/v1/profile/monobank",
                               json={"token": "TESTMONOTOKEN"}
                               )
         assert response.status_code == 401
 
 
-
+#TODO: Test делит токен монобанка
 
