@@ -1,7 +1,7 @@
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 
 from backend.finmate.db import db
-from sqlalchemy import func
+from sqlalchemy import func, case
 from backend.finmate.models import Category, Transactions
 
 
@@ -9,15 +9,10 @@ from backend.finmate.models import Category, Transactions
 class TransactionRepository:
 
 
-    def get_base_query(self, user_id, period):
+    def get_base_query(self, user_id, start_date=None):
         base_query = Transactions.query.filter_by(user_id=user_id)
-        today = date.today()
-        if period == 'week':
-            week_ago = today - timedelta(days=7)
-            base_query = base_query.filter(Transactions.created_at >= week_ago)
-        elif period == 'month':
-            month_ago = today - timedelta(days=30)
-            base_query = base_query.filter(Transactions.created_at >= month_ago)
+        if start_date:
+            base_query = base_query.filter(Transactions.created_at >= start_date)
         return base_query
 
 
@@ -26,16 +21,16 @@ class TransactionRepository:
         return query.order_by(Transactions.created_at.desc()).limit(limit).all()
 
 
-    def get_total_income(self, user_id, period):
-        query = self.get_base_query(user_id, period)
+    def get_total_income(self, user_id, start_date):
+        query = self.get_base_query(user_id, start_date)
         result = query.filter(Transactions.transaction_type == 'income') \
                        .with_entities(func.sum(Transactions.amount)) \
                        .scalar()
         return float(result) if result is not None else 0.0
 
 
-    def get_total_expense(self, user_id, period):
-        query = self.get_base_query(user_id, period)
+    def get_total_expense(self, user_id, start_date):
+        query = self.get_base_query(user_id, start_date)
         result = query.filter(Transactions.transaction_type == 'expense') \
                         .with_entities(func.sum(Transactions.amount)) \
                         .scalar()
@@ -67,9 +62,26 @@ class TransactionRepository:
     ).order_by(func.sum(Transactions.amount).desc()).all()
 
 
-    def get_transactions_for_balance_chart(self, user_id, period):
-        query = self.get_base_query(user_id, period)
+    def get_transactions_for_balance_chart(self, user_id, start_date):
+        query = self.get_base_query(user_id, start_date)
         return query.order_by(Transactions.created_at.asc()).all()
+
+
+    def get_opening_balance(self, user_id, start_date):
+        balance = db.session.query(
+            func.sum(
+                case(
+                    (Transactions.transaction_type == 'income', Transactions.amount),
+                    (Transactions.transaction_type == 'expense', -Transactions.amount),
+                    else_=0
+                )
+            )
+        ).filter(
+            Transactions.user_id == user_id,
+            Transactions.created_at < start_date
+        ).scalar()
+
+        return float(balance or 0.0)
 
 
     def create_transaction(self, data):
