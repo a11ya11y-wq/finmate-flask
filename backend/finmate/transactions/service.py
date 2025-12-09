@@ -1,3 +1,5 @@
+from datetime import  datetime, time
+
 from pydantic import ValidationError
 
 from backend.finmate.transactions.repository import TransactionRepository
@@ -69,6 +71,14 @@ class TransactionService:
 
             if not cat_obj:
                 raise PermissionError(f"Category {new_cat_id} not found or access denied.")
+
+        if 'created_at' in update_payload: # Додає час для дати (При редагуванні дати, час має залишатися той самий)
+            new_date = update_payload['created_at']
+            original_time = tx_to_update.created_at.time() if tx_to_update.created_at else time(0,0,0)
+            combined_datetime = datetime.combine(new_date.date(), original_time)
+
+            update_payload['created_at'] = combined_datetime
+
 
         updated_tx = self.repo.update_transaction(tx_to_update, update_payload)
         return updated_tx
