@@ -11,35 +11,35 @@ create_bud_failed_json = [
     # Negative amount (Validation)
     (
         BASE_BUDGET_JSON | {"amount": -100},
-        400,
+        422,
         "Input should be greater than 0"
     ),
     # Incorrect tx_type (Validation)
     (
         BASE_BUDGET_JSON | {"is_recurring": "ANOTHER TYPE"},
-        400,
-        "'Input should be a valid boolean, unable to interpret input"
+        422,
+        "Input should be a valid boolean, unable to interpret input"
     ),
     # Incorrect cat_id -> str (Validation)
     (
         BASE_BUDGET_JSON | {"category_id": "INCORRECT CAT_ID"},
-        400,
+        422,
         "Input should be a valid integer"
     ),
     # Not valid cat_id (Service)
     (
         BASE_BUDGET_JSON | {"category_id": 100},
-        403,
+        404,
         "Category 100 not found or access denied."
     ),
     # Not valid amount (Validation)
     (
         BASE_BUDGET_JSON | {"amount": "NOT VALID AMOUNT"},
-        400,
+        422,
         "Input should be a valid decimal"
     ),
     (
-        {}, 400, "No JSON data provided"
+        {}, 422, "Field required"
     )
 ]
 
@@ -75,9 +75,10 @@ class TestCreateBudgets:
     def test_create_budgets_overlimit(self, client, auth_headers):
         response = client.get("/api/v1/categories/all", headers=auth_headers)
         assert response.status_code == 200
-        existing_categories = response.get_json()
+        response_json = response.json
+        existing_categories = response_json['data']
 
-        assert len(existing_categories) >= 6, "Not enough categories for this test!"
+        assert len(existing_categories) >= 6
 
         for i in range(5):
             cat_id = existing_categories[i]['id']
@@ -100,7 +101,7 @@ class TestCreateBudgets:
                                         "is_recurring": True
                                     }
                                     )
-        assert last_response.status_code == 403
+        assert last_response.status_code == 400
         assert "limit" in str(last_response.get_json())
 
 BASE_UPDATE_JSON = {
@@ -113,35 +114,35 @@ update_bud_failed =[
     # Negative amount (Validation)
     (
         BASE_UPDATE_JSON | {"amount": -100},
-        400,
+        422,
         "Input should be greater than 0"
     ),
     # Incorrect tx_type (Validation)
     (
         BASE_UPDATE_JSON | {"is_recurring": "ANOTHER TYPE"},
-        400,
-        "'Input should be a valid boolean, unable to interpret input"
+        422,
+        "Input should be a valid boolean, unable to interpret input"
     ),
     # Incorrect cat_id -> str (Validation)
     (
         BASE_UPDATE_JSON | {"category_id": "INCORRECT CAT_ID"},
-        400,
+        422,
         "Input should be a valid integer"
     ),
     # Not valid cat_id (Service)
     (
         BASE_UPDATE_JSON | {"category_id": 100},
-        403,
+        404,
         "Category 100 not found or access denied."
     ),
     # Not valid amount (Validation)
     (
         BASE_UPDATE_JSON | {"amount": "NOT VALID AMOUNT"},
-        400,
+        422,
         "Input should be a valid decimal"
     ),
     (
-        {}, 400, "No JSON data provided"
+        {}, 422, "Field required"
     )
 ]
 
@@ -204,7 +205,7 @@ class TestDeleteBudgets:
         response = client.delete("/api/v1/budgets/100",
                                     headers=auth_headers
                                     )
-        assert  response.status_code == 403
+        assert  response.status_code == 404
 
     def test_delete_budgets_wo_auth(self,client):
         response = client.delete("/api/v1/budgets/100")

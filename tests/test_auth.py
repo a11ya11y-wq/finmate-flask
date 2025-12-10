@@ -10,37 +10,37 @@ BASE_REGISTER_JSON = {
 
 # def test_register_sad_path
 register_sad_paths = [
-        # Diferent passwords (Service)
+        # Diferent passwords (Pydantic)
         (
             BASE_REGISTER_JSON | {"email": "test1@example.com", "confirm_password": "DIFFERENT"},
-            400,
+            422,
             "Passwords do not match"
         ),
 
         # Short password (Pydantic)
         (
             BASE_REGISTER_JSON | {"email": "test2@example.com", "password": "123", "confirm_password": "123"},
-            400,
+            422,
             "at least 6 characters"
         ),
 
         # Invalid email (Pydantic)
         (
             BASE_REGISTER_JSON | {"email": "not-an-email"},
-            400,
+            422,
             "value is not a valid email address"
         ),
 
         # wo username (Pydantic)
         (
             {"password": "123", "email": "a@b.c", "confirm_password": "123"},
-            400,
+            422,
             "Field required"
         ),
         # Short username (Pydantic)
         (
             BASE_REGISTER_JSON | {"username": "us"},
-            400,
+            422,
             "at least 4 characters"
 
         )
@@ -51,13 +51,13 @@ registered_users = [
         # User exist by email (Service)
         (
             BASE_REGISTER_JSON | {"username": "ANOTHER US"},
-            400,
+            409,
             "Email already registered."
         ),
         # User exist by username (Service)
         (
             BASE_REGISTER_JSON  | {"email": "another@email.com"},
-            400,
+            409,
             "Username already registered"
         )
     ]

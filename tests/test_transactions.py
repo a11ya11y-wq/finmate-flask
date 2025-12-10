@@ -35,65 +35,65 @@ create_tx_failed_json =[
     # Negative amount (Validation)
     (
         BASE_TRANSACTION_JSON | {"amount": -100},
-        400,
+        422,
         "Input should be greater than 0"
     ),
     # Incorrect tx_type (Validation)
     (
         BASE_TRANSACTION_JSON | {"transaction_type": "ANOTHER TYPE"},
-        400,
-        "Input should be \\\'income\\\' or \\\'expense\\\'"
+        422,
+        " Input should be \'income\' or \'expense\'"
     ),
     # Incorrect cat_id -> str (Validation)
     (
         BASE_TRANSACTION_JSON | {"category_id": "INCORRECT CAT_ID"},
-        400,
+        422,
         "Input should be a valid integer"
     ),
     # Incorrect month in created_at (Validation)
     (
         BASE_TRANSACTION_JSON | {"created_at": "2027-22-22"},
-        400,
+        422,
         "month value is outside expected range of 1-12"
     ),
     # Incorrect date in created_at (Validation)
     (
         BASE_TRANSACTION_JSON | {"created_at": "2027-10-46"},
-        400,
+        422,
         "Input should be a valid datetime or date"
     ),
     # Incorrect separator in created_at (Validation)
     (
       BASE_TRANSACTION_JSON | {"created_at": "2027+12+10"},
-        400,
+        422,
         "invalid date separator"
     ),
     # Short year in created_at
     (
       BASE_TRANSACTION_JSON | {"created_at": "0-12-10"},
-        400,
+        422,
         "Input should be a valid datetime or date, input is too short"
     ),
     # Incorrect created_at (Validation)
     (
         BASE_TRANSACTION_JSON | {"created_at": "NOT VALID DATE"},
-        400,
+        422,
         "Input should be a valid datetime or date"
     ),
     # Not valid cat_id (Service)
     (
         BASE_TRANSACTION_JSON | {"category_id": 100},
-        403,
+        404,
         "Category 100 not found or access denied."
     ),
     # Not valid amount (Validation)
     (
         BASE_TRANSACTION_JSON | {"amount": "NOT VALID AMOUNT"},
-        400,
+        422,
         "Input should be a valid decimal"
     ),
     (
-        {}, 400, "No JSON data provided"
+        {}, 422, "Field required"
     )
 ]
 
@@ -154,18 +154,18 @@ update_tx_success_json = [
 ]
 
 update_tx_failed_json = [
-    ({"amount": "FAKE"}, 400, "'Input should be a valid decimal"),
-    ({"amount": -10}, 400, "Input should be greater than 0"),
-    ({"title": ""}, 400, "String should have at least 1 character"),
-    ({"transaction_type": "INVALID TYPE"}, 400, "Input should be \\\'income\\\' or \\\'expense\\\'"),
-    ({"category_id": "INVALID DATA"}, 400, "Input should be a valid integer"),
-    ({"category_id": 100}, 403, "Category 100 not found or access denied"),
-    ({"created_at": "0-11-15"}, 400, "Input should be a valid datetime or date, input is too short"),
-    ({"created_at": "2025+11-15"}, 400, "Input should be a valid datetime or date, invalid date separator"),
-    ({"created_at": "2025-15-15"}, 400, "Input should be a valid datetime or date, month value is outside expected range of 1-12"),
-    ({"created_at": "2025-11-40"}, 400, "Input should be a valid datetime or date, day value is outside expected range"),
-    ({"created_at": "INVALID DATA"}, 400, "Input should be a valid datetime or date, invalid character in year"),
-    ({}, 400, "No JSON data provided")
+    ({"amount": "FAKE"}, 422, "Input should be a valid decimal"),
+    ({"amount": -10}, 422, "Input should be greater than 0"),
+    ({"title": ""}, 422, "String should have at least 1 character"),
+    ({"transaction_type": "INVALID TYPE"}, 422, "Input should be \'income\' or \'expense\'"),
+    ({"category_id": "INVALID DATA"}, 422, "Input should be a valid integer"),
+    ({"category_id": 100}, 404, "Category 100 not found or access denied"),
+    ({"created_at": "0-11-15"}, 422, "Input should be a valid datetime or date, input is too short"),
+    ({"created_at": "2025+11-15"}, 422, "Input should be a valid datetime or date, invalid date separator"),
+    ({"created_at": "2025-15-15"}, 422, "Input should be a valid datetime or date, month value is outside expected range of 1-12"),
+    ({"created_at": "2025-11-40"}, 422, "Input should be a valid datetime or date, day value is outside expected range"),
+    ({"created_at": "INVALID DATA"}, 422, "Input should be a valid datetime or date, invalid character in year"),
+    ({}, 400, "No valid fields to update.")
 ]
 
 @pytest.mark.usefixtures("db_session")
@@ -232,7 +232,7 @@ class TestDeleteTransactions:
 
     def test_delete_transaction_failed(self, client, auth_headers):
         response = client.delete("/api/v1/transactions/100", headers=auth_headers)
-        assert response.status_code == 403
+        assert response.status_code == 404
 
     def test_delete_transaction_wo_auth(self, client):
         response = client.delete("/api/v1/transactions/1")
@@ -254,7 +254,7 @@ class TestGetTransactions:
 
     def test_get_transaction_failed(self, client, auth_headers):
         response = client.get("/api/v1/transactions/1",  headers=auth_headers)
-        assert response.status_code == 403
+        assert response.status_code == 404
 
     def test_get_transaction_wo_auth(self, client):
         response = client.get("/api/v1/transactions/1")

@@ -8,16 +8,16 @@ BASE_CREATE_CAT_JSON = {
 
 create_cat_failed_json = [
     (
-        {}, 400, "No JSON data provided"
+        {}, 422, "Field required"
     ),
     (
-        {"name": ""}, 400, "String should have at least 1 character"
+        {"name": ""}, 422, "String should have at least 1 character"
     ),
     (
-        {"name": 211}, 400, "Input should be a valid string"
+        {"name": 211}, 422, "Input should be a valid string"
     ),
     (
-        BASE_CREATE_CAT_JSON | {"mcc_code": 3}, 400, "Input should be a valid string"
+        BASE_CREATE_CAT_JSON | {"mcc_code": 3}, 422, "Input should be a valid string"
     )
 ]
 
@@ -47,7 +47,7 @@ class TestCreateCategory:
                                     headers=auth_headers,
                                     json={"name": "LAST CAT"}
                                     )
-        assert last_response.status_code == 403
+        assert last_response.status_code == 400
         assert "limit" in str(last_response.get_json())
 
 
@@ -78,16 +78,16 @@ update_cat_success_json = [
 
 update_cat_failed_json = [
     (
-        {}, 400, "No JSON data provided"
+        {}, 400, "No data provided for update."
     ),
     (
-        {"name": ""}, 400, "String should have at least 1 character"
+        {"name": ""}, 422, "String should have at least 1 character"
     ),
     (
-        {"name": 211}, 400, "Input should be a valid string"
+        {"name": 211}, 422, "Input should be a valid string"
     ),
     (
-        {"mcc_code": 3}, 400, "Input should be a valid string"
+        {"mcc_code": 3}, 422, "Input should be a valid string"
     )
 ]
 
@@ -136,7 +136,7 @@ class TestUpdateCategory:
 
     def test_update_category_perm_error(self, client, auth_headers):
         response = client.put("/api/v1/categories/100", headers=auth_headers, json={"name": "Check perm error"})
-        assert  response.status_code == 403
+        assert  response.status_code == 404
 
 
 class TestDeleteCategory:
@@ -154,7 +154,7 @@ class TestDeleteCategory:
 
     def test_delete_category_failed(self, client, auth_headers):
         response = client.delete("/api/v1/categories/100", headers=auth_headers)
-        assert response.status_code == 403
+        assert response.status_code == 404
 
     def test_delete_transaction_wo_auth(self, client):
         response = client.delete("/api/v1/categories/1")

@@ -32,7 +32,7 @@ class TestUpdateUser:
                               headers=auth_headers,
                               json={"username": "tes"}
                               )
-        assert response.status_code == 400
+        assert response.status_code == 422
         json_data = response.get_json()
         assert "String should have at least 4 characters" in str(json_data)
 
@@ -81,24 +81,24 @@ change_pass_failed_json = [
             "old_password": "321321",
             "new_password": "TESTPASSWORD",
             "confirm_password": "TESTPASSWORD"
-        }, 400, "Invalid old password"
+        }, 401, "Invalid old password"
     ),
     (
         {
             "old_password": "ValidPassword123",
             "new_password": "EWRWRWRW",
             "confirm_password": "TESTPASSWORD"
-        }, 400, "New password and confirmation do not match"
+        }, 422, "New password and confirmation do not match"
     ),
     (
         {
             "old_password": "ValidPassword123",
             "new_password": "ValidPassword123",
             "confirm_password": "ValidPassword123"
-        }, 400, "New password cannot be the same as old password"
+        }, 422, "New password cannot be the same as old password"
     ),
     (
-        {}, 400, "No JSON data provided"
+        {}, 422, "Field required"
     )
 ]
 
@@ -150,7 +150,7 @@ class TestChangeCurrency:
                               headers=auth_headers,
                               json={"currency": "Invslid DATA"}
                               )
-        assert response.status_code == 400
+        assert response.status_code == 422
 
 
     def test_change_currency_wo_auth(self, client):
@@ -174,14 +174,14 @@ class TestChangeToken:
                               headers=auth_headers,
                               json={"token": "TEST"}
                               )
-        assert response.status_code == 400
+        assert response.status_code == 422
 
     def test_change_token_no_data(self, client, auth_headers):
         response = client.put("/api/v1/profile/monobank",
                               headers=auth_headers,
                               json={}
                               )
-        assert response.status_code == 400
+        assert response.status_code == 422
 
 
     def test_change_token_wo_auth(self, client):
