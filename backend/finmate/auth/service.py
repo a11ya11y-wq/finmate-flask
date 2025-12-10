@@ -1,11 +1,11 @@
 from datetime import timedelta
 
-from pydantic import ValidationError
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask_jwt_extended import create_access_token
 
 from .repository import AuthRepository
 from .schemas import LoginSchema, RegisterSchema
+from backend.finmate.exceptions import ConflictError, AuthenticationError
 
 
 class AuthService:
@@ -15,18 +15,12 @@ class AuthService:
 
     def login_user(self, data):
 
-        try:
-            validated_data = LoginSchema.model_validate(data)
-        except ValidationError as e:
-            raise ValueError(e.errors())
+        validated_data = LoginSchema.model_validate(data)
 
-        payload = validated_data.model_dump()
+        user = self.repo.find_user_by_email(validated_data.email)
 
-
-        user = self.repo.find_user_by_email(payload['email'])
-
-        if not user or not check_password_hash(user.password_hash, payload['password']):
-            raise ValueError("Invalid email or password.")
+        if not user or not check_password_hash(user.password_hash, validated_data.password):
+            raise AuthenticationError("Invalid email or password.")
 
         access_token = create_access_token(
             identity=str(user.id),
@@ -37,19 +31,13 @@ class AuthService:
 
     def create_user(self, data):
 
-        try:
-            validated_data = RegisterSchema.model_validate(data)
-        except ValidationError as e:
-            raise ValueError(e.errors())
-
-        if validated_data.password != validated_data.confirm_password:
-            raise ValueError("Passwords do not match.")
+        validated_data = RegisterSchema.model_validate(data)
 
         if self.repo.find_user_by_email(validated_data.email):
-            raise ValueError("Email already registered.")
+            raise ConflictError("Email already registered.")
 
         if self.repo.find_user_by_name(validated_data.username):
-            raise ValueError("Username already registered")
+            raise ConflictError("Username already registered")
 
         hashed_password = generate_password_hash(validated_data.password)
 

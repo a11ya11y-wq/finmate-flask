@@ -9,6 +9,7 @@ from backend.finmate.categories.service import CategoryService
 from .api_client import MonoAPI
 from backend.finmate.exceptions import ThrottlingError
 from backend.finmate.models.transaction_model import Transactions
+from backend.finmate.exceptions import BusinessLogicError, ForbiddenError
 
 
 
@@ -25,21 +26,21 @@ class MonobankService:
         token_bytes = user.monobank_api_token
 
         if not user or not token_bytes:
-            raise PermissionError("API token not found or user access denied.")
+            raise BusinessLogicError("API token not found or user access denied.")
 
         api = MonoAPI(encrypted_token_bytes=token_bytes)
 
         try:
             client_info = api.get_client_info()
+            if 'errorDescription' in client_info:
+                raise ForbiddenError(client_info['errorDescription'])
 
-            if isinstance(client_info, dict) and client_info.get('errorDescription'):
-                error_msg = client_info['errorDescription']
-                raise requests.exceptions.RequestException(error_msg)
-
+        except requests.RequestException as e:
+            raise ThrottlingError(f"Monobank connection failed: {str(e)}")
         except Exception as e:
-            raise PermissionError(f'Monobank or token error: {e}. Please update your token.')
+            raise ForbiddenError(f"Invalid token or API error: {str(e)}")
 
-        account_id = client_info['accounts'][0]['id']
+        account_id = client_info['accounts'][0]['id'] #TODO: У багатьох людей першим може бути ФОП рахунок, виправити
 
         thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
         from_time = int(thirty_days_ago.timestamp())
@@ -52,13 +53,13 @@ class MonobankService:
             if error_msg == 'Too many requests':
                 raise ThrottlingError(error_msg)
 
-            raise PermissionError(f'Monobank API Error: {error_msg}')
+            raise ForbiddenError(f'Monobank API Error: {error_msg}')
 
         default_category = self.cat_repo.get_by_name_and_user("Uncategorized", user_id)
 
         if not default_category:
             data = {"name": "Uncategorized"}
-            self.cat_service.create_category(user_id, data)
+            default_category = self.cat_service.create_category(user_id, data)
 
         mcc_map = {}
         all_categories = self.cat_service.get_all_categories(user_id)
@@ -82,7 +83,7 @@ class MonobankService:
                 new_tx = Transactions(
                     title=t_dict['description'],
 
-                    amount=Decimal(abs(t_dict['amount']) / 100),
+                    amount=Decimal(abs(t_dict['amount'])) / Decimal(100),
 
                     created_at=datetime.fromtimestamp(t_dict['time'], tz=timezone.utc),
                     user_id=user_id,

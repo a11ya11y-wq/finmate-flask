@@ -1,6 +1,7 @@
 from datetime import  datetime, timedelta
 
 from backend.finmate.transactions.repository import TransactionRepository
+from backend.finmate.exceptions import BusinessLogicError
 
 class DashboardService:
 
@@ -23,7 +24,7 @@ class DashboardService:
     def get_dashboard_data(self, user_id, period):
 
         if period not in self.VALID_PERIODS:
-            raise ValueError(f"Invalid period '{period}'. Must be one of: {', '.join(self.VALID_PERIODS)}.")
+            raise BusinessLogicError(f"Invalid period '{period}'. Must be one of: {', '.join(self.VALID_PERIODS)}.")
 
         start_date = self.calculate_start_date(period)
 

@@ -32,8 +32,7 @@ class MonoAPI:
             return response.json()
         except Exception as e:
             print(f'Error: {e}')
-            return None
-
+            raise requests.RequestException(f"API Request failed: {e}")
 
     def get_client_info(self):
         return self._make_request("/personal/client-info")

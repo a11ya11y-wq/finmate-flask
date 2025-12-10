@@ -5,6 +5,7 @@ from flask import current_app
 
 from .repository import ProfileRepository
 from  .schemas import ProfileUpdateSchema, MonoTokenUpdateSchema, PasswordChangeSchema
+from backend.finmate.exceptions import ResourceNotFound, BusinessLogicError, AuthenticationError
 
 
 
@@ -18,22 +19,19 @@ class ProfileService:
         user = self.repo.get_user_info(user_id)
 
         if not user:
-            raise ValueError("User not found.")
+            raise ResourceNotFound("User not found.")
 
         return user
 
     def update_user(self, user_id, data):
         user = self.get_user_info(user_id)
 
-        try:
-            validated_data = ProfileUpdateSchema.model_validate(data)
-        except ValidationError as e:
-            raise ValueError(e.errors())
+        validated_data = ProfileUpdateSchema.model_validate(data)
 
         payload = validated_data.model_dump(exclude_unset=True)
 
         if not payload:
-            raise ValueError("No valid fields to update.")
+            raise BusinessLogicError("No valid fields to update.")
 
         updated_user = self.repo.update_user(user, payload)
 
@@ -50,10 +48,8 @@ class ProfileService:
 
 
     def change_password(self, user_id, data):
-        try:
-            validated_data = PasswordChangeSchema.model_validate(data)
-        except ValidationError as e:
-            raise ValueError(e.errors())
+
+        validated_data = PasswordChangeSchema.model_validate(data)
 
         new_password = validated_data.new_password
         old_password = validated_data.old_password
@@ -61,7 +57,7 @@ class ProfileService:
         user_obj = self.get_user_info(user_id)
 
         if not user_obj.chek_hash_pwd(old_password):
-            raise ValueError("Invalid old password.")
+            raise AuthenticationError("Invalid old password.")
 
         new_hash = generate_password_hash(new_password)
 
@@ -73,10 +69,7 @@ class ProfileService:
     def update_mono_token(self, user_id, data):
         user_obj = self.get_user_info(user_id)
 
-        try:
-            validated_data = MonoTokenUpdateSchema.model_validate(data)
-        except ValidationError as e:
-            raise ValueError(e.errors())
+        validated_data = MonoTokenUpdateSchema.model_validate(data)
 
         try:
             key = current_app.config['ENCRYPTION_KEY']
@@ -99,7 +92,6 @@ class ProfileService:
 
     def delete_mono_token(self, user_id):
         user_obj = self.get_user_info(user_id)
-
         self.repo.delete_monobank_token(user_obj)
         return True
 

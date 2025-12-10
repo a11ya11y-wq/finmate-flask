@@ -1,8 +1,7 @@
-from pydantic import ValidationError
 
 from backend.finmate.categories.repository import CategoryRepository
 from .schemas import CategoryCreateSchema, CategoryUpdateSchema
-from backend.finmate.exceptions import ConflictError
+from backend.finmate.exceptions import ConflictError, BusinessLogicError, ResourceNotFound
 
 
 class CategoryService:
@@ -19,12 +18,9 @@ class CategoryService:
     def create_category(self, user_id, data):
 
         if self.MAX_CATEGORIES_PER_USER <= self.repo.get_count_by_user(user_id):
-            raise PermissionError(f'You have reached the limit of {self.MAX_CATEGORIES_PER_USER} categories')
+            raise BusinessLogicError(f'You have reached the limit of {self.MAX_CATEGORIES_PER_USER} categories')
 
-        try:
-            validated_data = CategoryCreateSchema.model_validate(data)
-        except ValidationError as e:
-            raise ValueError(e.errors())
+        validated_data = CategoryCreateSchema.model_validate(data)
 
         name = validated_data.name
         existing_category = self.repo.get_by_name_and_user(name, user_id)
@@ -44,12 +40,9 @@ class CategoryService:
         cat_to_update = self.repo.get_cat_by_id_and_user(cat_id, user_id)
 
         if not cat_to_update:
-            raise PermissionError(f"Category {cat_to_update} not found or access denied.")
+            raise ResourceNotFound(f"Category {cat_to_update} not found or access denied.")
 
-        try:
-            validated_data = CategoryUpdateSchema.model_validate(data)
-        except ValidationError as e:
-            raise ValueError(e.errors())
+        validated_data = CategoryUpdateSchema.model_validate(data)
 
         if validated_data.name:
             existing_category = self.repo.get_by_name_and_user(validated_data.name, user_id)
@@ -57,6 +50,8 @@ class CategoryService:
                 raise ConflictError(f"Category with name {validated_data.name} already exists.")
 
         payload = validated_data.model_dump(exclude_unset=True)
+        if not payload:
+            raise BusinessLogicError("No data provided for update.")
 
         updated_cat = self.repo.update_category(cat_to_update, payload)
 
@@ -67,7 +62,7 @@ class CategoryService:
         cat_to_delete = self.repo.get_cat_by_id_and_user(cat_id, user_id)
 
         if not cat_to_delete:
-            raise PermissionError(f"Category {cat_id} not found or access denied.")
+            raise ResourceNotFound(f"Category {cat_id} not found or access denied.")
 
         self.repo.delete_category(cat_to_delete)
 

@@ -3,6 +3,7 @@ from flask import jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from backend.finmate.budgets import bp
 from .service import BudgetService
+from backend.finmate.utils.error_parser import parse_exception
 
 
 
@@ -18,11 +19,8 @@ def get_all_budgets():
         data = service.get_all_budgets_with_stats(user_id)
         return jsonify(data), 200
 
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 400
-
     except Exception as e:
-        return jsonify({"error": f"An unexpected error occurred: {e}"}), 500
+        return parse_exception(e)
 
 
 @bp.route('/', methods=['POST'])
@@ -31,19 +29,12 @@ def create_or_update_budget():
     try:
         user_id = int(get_jwt_identity())
         data = request.get_json()
-        if not data:
-            return jsonify({"error": "No JSON data provided"}), 400
+
         budget = service.create_or_update_budget(user_id, data)
-        return jsonify(budget.to_dict()), 201
-
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 400
-
-    except PermissionError as e:
-        return jsonify({"error": str(e)}), 403
+        return jsonify(budget.to_dict()), 201 #TODO: Код логіку Upsert
 
     except Exception as e:
-        return jsonify({"error": f"An unexpected error occurred: {e}"}), 500
+        return parse_exception(e)
 
 
 @bp.route('/<int:budget_id>', methods=['DELETE'])
@@ -54,11 +45,5 @@ def delete_budget(budget_id):
         service.delete_budget(user_id, budget_id)
         return '', 204
 
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 404
-
-    except PermissionError as e:
-        return jsonify({"error": str(e)}), 403
-
     except Exception as e:
-        return jsonify({"error": f"An unexpected error occurred: {e}"}), 500
+        return parse_exception(e)

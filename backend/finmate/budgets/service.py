@@ -1,11 +1,10 @@
 from datetime import datetime, timezone
 import calendar
 
-from pydantic import ValidationError
-
 from backend.finmate.budgets.repository import BudgetRepository
 from backend.finmate.categories.repository import CategoryRepository
 from .schemas import BudgetSchema
+from backend.finmate.exceptions import ResourceNotFound, BusinessLogicError
 
 class BudgetService:
 
@@ -76,17 +75,14 @@ class BudgetService:
 
     def create_or_update_budget(self, user_id, data):
 
-        try:
-            validated_data = BudgetSchema.model_validate(data)
-        except ValidationError as e:
-            raise ValueError(e.errors())
+        validated_data = BudgetSchema.model_validate(data)
 
         payload = validated_data.model_dump()
 
         category_id = payload['category_id']
         category = self.cat_repo.get_by_id_and_user(category_id, user_id)
         if not category:
-            raise PermissionError(f"Category {category_id} not found or access denied.")
+            raise ResourceNotFound(f"Category {category_id} not found or access denied.")
 
         budget_exist = self.repo.get_by_category_and_user(user_id, payload['category_id'])
 
@@ -97,7 +93,7 @@ class BudgetService:
         else:
             current_user_budget_count = self.repo.get_count_by_user(user_id)
             if current_user_budget_count >= self.MAX_BUDGET_PER_USER:
-                raise PermissionError(f'You have reached the limit of {self.MAX_BUDGET_PER_USER} budgets')
+                raise BusinessLogicError(f'You have reached the limit of {self.MAX_BUDGET_PER_USER} budgets')
             else:
                 payload['user_id'] = user_id
 
@@ -109,7 +105,7 @@ class BudgetService:
         budget_to_delete = self.repo.get_by_id_and_user(budget_id, user_id)
 
         if not budget_to_delete:
-            raise PermissionError(f"Budget {budget_id} not found or access denied.")
+            raise ResourceNotFound(f"Budget {budget_id} not found or access denied.")
 
         self.repo.delete_budget(budget_to_delete)
 

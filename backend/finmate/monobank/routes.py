@@ -3,7 +3,7 @@ from flask import  jsonify
 
 from . import bp
 from .service import MonobankService
-from backend.finmate.exceptions import ThrottlingError
+from backend.finmate.utils.error_parser import parse_exception
 
 
 service = MonobankService()
@@ -14,7 +14,6 @@ service = MonobankService()
 def sync_transactions(): #TODO: Захист від спаму (в бд добавить ласт_моно_реквест(Дейттайм))
     try:
         user_id = int(get_jwt_identity())
-
         added_count = service.sync_tx(user_id)
 
         if added_count == 0:
@@ -24,14 +23,5 @@ def sync_transactions(): #TODO: Захист від спаму (в бд доба
 
         return jsonify({"message": message, "count": added_count}), 200
 
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 400
-
-    except PermissionError as e:
-        return jsonify({"error": str(e)}), 403
-
-    except ThrottlingError as e:
-        return jsonify({"error": str(e)}), 429
-
     except Exception as e:
-        return jsonify({"error": f"An unexpected error occurred: {e}"}), 500
+        return parse_exception(e)
