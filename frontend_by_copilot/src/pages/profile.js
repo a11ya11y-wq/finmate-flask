@@ -101,7 +101,9 @@ async function loadUserProfile() {
 // Load categories
 async function loadCategories() {
     try {
-        categories = await api.get('/categories/all/')
+        const raw = await api.get('/categories/all/')
+        // Backend now returns { data: [...] } or legacy array
+        categories = Array.isArray(raw) ? raw : (raw && raw.data ? raw.data : [])
         renderCategories()
     } catch (error) {
         console.error('[profile] Error loading categories:', error)
@@ -248,16 +250,12 @@ async function updateProfile(e) {
     }
 
     try {
-        // Update profile (username + avatar)
+        // Update profile (username + avatar + currency) in single request
         await api.put('/profile/me/', {
             username: newUsername,
-            avatar: selectedAvatar
+            avatar: selectedAvatar,
+            currency: currency
         })
-
-        // Update currency separately
-        if (currency && currency !== currentUser.currency) {
-            await api.put('/profile/change-currency/', { currency })
-        }
 
         // Очищаємо кеш профілю та завантажуємо свіжі дані
         clearProfileCache()
@@ -487,8 +485,9 @@ async function saveMonobankToken(e) {
     }
 
     try {
-        await api.put('/profile/change-token/', {
-            monobank_token: token
+        // New backend endpoint: PUT /profile/monobank/
+        await api.put('/profile/monobank/', {
+            token: token
         })
 
         showSuccess('Token saved successfully')
@@ -514,9 +513,8 @@ async function deleteMonobankToken() {
     if (!confirmed) return
 
     try {
-        await api.put('/profile/change-token/', {
-            monobank_token: null
-        })
+        // New backend endpoint: DELETE /profile/monobank/
+        await api.del('/profile/monobank/')
 
         showSuccess('Token deleted successfully')
         await loadUserProfile()

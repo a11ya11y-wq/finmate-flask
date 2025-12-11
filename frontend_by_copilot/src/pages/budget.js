@@ -39,8 +39,8 @@ async function initBudgetPage() {
 async function loadUserProfile() {
   try {
     currentUser = await api.get('/profile/me/')
-    const currencySymbol = currencySymbols[currentUser.currency] || currentUser.currency
-    document.getElementById('currencySymbol').textContent = currencySymbol
+    // directly set currency symbol in DOM (avoid redundant local variable)
+    document.getElementById('currencySymbol').textContent = currencySymbols[currentUser.currency] || currentUser.currency
   } catch (error) {
     console.error('Failed to load user profile:', error)
     throw error
@@ -50,22 +50,33 @@ async function loadUserProfile() {
 // Load categories
 async function loadCategories() {
   try {
-    categories = await api.get('/categories/all/')
+    const raw = await api.get('/categories/all/')
+    categories = Array.isArray(raw) ? raw : (raw && raw.data ? raw.data : [])
 
     const categorySelect = document.getElementById('budgetCategory')
     if (!categorySelect) {
       return
     }
 
-    categorySelect.innerHTML = '<option value="" disabled selected>Select category...</option>'
+    // Clear existing options
+    categorySelect.innerHTML = ''
+
+    // Create a placeholder option programmatically to avoid HTML parsing quirks
+    const placeholder = document.createElement('option')
+    placeholder.value = ''
+    placeholder.disabled = true
+    placeholder.selected = true
+    placeholder.textContent = 'Select category...'
+    categorySelect.appendChild(placeholder)
 
     // В моделі Category немає поля type, тому використовуємо всі категорії
     categories.forEach(category => {
       const option = document.createElement('option')
       option.value = category.id
       option.textContent = category.name
-      option.style.background = '#1a1f28'
-      option.style.color = 'rgba(255, 255, 255, 0.9)'
+      // styling options inline is fragile; keep minimal and rely on CSS
+      // option.style.background = '#1a1f28'
+      // option.style.color = 'rgba(255, 255, 255, 0.9)'
       categorySelect.appendChild(option)
     })
   } catch (error) {

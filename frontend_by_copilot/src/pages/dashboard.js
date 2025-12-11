@@ -512,17 +512,21 @@ function appendModalsToBody() {
 }
 
 // ✅ Helper function to fetch and populate categories
-async function fetchCategories(selectId) {
-  try {
-    const categories = await api.get('/categories/all/')
-    const catSelect = document.getElementById(selectId)
-    if (catSelect && Array.isArray(categories)) {
+async function fetchCategories(selectId){
+  try{
+    const raw = await api.get('/categories/all/')
+    const cats = Array.isArray(raw) ? raw : (raw && raw.data ? raw.data : [])
+
+    const catSelect = selectId ? document.getElementById(selectId) : null
+    if(catSelect){
       catSelect.innerHTML = '<option disabled selected value="">Select category...</option>' +
-        categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('')
+        cats.map(c=>`<option value="${c.id}">${c.name}</option>`).join('')
     }
-  } catch (e) {
+
+    return cats
+  }catch(e){
     console.error('[fetchCategories] Failed to load categories:', e)
-    throw e
+    return []
   }
 }
 
@@ -650,7 +654,7 @@ async function loadData(period = 'all'){
        const catSelect = document.getElementById('tx_category')
        if(catSelect){
          let cats = data && data.categories
-         if(!cats){
+         if(!cats || !Array.isArray(cats)){
            try{ cats = await fetchCategories() }catch(_){ cats = [] }
          }
          if(Array.isArray(cats)){
@@ -955,7 +959,8 @@ async function loadData(period = 'all'){
                   easing: 'easeOutCubic'
                 }
               }
-            })
+            });
+
           // Modern legend for categories
             // Render custom HTML legend below the chart
             try{
@@ -977,8 +982,18 @@ async function loadData(period = 'all'){
 
                   const colorBox = document.createElement('span')
                   colorBox.className = 'legend-color'
-                  colorBox.style.background = (categoryChart.data.datasets[0].backgroundColor[i] || '#666')
+                  // Ensure visible color box via inline styles (use backgroundColor for consistency)
+                  const bg = (categoryChart.data.datasets[0].backgroundColor[i] || '#666')
+                  colorBox.style.backgroundColor = bg
+                  colorBox.style.display = 'inline-block'
+                  colorBox.style.width = '14px'
+                  colorBox.style.height = '14px'
+                  colorBox.style.minWidth = '14px'
+                  colorBox.style.borderRadius = '3px'
+                  colorBox.style.boxShadow = '0 1px 0 rgba(0,0,0,0.25) inset'
+                  colorBox.style.border = '1px solid rgba(0,0,0,0.12)'
                   colorBox.setAttribute('aria-hidden','true')
+                  colorBox.setAttribute('title', lbl + ' - ' + percentage + '%')
 
                   const textSpan = document.createElement('span')
                   textSpan.style.cssText = 'font-weight: 500; color: rgba(255,255,255,0.9); font-size: 0.8125rem;'
@@ -1609,7 +1624,8 @@ async function openEditModal(txId){
       const catSelect = modalEl.querySelector('select#edit_category')
       if(catSelect){
         // Завантажуємо категорії з API
-        const cats = await api.get('/categories/all/')
+        const catsRaw = await api.get('/categories/all/')
+        const cats = Array.isArray(catsRaw) ? catsRaw : (catsRaw && catsRaw.data ? catsRaw.data : [])
         if(Array.isArray(cats)){
           catSelect.innerHTML = cats.map(c=>`<option value="${c.id}" ${data.category_id === c.id ? 'selected' : ''}>${c.name}</option>`).join('')
         }
