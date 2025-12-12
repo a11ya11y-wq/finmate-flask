@@ -5,6 +5,8 @@ const statusDiv = document.getElementById('status_message')
 const submitBtn = form?.querySelector('button[type="submit"]')
 const btnText = submitBtn?.querySelector('.btn-text')
 const spinner = submitBtn?.querySelector('.spinner-border')
+// Reference the terms checkbox (exists in register.html with id="terms")
+const termsCheckbox = document.getElementById('terms')
 
 function showError(message) {
   if (!statusDiv) return
@@ -89,7 +91,6 @@ if(form){
       return
     }
 
-    setLoading(true)
     // Client-side validation
     if (!username || username.length < 3) {
       showError('Username must be at least 3 characters long')
@@ -134,4 +135,3 @@ if(form){
 }
 
 export default {}
-

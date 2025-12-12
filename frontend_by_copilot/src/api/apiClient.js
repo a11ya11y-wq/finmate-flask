@@ -31,16 +31,17 @@ function getToken(){
 }
 
 function normalizePath(path){
-  // Ensure path part (before query) ends with a slash to avoid backend redirecting (308) which may change origin
+  // Do not force a trailing slash — backend expects clean paths without trailing slash.
   try{
     const idx = path.indexOf('?')
     if(idx === -1){
-      if(!path.endsWith('/')) return path + '/'
+      // remove trailing slash if present (except keep single slash)
+      if(path.length > 1 && path.endsWith('/')) return path.slice(0, -1)
       return path
     } else {
       const base = path.slice(0, idx)
       const qs = path.slice(idx + 1)
-      const nb = base.endsWith('/') ? base : base + '/'
+      const nb = (base.length > 1 && base.endsWith('/')) ? base.slice(0, -1) : base
       return nb + '?' + qs
     }
   }catch(e){ return path }
