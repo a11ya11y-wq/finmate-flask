@@ -1,5 +1,3 @@
-from datetime import date, timedelta, datetime
-
 from backend.finmate.db import db
 from sqlalchemy import func, case
 from backend.finmate.models import Category, Transactions
@@ -21,35 +19,28 @@ class TransactionRepository:
         return query.order_by(Transactions.created_at.desc()).limit(limit).all()
 
 
-    def get_total_income(self, user_id, start_date):
-        query = self.get_base_query(user_id, start_date)
-        result = query.filter(Transactions.transaction_type == 'income') \
-                       .with_entities(func.sum(Transactions.amount)) \
-                       .scalar()
-        return float(result) if result is not None else 0.0
+    def get_total_amount(self, user_id, transaction_type, start_date, end_date):
+        result = db.session.query(func.sum(Transactions.amount)) \
+            .filter(
+            Transactions.user_id == user_id,
+            Transactions.transaction_type == transaction_type,
+            Transactions.created_at >= start_date,
+            Transactions.created_at <= end_date
+        ).scalar()
 
-
-    def get_total_expense(self, user_id, start_date):
-        query = self.get_base_query(user_id, start_date)
-        result = query.filter(Transactions.transaction_type == 'expense') \
-                        .with_entities(func.sum(Transactions.amount)) \
-                        .scalar()
-        return float(result) if result is not None else 0.0
+        return float(result) if result else 0.0
 
 
     def get_current_balance(self, user_id):
-        base_query = Transactions.query.filter_by(user_id=user_id)
-        total_income = base_query.filter(Transactions.transaction_type == 'income') \
-                       .with_entities(func.sum(Transactions.amount)) \
-                       .scalar()
-        total_expense = base_query.filter(Transactions.transaction_type == 'expense') \
-                        .with_entities(func.sum(Transactions.amount)) \
-                        .scalar()
-
-        total_income = float(total_income) if total_income is not None else 0.0
-        total_expense = float(total_expense) if total_expense is not None else 0.0
-
-        return total_income - total_expense
+        return db.session.query(
+            func.sum(
+                case(
+                    (Transactions.transaction_type == 'income', Transactions.amount),
+                    (Transactions.transaction_type == 'expense', -Transactions.amount),
+                    else_=0
+                )
+            )
+        ).filter(Transactions.user_id == user_id).scalar() or 0.0
 
 
     def get_expense_by_category(self, user_id, period):
