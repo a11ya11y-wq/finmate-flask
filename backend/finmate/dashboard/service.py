@@ -23,6 +23,15 @@ class DashboardService:
         return start_date
 
     @staticmethod
+    def _calculate_prev_start_date(period, start_date):
+        prev_start_date = None
+        if period == "week":
+            prev_start_date = start_date - timedelta(days=7)
+        elif period == "month":
+            prev_start_date = start_date - timedelta(days=30)
+        return prev_start_date
+
+    @staticmethod
     def _calculate_percentage_change(current, previous):
         current = float(current)
         previous = float(previous)
@@ -43,14 +52,17 @@ class DashboardService:
         start_date = self._calculate_start_date(period)
 
         today = datetime.now()
-        first_day_current_month = today.replace(day=1)
 
-        last_day_prev_month = first_day_current_month - timedelta(days=1)
-        first_day_prev_month = last_day_prev_month.replace(day=1)
+        # Previous Period Data
+        prev_start_date = self._calculate_prev_start_date(period, start_date)
+        prev_end_date = start_date
 
-        # Previous Month Data
-        prev_income = self.tx_repo.get_total_amount(user_id, "income", first_day_prev_month, last_day_prev_month)
-        prev_expense = self.tx_repo.get_total_amount(user_id, "expense", first_day_prev_month, last_day_prev_month)
+        if prev_start_date:
+            prev_income = self.tx_repo.get_total_amount(user_id, "income", prev_start_date, prev_end_date)
+            prev_expense = self.tx_repo.get_total_amount(user_id, "expense", prev_start_date, prev_end_date)
+        else:
+            prev_income = 0.0
+            prev_expense = 0.0
 
         # Current Period Data
         current_income = self.tx_repo.get_total_amount(user_id, "income", start_date, today)
