@@ -578,23 +578,81 @@ async function loadData(period = 'all'){
   const currencySymbol = getCurrencySymbol(userCurrency)
 
   try{
-    const data = await api.get(`/dashboard?period=${period}`)
-    const stats = data.stats
-    // display totals with currency symbol and keep color utility classes
+   const data = await api.get(`/dashboard?period=${period}`)
+
+    // 1. Безпечно дістаємо об'єкт stats
+    const stats = data.stats || {}
+
+    // 2. Дістаємо цифри (нові назви полів з Python). Якщо null -> ставимо 0.
+    const incomeVal = stats.current_income || 0
+    const expenseVal = stats.current_expense || 0
+    const balanceVal = stats.current_balance || 0
+
+    // 3. Дістаємо відсотки
+    const incomePct = stats.income_percentage_change || 0
+    const expensePct = stats.expense_percentage_change || 0
+
+    // 4. Оновлюємо картку Income (Дохід)
     const incomeEl = document.getElementById('total-income')
+    if(incomeEl) {
+        incomeEl.textContent = `${currencySymbol}${incomeVal.toFixed(2)}`
+        // Робимо текст зеленим
+        incomeEl.classList.remove('text-muted', 'text-success')
+        incomeEl.classList.add('text-success')
+    }
+
+    // 5. Оновлюємо картку Expense (Витрати)
     const expenseEl = document.getElementById('total-expense')
-    if(incomeEl) incomeEl.textContent = `${currencySymbol}${(typeof stats.total_income === 'number' ? stats.total_income.toFixed(2) : stats.total_income)}`
-    if(expenseEl) expenseEl.textContent = `${currencySymbol}${(typeof stats.total_expense === 'number' ? stats.total_expense.toFixed(2) : stats.total_expense)}`
-    try{ if(incomeEl){ incomeEl.classList.remove('text-muted'); incomeEl.classList.add('text-success') } }catch(_){ }
-    try{ if(expenseEl){ expenseEl.classList.remove('text-muted'); expenseEl.classList.add('text-danger') } }catch(_){ }
+    if(expenseEl) {
+        expenseEl.textContent = `${currencySymbol}${expenseVal.toFixed(2)}`
+        // Робимо текст червоним
+        expenseEl.classList.remove('text-muted', 'text-danger')
+        expenseEl.classList.add('text-danger')
+    }
 
+    // 6. Оновлюємо картку Balance (Баланс)
     const cbEl = document.getElementById('current-balance')
-    // Always show currency symbol and formatted value
-    if(cbEl) cbEl.textContent = `${currencySymbol}${(typeof stats.current_balance === 'number' ? stats.current_balance.toFixed(2) : stats.current_balance)}`
-    // Ensure consistent color classes: use Bootstrap utility classes to avoid custom ambiguous classes
-    try{ cbEl.classList.remove('text-danger','text-success','text-primary') }catch(_){ }
-    try{ if(typeof stats.current_balance === 'number'){ if(stats.current_balance < 0) cbEl.classList.add('text-danger'); else cbEl.classList.add('text-primary') } }catch(_){ }
+    if(cbEl) {
+        cbEl.textContent = `${currencySymbol}${balanceVal.toFixed(2)}`
+        // Логіка кольору балансу (червоний якщо мінус)
+        cbEl.classList.remove('text-danger', 'text-success', 'text-primary')
+        if (balanceVal < 0) cbEl.classList.add('text-danger')
+        else cbEl.classList.add('text-primary')
+    }
 
+    // 7. Оновлюємо бейджі з відсотками (Стрілочки)
+
+    // Функція-хелпер для оновлення (щоб не дублювати код)
+    const updateTrend = (selector, value, isExpense) => {
+        const el = document.querySelector(selector)
+        if(!el) return
+
+        const span = el.querySelector('span')
+        if(span) {
+            // Форматуємо: +12.5%, -5.0%, 0%
+            const sign = value > 0 ? '+' : ''
+            span.textContent = `${sign}${Number(value).toFixed(1)}%`
+        }
+
+        // Змінюємо колір стрілочки
+        el.classList.remove('positive', 'negative', 'neutral')
+
+        if (Math.abs(value) < 0.01) {
+            el.classList.add('neutral')
+        } else if (isExpense) {
+            // Для витрат: ріст (+) це погано (negative), падіння (-) це добре (positive)
+            if (value > 0) el.classList.add('negative')
+            else el.classList.add('positive')
+        } else {
+            // Для доходу: ріст (+) це добре (positive), падіння (-) це погано (negative)
+            if (value > 0) el.classList.add('positive')
+            else el.classList.add('negative')
+        }
+    }
+
+    // Викликаємо оновлення для обох карток
+    updateTrend('.income-card .stat-card-trend', incomePct, false)
+    updateTrend('.expense-card .stat-card-trend', expensePct, true)
     const txList = data.recent_transactions || []
     const tbody = document.getElementById('transactions-list')
     if(txList.length === 0){
