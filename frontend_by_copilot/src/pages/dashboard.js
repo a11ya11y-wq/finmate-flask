@@ -622,37 +622,81 @@ async function loadData(period = 'all'){
 
     // 7. Оновлюємо бейджі з відсотками (Стрілочки)
 
-    // Функція-хелпер для оновлення (щоб не дублювати код)
     const updateTrend = (selector, value, isExpense) => {
-        const el = document.querySelector(selector)
-        if(!el) return
+        const container = document.querySelector(selector);
+        if (!container) return;
 
-        const span = el.querySelector('span')
-        if(span) {
-            // Форматуємо: +12.5%, -5.0%, 0%
-            const sign = value > 0 ? '+' : ''
-            span.textContent = `${sign}${Number(value).toFixed(1)}%`
+        const textSpan = container.querySelector('span');
+        // Знаходимо іконку стрілки (зазвичай це тег <i> або <svg>)
+        const iconElement = container.querySelector('i');
+
+        // Оновлюємо текст (+12.5%)
+        if (textSpan) {
+            const sign = value > 0 ? '+' : '';
+            textSpan.textContent = `${sign}${Number(value).toFixed(1)}%`;
         }
 
-        // Змінюємо колір стрілочки
-        el.classList.remove('positive', 'negative', 'neutral')
+        // --- ГОЛОВНА МАГІЯ ТУТ ---
+
+        // Визначаємо, чи це "хороший" результат
+        let isGoodOutcome = false;
 
         if (Math.abs(value) < 0.01) {
-            el.classList.add('neutral')
-        } else if (isExpense) {
-            // Для витрат: ріст (+) це погано (negative), падіння (-) це добре (positive)
-            if (value > 0) el.classList.add('negative')
-            else el.classList.add('positive')
+            // Якщо зміни майже немає (0%)
+            container.className = 'stat-card-trend neutral';
+            // Можна поставити іконку "риска" або прибрати стрілку
+            if(iconElement) iconElement.className = 'bi bi-dash';
+            return;
+        }
+
+        if (isExpense) {
+            // Для ВИТРАТ: добре, коли вони падають (value < 0)
+            isGoodOutcome = value < 0;
         } else {
-            // Для доходу: ріст (+) це добре (positive), падіння (-) це погано (negative)
-            if (value > 0) el.classList.add('positive')
-            else el.classList.add('negative')
+            // Для ДОХОДІВ: добре, коли вони ростуть (value > 0)
+            isGoodOutcome = value > 0;
+        }
+
+        // Застосовуємо стилі залежно від того, добре це чи погано
+        container.classList.remove('positive', 'negative', 'neutral');
+
+        if (isGoodOutcome) {
+            // Усе супер: Зелений колір + Стрілка ВГОРУ
+            container.classList.add('positive');
+            if(iconElement) iconElement.className = 'bi bi-arrow-up';
+        } else {
+            // Усе погано: Червоний колір + Стрілка ВНИЗ
+            container.classList.add('negative');
+            if(iconElement) iconElement.className = 'bi bi-arrow-down';
+        }
+    };
+    const balanceCard = document.querySelector('.balance-card');
+    if (balanceCard) {
+        const trendDiv = balanceCard.querySelector('.stat-card-trend');
+        const icon = trendDiv ? trendDiv.querySelector('i') : null;
+        const text = trendDiv ? trendDiv.querySelector('span') : null;
+
+        if (trendDiv && icon && text) {
+            trendDiv.classList.remove('positive', 'negative', 'neutral');
+
+            if (balanceVal < 0) {
+                // Якщо баланс мінусовий -> Червоний, "Critical", іконка тривоги
+                trendDiv.classList.add('negative');
+                icon.className = 'bi bi-exclamation-triangle-fill';
+                text.textContent = 'Critical';
+            } else {
+                // Якщо баланс плюсовий -> Зелений, "Healthy", іконка успіху
+                trendDiv.classList.add('positive');
+                icon.className = 'bi bi-shield-check'; // Або bi-graph-up
+                text.textContent = 'Healthy';
+            }
         }
     }
 
-    // Викликаємо оновлення для обох карток
-    updateTrend('.income-card .stat-card-trend', incomePct, false)
-    updateTrend('.expense-card .stat-card-trend', expensePct, true)
+    // Викликаємо оновлення для обох карток (код залишається тим самим)
+    updateTrend('.income-card .stat-card-trend', incomePct, false);
+    updateTrend('.expense-card .stat-card-trend', expensePct, true);
+
     const txList = data.recent_transactions || []
     const tbody = document.getElementById('transactions-list')
     if(txList.length === 0){
@@ -798,7 +842,6 @@ async function loadData(period = 'all'){
           }
 
           if(hasBalanceData) {
-            // Показуємо canvas
             if(ctxLine) ctxLine.style.opacity = '1'
 
             balanceChart = new Chart(ctxLine, {
@@ -808,15 +851,26 @@ async function loadData(period = 'all'){
                 datasets: [{
                   label: 'Balance',
                   data: values,
-                  borderColor: 'rgba(58, 160, 255, 0.9)',
+
+                  // Лінія: Темно-синя, коли мінус (Deep Ocean)
+                  segment: {
+                    borderColor: ctx => {
+                        return ctx.p1.parsed.y < 0 ? '#254e99' : 'rgba(58, 160, 255, 0.9)';
+                    }
+                  },
+
                   backgroundColor: 'rgba(58, 160, 255, 0.05)',
                   borderWidth: 2,
                   pointRadius: 0,
-                  pointHoverRadius: 5,
-                  pointHoverBackgroundColor: 'rgba(58, 160, 255, 0.9)',
+                  pointHoverRadius: 6,
+
+                  // Точка: Темно-синя, коли мінус
+                  pointHoverBackgroundColor: (ctx) => {
+                      return ctx.raw < 0 ? '#254e99' : 'rgba(58, 160, 255, 0.9)';
+                  },
                   pointHoverBorderColor: '#fff',
                   pointHoverBorderWidth: 2,
-                  tension: 0.3,
+                  tension: 0.4,
                   fill: false
                 }]
               },
@@ -831,69 +885,39 @@ async function loadData(period = 'all'){
                 plugins: {
                   legend: { display: false },
                   tooltip: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    backgroundColor: 'rgba(20, 25, 30, 0.95)',
                     padding: 12,
-                    titleColor: '#fff',
-                    bodyColor: '#10b981',
-                    titleFont: {
-                      size: 14,
-                      weight: 'bold'
-                    },
-                    bodyFont: {
-                      size: 16,
-                      weight: 'bold'
-                    },
-                    borderColor: 'rgba(58, 160, 255, 0.5)',
-                    borderWidth: 2,
+                    titleColor: '#9aa1a6',
+                    titleFont: { size: 12, weight: 'normal' },
+                    bodyFont: { size: 16, weight: 'bold' },
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    borderWidth: 1,
                     displayColors: false,
+
                     callbacks: {
                       label: function(context) {
                         return currencySymbol + context.parsed.y.toFixed(2)
+                      },
+
+                      // ✅ ТУТ ЗМІНА: Цифри стають ЧЕРВОНИМИ, якщо мінус
+                      labelTextColor: function(context) {
+                        return context.parsed.y < 0 ? '#ef4444' : '#10b981';
                       }
                     }
                   }
                 },
-                layout: {
-                  padding: { top: 10, right: 15, bottom: 5, left: 5 }
-                },
+                layout: { padding: { top: 10, right: 15, bottom: 5, left: 5 } },
                 scales: {
                   x: {
-                    ticks: {
-                      color: 'rgba(255, 255, 255, 0.6)',
-                      maxRotation: 45,
-                      minRotation: 25,
-                      autoSkip: true,
-                      maxTicksLimit: 12,
-                      font: {
-                        size: 11
-                      }
-                    },
-                    grid: {
-                      color: 'rgba(255, 255, 255, 0.03)',
-                      drawBorder: false
-                    }
+                    ticks: { color: 'rgba(255, 255, 255, 0.6)', maxRotation: 45, minRotation: 25, autoSkip: true, maxTicksLimit: 12, font: { size: 11 } },
+                    grid: { color: 'rgba(255, 255, 255, 0.03)', drawBorder: false }
                   },
                   y: {
-                    ticks: {
-                      color: 'rgba(255, 255, 255, 0.6)',
-                      callback: function(value) {
-                        return currencySymbol + value.toFixed(0)
-                      },
-                      padding: 5,
-                      font: {
-                        size: 11
-                      }
-                    },
-                    grid: {
-                      color: 'rgba(255, 255, 255, 0.05)',
-                      drawBorder: false
-                    }
+                    ticks: { color: 'rgba(255, 255, 255, 0.6)', callback: function(value) { return currencySymbol + value.toFixed(0) }, padding: 5, font: { size: 11 } },
+                    grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false }
                   }
                 },
-                animation: {
-                  duration: 400,
-                  easing: 'easeOutCubic'
-                }
+                animation: { duration: 400, easing: 'easeOutCubic' }
               }
             })
           } else {
