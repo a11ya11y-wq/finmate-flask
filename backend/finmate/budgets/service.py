@@ -5,6 +5,12 @@ from backend.finmate.budgets.repository import BudgetRepository
 from backend.finmate.categories.repository import CategoryRepository
 from .schemas import BudgetSchema
 from backend.finmate.exceptions import ResourceNotFound, BusinessLogicError
+from backend.finmate.utils.caching import redis_cache, invalidate_cache
+
+
+def budgets_key_builder(self, user_id):
+    return f"budgets:{user_id}"
+
 
 class BudgetService:
 
@@ -14,6 +20,7 @@ class BudgetService:
         self.MAX_BUDGET_PER_USER = 5  # TODO: Замінити на імпорт з config
 
 
+    @redis_cache(ttl=3600, key_builder=budgets_key_builder)
     def get_all_budgets_with_stats(self, user_id):
         all_budgets = self.repo.get_all_budgets_by_user(user_id)
         recurring_spent_map = self.repo.get_recurring_spent_map(user_id)
@@ -88,6 +95,8 @@ class BudgetService:
 
         if budget_exist:
             updated_budget = self.repo.update_budget(budget_exist, payload)
+
+            self._clear_related_caches(user_id)
             return updated_budget
 
         else:
@@ -98,6 +107,8 @@ class BudgetService:
                 payload['user_id'] = user_id
 
                 new_budget = self.repo.create_budget(payload)
+
+                self._clear_related_caches(user_id)
                 return new_budget
 
 
@@ -109,7 +120,12 @@ class BudgetService:
 
         self.repo.delete_budget(budget_to_delete)
 
+        self._clear_related_caches(user_id)
         return True
+
+    @staticmethod
+    def _clear_related_caches(user_id):
+        invalidate_cache(f"budgets:{user_id}")
 
 
 

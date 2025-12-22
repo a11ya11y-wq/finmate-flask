@@ -16,7 +16,7 @@ class DashboardService:
         self.VALID_PERIODS = ['all', 'week', 'month']
 
 
-    @redis_cache(ttl=300, key_builder=dashboard_key_builder)
+    @redis_cache(ttl=3600, key_builder=dashboard_key_builder)
     def get_dashboard_data(self, user_id, period):
 
         if period not in self.VALID_PERIODS:
