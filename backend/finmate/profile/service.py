@@ -41,8 +41,16 @@ class ProfileService:
 
         payload = validated_data.model_dump(exclude_unset=True)
 
+        if 'username' in payload and payload['username'] == user.username:
+            payload.pop('username')
+
         if not payload:
             raise BusinessLogicError("No valid fields to update.")
+
+        if 'username' in payload:
+            existing = self.repo.get_by_username(payload['username'])
+            if existing:
+                raise BusinessLogicError("Username already taken.")
 
         updated_user = self.repo.update_user(user, payload)
 

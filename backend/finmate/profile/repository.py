@@ -10,6 +10,10 @@ class ProfileRepository:
         return Users.query.get(user_id)
 
 
+    def get_by_username(self, username):
+        return Users.query.filter_by(username=username).first()
+
+
     def update_user(self, user_obj : Users, data): #TODO: Розібратись і зробити з допомогою setattr
         try:
             user_obj.username = data.get('username', user_obj.username)
