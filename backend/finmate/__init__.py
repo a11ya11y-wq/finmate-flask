@@ -1,25 +1,14 @@
 from dotenv import load_dotenv
 from flask import Flask
 from flask_cors import CORS
-from flask_migrate import Migrate
-from flask_jwt_extended import JWTManager
 import redis
 
 
 load_dotenv()
-
+from .extensions import db, migrate, jwt, redis_client
 from .config import config
-from .db import db
 
-migrate = Migrate()
-jwt = JWTManager()
 
-redis_client = redis.Redis(
-    host='localhost',
-    port=6379,
-    db=0,
-    decode_responses=True
-)
 
 def create_app(config_name='default'):
     app = Flask(__name__)

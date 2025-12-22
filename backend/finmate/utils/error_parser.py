@@ -1,5 +1,4 @@
 from pydantic import ValidationError
-from pyexpat.errors import messages
 
 from backend.finmate.exceptions import FinMateError
 import traceback

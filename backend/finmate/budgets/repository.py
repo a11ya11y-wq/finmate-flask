@@ -1,7 +1,7 @@
 from sqlalchemy import func
 from datetime import datetime, timezone
 
-from backend.finmate.db import db
+from backend.finmate.extensions import db
 from backend.finmate.models import Budget, Transactions
 
 
