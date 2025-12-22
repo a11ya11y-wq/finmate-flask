@@ -1,13 +1,16 @@
 from datetime import  datetime, timedelta
+import json
 
 from backend.finmate.transactions.repository import TransactionRepository
 from backend.finmate.exceptions import BusinessLogicError
+from backend.finmate import redis_client
 
 class DashboardService:
 
     def __init__(self):
         self.tx_repo = TransactionRepository()
         self.VALID_PERIODS = ['all', 'week', 'month']
+        self.redis_client = redis_client
 
 
     @staticmethod
@@ -45,6 +48,12 @@ class DashboardService:
 
 
     def get_dashboard_data(self, user_id, period):
+
+        cache_key = f"dashboard:{user_id}:{period}"
+
+        cached_data = self.redis_client.get(cache_key)
+        if cached_data:
+            return json.loads(cached_data)
 
         if period not in self.VALID_PERIODS:
             raise BusinessLogicError(f"Invalid period '{period}'. Must be one of: {', '.join(self.VALID_PERIODS)}.")
@@ -94,14 +103,14 @@ class DashboardService:
                 current_balance_for_chart += amount_float
             else:
                 current_balance_for_chart -= amount_float
-            date_str = t.created_at.strftime('%Y-%m-%d')
 
+            date_str = t.created_at.strftime('%Y-%m-%d')
             daily_balances[date_str] = round(current_balance_for_chart, 2)
 
         balance_labels = list(daily_balances.keys())
         balance_data = list(daily_balances.values())
 
-        return {
+        result_data = {
         "stats": {
             "current_income": float(current_income),
             "current_expense": float(current_expense),
@@ -121,3 +130,12 @@ class DashboardService:
         },
         "recent_transactions": [tx.to_dict() for tx in recent_transactions]
     }
+        try:
+            self.redis_client.setex(
+                name=cache_key,
+                time=300,
+                value=json.dumps(result_data, default=str)
+            )
+        except Exception as e:
+            print(f"Error caching dashboard data: {e}")
+        return result_data

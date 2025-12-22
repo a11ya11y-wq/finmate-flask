@@ -3,6 +3,7 @@ from flask import Flask
 from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
+import redis
 
 
 load_dotenv()
@@ -13,11 +14,24 @@ from .db import db
 migrate = Migrate()
 jwt = JWTManager()
 
+redis_client = redis.Redis(
+    host='localhost',
+    port=6379,
+    db=0,
+    decode_responses=True
+)
+
 def create_app(config_name='default'):
     app = Flask(__name__)
 
     app.config.from_object(config[config_name])
     app.config['ENCRYPTION_KEY'] = app.config['ENCRYPTION_KEY'].encode('utf-8')
+
+    try:
+        response = redis_client.ping()
+        print(f"Redis connection successful: {response}")
+    except redis.ConnectionError  as e:
+        print(f"Redis connection error: {e}")
 
     # <-- COPILOT -->
     app.config['CORS_HEADERS'] = 'Content-Type,Authorization'
