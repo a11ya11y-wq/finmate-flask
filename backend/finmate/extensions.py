@@ -8,9 +8,12 @@ db = SQLAlchemy()
 migrate = Migrate()
 jwt = JWTManager()
 
-redis_client = redis.Redis(
-    host='localhost',
-    port=6379,
-    db=0,
-    decode_responses=True
-)
+redis_client = None
+
+def init_redis(app):
+    global redis_client
+    redis_url = app.config.get('REDIS_URL')
+
+    redis_client = redis.from_url(redis_url, decode_responses=True)
+
+    return redis_client

@@ -5,7 +5,7 @@ import redis
 
 
 load_dotenv()
-from .extensions import db, migrate, jwt, redis_client
+from .extensions import db, migrate, jwt, redis_client, init_redis
 from .config import config
 
 
@@ -15,12 +15,6 @@ def create_app(config_name='default'):
 
     app.config.from_object(config[config_name])
     app.config['ENCRYPTION_KEY'] = app.config['ENCRYPTION_KEY'].encode('utf-8')
-
-    try:
-        response = redis_client.ping()
-        print(f"Redis connection successful: {response}")
-    except redis.ConnectionError  as e:
-        print(f"Redis connection error: {e}")
 
     # <-- COPILOT -->
     app.config['CORS_HEADERS'] = 'Content-Type,Authorization'
@@ -39,6 +33,14 @@ def create_app(config_name='default'):
     jwt.init_app(app)
     db.init_app(app)
     migrate.init_app(app, db)
+    redis_conn = init_redis(app)
+
+    try:
+        response = redis_conn.ping()
+        print(f"Redis connection successful: {response}")
+    except redis.ConnectionError  as e:
+        print(f"Redis connection error: {e}")
+
 
     with app.app_context():
         from .categories import bp as cat_bp

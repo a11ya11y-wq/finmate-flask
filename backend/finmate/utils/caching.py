@@ -20,6 +20,7 @@ def redis_cache(ttl=300, key_builder=None):
             try:
                 cached_data = redis_client.get(cache_key)
                 if cached_data:
+                    print(f"🟢 [CACHE HIT]: {cache_key}")
                     return json.loads(cached_data)
             except Exception as e:
                 print(f"Redis read error: {e}")
@@ -34,7 +35,7 @@ def redis_cache(ttl=300, key_builder=None):
                 )
             except Exception as e:
                 print(f"Error caching data: {e}")
-
+            print(f"🔴 [CACHE MISS]: {cache_key}")
             return result
         return wrapper
     return decorator

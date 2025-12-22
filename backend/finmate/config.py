@@ -11,11 +11,13 @@ class Config:
 class DevelopmentConfig(Config):
     SQLALCHEMY_DATABASE_URI=os.environ.get('DATABASE_URL')
     DEBUG = True
+    REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
 
 
 class TestingConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL')
     TESTING = True
+    REDIS_URL = os.environ.get('TEST_REDIS_URL', 'redis://localhost:6379/1')
 
 config = {
     'development': DevelopmentConfig,
