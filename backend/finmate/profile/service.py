@@ -1,12 +1,16 @@
-from pydantic import ValidationError
-from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.security import generate_password_hash
 from cryptography.fernet import Fernet
 from flask import current_app
 
 from .repository import ProfileRepository
 from  .schemas import ProfileUpdateSchema, MonoTokenUpdateSchema, PasswordChangeSchema
 from backend.finmate.exceptions import ResourceNotFound, BusinessLogicError, AuthenticationError
+from backend.finmate.utils.caching import invalidate_cache, redis_cache
 
+
+
+def profile_key_builder(self, user_id):
+    return f"profile:{user_id}"
 
 
 class ProfileService:
@@ -15,7 +19,7 @@ class ProfileService:
         self.repo = ProfileRepository()
 
 
-    def get_user_info(self, user_id):
+    def get_user_entity(self, user_id):
         user = self.repo.get_user_info(user_id)
 
         if not user:
@@ -23,8 +27,15 @@ class ProfileService:
 
         return user
 
+
+    @redis_cache(ttl=3600, key_builder=profile_key_builder)
+    def get_user_data(self, user_id):
+        user = self.get_user_entity(user_id)
+        return user.to_dict()
+
+
     def update_user(self, user_id, data):
-        user = self.get_user_info(user_id)
+        user = self.get_user_entity(user_id)
 
         validated_data = ProfileUpdateSchema.model_validate(data)
 
@@ -35,15 +46,17 @@ class ProfileService:
 
         updated_user = self.repo.update_user(user, payload)
 
+        self._clear_related_caches(user_id)
         return updated_user
 
 
     def delete_user(self, user_id):
-        user_to_delete = self.get_user_info(user_id)
+        user_to_delete = self.get_user_entity(user_id)
 
 
         self.repo.delete_user(user_to_delete)
 
+        self._clear_related_caches(user_id)
         return True
 
 
@@ -54,7 +67,7 @@ class ProfileService:
         new_password = validated_data.new_password
         old_password = validated_data.old_password
 
-        user_obj = self.get_user_info(user_id)
+        user_obj = self.get_user_entity(user_id)
 
         if not user_obj.chek_hash_pwd(old_password):
             raise AuthenticationError("Invalid old password.")
@@ -63,11 +76,12 @@ class ProfileService:
 
         self.repo.change_password_hash(user_obj, new_hash)
 
+        self._clear_related_caches(user_id)
         return True
 
 
     def update_mono_token(self, user_id, data):
-        user_obj = self.get_user_info(user_id)
+        user_obj = self.get_user_entity(user_id)
 
         validated_data = MonoTokenUpdateSchema.model_validate(data)
 
@@ -87,13 +101,22 @@ class ProfileService:
         }
 
         updated_user = self.repo.update_user(user_obj, payload)
+
+        self._clear_related_caches(user_id)
         return updated_user
 
 
     def delete_mono_token(self, user_id):
-        user_obj = self.get_user_info(user_id)
+        user_obj = self.get_user_entity(user_id)
         self.repo.delete_monobank_token(user_obj)
+
+        self._clear_related_caches(user_id)
         return True
+
+
+    @staticmethod
+    def _clear_related_caches(user_id):
+        invalidate_cache(f"profile:{user_id}")
 
 
 

@@ -13,8 +13,8 @@ service = ProfileService()
 def get_user_profile():
     try:
         user_id = int(get_jwt_identity())
-        user = service.get_user_info(user_id)
-        return jsonify(user.to_dict()), 200
+        user = service.get_user_data(user_id)
+        return jsonify(user), 200
     except Exception as e:
         return parse_exception(e)
 
