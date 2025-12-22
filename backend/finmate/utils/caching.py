@@ -9,7 +9,7 @@ def redis_cache(ttl=300, key_builder=None):
         def wrapper(*args, **kwargs):
             if not key_builder:
                 raise ValueError(
-                    f"Error in @redis_cache for {func.__name__}"
+                    f"Error in @redis_cache for {func.__name__} : key_builder function is required."
                 )
             try:
                 cache_key = key_builder(*args, **kwargs)
