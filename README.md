@@ -1,10 +1,18 @@
 # FinMate — Personal Finance Tracker
 
 ![Status](https://img.shields.io/badge/Status-Work_In_Progress-orange?style=for-the-badge)
-![Python](https://img.shields.io/badge/Python-3.11+-blue?style=for-the-badge&logo=python)
-![Flask](https://img.shields.io/badge/Flask-2.0+-green?style=for-the-badge&logo=flask)
-![Vite](https://img.shields.io/badge/Frontend-Vite-646CFF?style=for-the-badge&logo=vite)
-## Overview
+
+![Python](https://img.shields.io/badge/Python-3.11+-blue?style=for-the-badge&logo=python&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-2.0+-green?style=for-the-badge&logo=flask&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT-black?style=for-the-badge&logo=JSON%20web%20tokens)
+![Postgres](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
+![Redis](https://img.shields.io/badge/redis-%23DD0031.svg?style=for-the-badge&logo=redis&logoColor=white)
+![Pytest](https://img.shields.io/badge/pytest-%23ffffff.svg?style=for-the-badge&logo=pytest&logoColor=2f93d0)
+![Vite](https://img.shields.io/badge/Frontend-Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![Bootstrap](https://img.shields.io/badge/Bootstrap-563D7C?style=for-the-badge&logo=bootstrap&logoColor=white)
+![Monobank](https://img.shields.io/badge/Monobank-API-000000?style=for-the-badge)
+
+## Overviewі
 **FinMate** is a modern full-stack personal finance application. It helps users track income & expenses, manage budgets, and visualize financial health.
 The project features a **Flask** backend with a robust REST API and a responsive frontend built with **Vite**, **Bootstrap 5**, and **Chart.js**.
 
@@ -18,10 +26,13 @@ The project features a **Flask** backend with a robust REST API and a responsive
 - Dashboard: aggregated dashboard data for charts (/api/v1/dashboard?period=...).
 - Monobank integration: sync transactions with `/api/v1/monobank/sync-transactions` (JWT protected).
 - CORS: development origins are configured (`http://localhost:5173`, `http://127.0.0.1:5173`) and credentials support is enabled.
+- **Performance:** Redis caching implemented for dashboard analytics, user profiles, and categories to reduce DB load.
+- **Testing:** Unit and integration tests using **Pytest** to ensure stability.
 
 ## 🛠 Tech Stack
 - **Backend:** Python, Flask, Flask-JWT-Extended, SQLAlchemy (ORM), Pydantic (Validation).
-- **Database:** PostgreSQL (Production).
+- **Database:** PostgreSQL (Production), Redis (Caching).
+- - **Testing:** Pytest.
 - **Frontend:** Vite, Bootstrap 5, Chart.js, Vanilla JS.
 - **Tools:** Docker (planned), Git.
 
@@ -55,7 +66,12 @@ Installation & quick start
 --------------------------
 Below are minimal steps to run the project locally.
 
-1) Backend (Python)
+1) Prerequisites
+
+Ensure you have **PostgreSQL** and **Redis** installed and running.
+* **Redis:** You can run it via Docker: `docker run -d -p 6379:6379 redis` or install it locally.
+
+2) Backend (Python)
 
 Create and activate a virtual environment (recommended Python 3.11+):
 
@@ -73,6 +89,7 @@ SECRET_KEY=your-secret
 JWT_SECRET_KEY=your-jwt-secret
 ENCRYPTION_KEY=your-encryption-key
 DATABASE_URL=postgresql+psycopg://postgres:   # or your DB URI
+REDIS_URL=redis://localhost:6379/0
 ```
 
 Run migrations (if needed) and start the backend:
@@ -83,7 +100,15 @@ flask db upgrade   # if you use migrations (ensure FLASK_APP is set if required)
 python app.py
 ```
 
-2) Frontend
+3) Running Tests
+
+To run the test suite (Pytest):
+```powershell
+cd backend
+pytest
+```
+
+4) Frontend
 
 ```powershell
 cd frontend_by_copilot
