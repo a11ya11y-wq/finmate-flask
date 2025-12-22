@@ -4,6 +4,7 @@ from backend.finmate.transactions.repository import TransactionRepository
 from backend.finmate.categories.repository import CategoryRepository
 from .schemas import TransactionCreateSchema, TransactionUpdateSchema
 from backend.finmate.exceptions import ResourceNotFound, BusinessLogicError
+from backend.finmate.utils.caching import invalidate_cache
 
 
 
@@ -31,6 +32,8 @@ class TransactionService:
 
         new_tx = self.repo.create_transaction(payload)
 
+        invalidate_cache(f"dashboard:{user_id}:*")
+
         return new_tx
 
 
@@ -41,6 +44,8 @@ class TransactionService:
             raise ResourceNotFound(f"Transaction {tx_id} not found or access denied.")
 
         self.repo.delete_transaction(tx_to_delete)
+
+        invalidate_cache(f"dashboard:{user_id}:*")
 
         return True
 
@@ -74,6 +79,9 @@ class TransactionService:
 
 
         updated_tx = self.repo.update_transaction(tx_to_update, update_payload)
+
+        invalidate_cache(f"dashboard:{user_id}:*")
+
         return updated_tx
 
 

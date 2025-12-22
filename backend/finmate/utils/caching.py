@@ -38,3 +38,21 @@ def redis_cache(ttl=300, key_builder=None):
             return result
         return wrapper
     return decorator
+
+
+def invalidate_cache(key_pattern):
+    if not key_pattern:
+        raise ValueError("Key pattern must be provided for cache invalidation.")
+    deleted_count = 0
+    try:
+        keys_to_delete = [key for key in redis_client.scan_iter(match=key_pattern)]
+
+        if keys_to_delete:
+            redis_client.delete(*keys_to_delete)
+            deleted_count = len(keys_to_delete)
+            print(f'Invalidated {deleted_count} cache entries matching pattern: {key_pattern}')
+        else:
+            print(f'No cache entries found for pattern: {key_pattern}')
+    except Exception as e:
+        print(f"Error invalidating cache for pattern {key_pattern}: {e}")
+    return deleted_count
