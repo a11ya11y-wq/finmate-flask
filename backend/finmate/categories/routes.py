@@ -13,8 +13,8 @@ service = CategoryService()
 def get_all_categories():
     try:
         user_id = int(get_jwt_identity())
-        categories = service.get_all_categories(user_id)
-        return jsonify({"data": [cat.to_dict() for cat in categories]}), 200
+        categories_data = service.get_all_categories(user_id)
+        return jsonify({"data": categories_data}), 200
 
     except Exception as e:
         return parse_exception(e)

@@ -2,6 +2,12 @@
 from backend.finmate.categories.repository import CategoryRepository
 from .schemas import CategoryCreateSchema, CategoryUpdateSchema
 from backend.finmate.exceptions import ConflictError, BusinessLogicError, ResourceNotFound
+from backend.finmate.utils.caching import redis_cache, invalidate_cache
+
+
+
+def categories_key_builder(self, user_id):
+    return f"categories:{user_id}"
 
 
 class CategoryService:
@@ -10,10 +16,11 @@ class CategoryService:
         self.repo = CategoryRepository()
         self.MAX_CATEGORIES_PER_USER = 10 #TODO: Замінити на імпорт з config
 
-
+    @redis_cache(ttl=86400, key_builder=categories_key_builder)
     def get_all_categories(self, user_id):
-        return self.repo.get_all_categories(user_id)
+        cat_objects =  self.repo.get_all_categories(user_id)
 
+        return [cat.to_dict() for cat in cat_objects]
 
     def create_category(self, user_id, data):
 
@@ -33,6 +40,7 @@ class CategoryService:
 
         new_cat = self.repo.create_category(payload)
 
+        self._clear_related_caches(user_id)
         return new_cat
 
 
@@ -55,6 +63,7 @@ class CategoryService:
 
         updated_cat = self.repo.update_category(cat_to_update, payload)
 
+        self._clear_related_caches(user_id)
         return updated_cat
 
 
@@ -66,5 +75,11 @@ class CategoryService:
 
         self.repo.delete_category(cat_to_delete)
 
+        self._clear_related_caches(user_id)
         return True
 
+
+    @staticmethod
+    def _clear_related_caches(user_id):
+        invalidate_cache(f"categories:{user_id}")
+        invalidate_cache(f"dashboard:{user_id}:*")
