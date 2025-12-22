@@ -6,7 +6,7 @@ from .repository import ProfileRepository
 from  .schemas import ProfileUpdateSchema, MonoTokenUpdateSchema, PasswordChangeSchema
 from backend.finmate.exceptions import ResourceNotFound, BusinessLogicError, AuthenticationError
 from backend.finmate.utils.caching import invalidate_cache, redis_cache
-
+from backend.finmate.constants import ALLOWED_AVATARS
 
 
 def profile_key_builder(self, user_id):
@@ -51,6 +51,10 @@ class ProfileService:
             existing = self.repo.get_by_username(payload['username'])
             if existing:
                 raise BusinessLogicError("Username already taken.")
+
+        if 'avatar' in payload:
+            if payload['avatar'] not in ALLOWED_AVATARS:
+                raise BusinessLogicError("Invalid avatar selection.")
 
         updated_user = self.repo.update_user(user, payload)
 

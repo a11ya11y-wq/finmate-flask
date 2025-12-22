@@ -3,6 +3,7 @@ from backend.finmate.categories.repository import CategoryRepository
 from .schemas import CategoryCreateSchema, CategoryUpdateSchema
 from backend.finmate.exceptions import ConflictError, BusinessLogicError, ResourceNotFound
 from backend.finmate.utils.caching import redis_cache, invalidate_cache
+from backend.finmate.constants import ALLOWED_ICONS
 
 
 

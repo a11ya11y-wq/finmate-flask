@@ -3,6 +3,7 @@ from datetime import  datetime, timedelta
 from backend.finmate.transactions.repository import TransactionRepository
 from backend.finmate.exceptions import BusinessLogicError
 from backend.finmate.utils.caching import redis_cache
+from backend.finmate.constants import VALID_PERIODS
 
 
 
@@ -13,14 +14,13 @@ class DashboardService:
 
     def __init__(self):
         self.tx_repo = TransactionRepository()
-        self.VALID_PERIODS = ['all', 'week', 'month']
 
 
     @redis_cache(ttl=3600, key_builder=dashboard_key_builder)
     def get_dashboard_data(self, user_id, period):
 
-        if period not in self.VALID_PERIODS:
-            raise BusinessLogicError(f"Invalid period '{period}'. Must be one of: {', '.join(self.VALID_PERIODS)}.")
+        if period not in VALID_PERIODS:
+            raise BusinessLogicError(f"Invalid period '{period}'. Must be one of: {', '.join(VALID_PERIODS)}.")
 
         start_date = self._calculate_start_date(period)
 

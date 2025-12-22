@@ -6,6 +6,7 @@ from backend.finmate.categories.repository import CategoryRepository
 from .schemas import BudgetSchema
 from backend.finmate.exceptions import ResourceNotFound, BusinessLogicError
 from backend.finmate.utils.caching import redis_cache, invalidate_cache
+from backend.finmate.constants import MAX_BUDGET_PER_USER
 
 
 def budgets_key_builder(self, user_id):
@@ -17,7 +18,6 @@ class BudgetService:
     def __init__(self):
         self.repo = BudgetRepository()
         self.cat_repo = CategoryRepository()
-        self.MAX_BUDGET_PER_USER = 5  # TODO: Замінити на імпорт з config
 
 
     @redis_cache(ttl=3600, key_builder=budgets_key_builder)
@@ -101,8 +101,8 @@ class BudgetService:
 
         else:
             current_user_budget_count = self.repo.get_count_by_user(user_id)
-            if current_user_budget_count >= self.MAX_BUDGET_PER_USER:
-                raise BusinessLogicError(f'You have reached the limit of {self.MAX_BUDGET_PER_USER} budgets')
+            if current_user_budget_count >= MAX_BUDGET_PER_USER:
+                raise BusinessLogicError(f'You have reached the limit of {MAX_BUDGET_PER_USER} budgets')
             else:
                 payload['user_id'] = user_id
 
