@@ -1,59 +1,23 @@
 from datetime import  datetime, timedelta
-import json
 
 from backend.finmate.transactions.repository import TransactionRepository
 from backend.finmate.exceptions import BusinessLogicError
-from backend.finmate import redis_client
+from backend.finmate.utils.caching import redis_cache
+
+
+
+def dashboard_key_builder(self, user_id, period):
+    return f"dashboard:{user_id}:{period}"
 
 class DashboardService:
 
     def __init__(self):
         self.tx_repo = TransactionRepository()
         self.VALID_PERIODS = ['all', 'week', 'month']
-        self.redis_client = redis_client
 
 
-    @staticmethod
-    def _calculate_start_date(period):
-        now = datetime.now()
-        today_midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
-        if period == 'week':
-            start_date = today_midnight - timedelta(weeks=1)
-        elif period == 'month':
-            start_date = today_midnight - timedelta(days=30)
-        else:
-            start_date = datetime.min
-        return start_date
-
-    @staticmethod
-    def _calculate_prev_start_date(period, start_date):
-        prev_start_date = None
-        if period == "week":
-            prev_start_date = start_date - timedelta(days=7)
-        elif period == "month":
-            prev_start_date = start_date - timedelta(days=30)
-        return prev_start_date
-
-    @staticmethod
-    def _calculate_percentage_change(current, previous):
-        current = float(current)
-        previous = float(previous)
-        if previous == 0:
-            if current == 0:
-                return 0.0
-            return 100.0
-
-        change = ((current - previous) / previous) * 100
-        return round(change, 1)
-
-
+    @redis_cache(ttl=300, key_builder=dashboard_key_builder)
     def get_dashboard_data(self, user_id, period):
-
-        cache_key = f"dashboard:{user_id}:{period}"
-
-        cached_data = self.redis_client.get(cache_key)
-        if cached_data:
-            return json.loads(cached_data)
 
         if period not in self.VALID_PERIODS:
             raise BusinessLogicError(f"Invalid period '{period}'. Must be one of: {', '.join(self.VALID_PERIODS)}.")
@@ -110,7 +74,7 @@ class DashboardService:
         balance_labels = list(daily_balances.keys())
         balance_data = list(daily_balances.values())
 
-        result_data = {
+        return {
         "stats": {
             "current_income": float(current_income),
             "current_expense": float(current_expense),
@@ -130,12 +94,39 @@ class DashboardService:
         },
         "recent_transactions": [tx.to_dict() for tx in recent_transactions]
     }
-        try:
-            self.redis_client.setex(
-                name=cache_key,
-                time=300,
-                value=json.dumps(result_data, default=str)
-            )
-        except Exception as e:
-            print(f"Error caching dashboard data: {e}")
-        return result_data
+
+
+    @staticmethod
+    def _calculate_start_date(period):
+        now = datetime.now()
+        today_midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        if period == 'week':
+            start_date = today_midnight - timedelta(weeks=1)
+        elif period == 'month':
+            start_date = today_midnight - timedelta(days=30)
+        else:
+            start_date = datetime.min
+        return start_date
+
+
+    @staticmethod
+    def _calculate_prev_start_date(period, start_date):
+        prev_start_date = None
+        if period == "week":
+            prev_start_date = start_date - timedelta(days=7)
+        elif period == "month":
+            prev_start_date = start_date - timedelta(days=30)
+        return prev_start_date
+
+
+    @staticmethod
+    def _calculate_percentage_change(current, previous):
+        current = float(current)
+        previous = float(previous)
+        if previous == 0:
+            if current == 0:
+                return 0.0
+            return 100.0
+
+        change = ((current - previous) / previous) * 100
+        return round(change, 1)
