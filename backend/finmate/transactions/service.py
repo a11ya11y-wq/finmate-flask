@@ -32,7 +32,7 @@ class TransactionService:
 
         new_tx = self.repo.create_transaction(payload)
 
-        invalidate_cache(f"dashboard:{user_id}:*")
+        self._clear_related_caches(user_id)
 
         return new_tx
 
@@ -45,7 +45,7 @@ class TransactionService:
 
         self.repo.delete_transaction(tx_to_delete)
 
-        invalidate_cache(f"dashboard:{user_id}:*")
+        self._clear_related_caches(user_id)
 
         return True
 
@@ -80,7 +80,7 @@ class TransactionService:
 
         updated_tx = self.repo.update_transaction(tx_to_update, update_payload)
 
-        invalidate_cache(f"dashboard:{user_id}:*")
+        self._clear_related_caches(user_id)
 
         return updated_tx
 
@@ -92,3 +92,8 @@ class TransactionService:
             raise ResourceNotFound(f"Transaction {tx_id} not found or access denied.")
 
         return transaction
+
+
+    @staticmethod
+    def _clear_related_caches(user_id):
+        invalidate_cache(f"dashboard:{user_id}:*")
