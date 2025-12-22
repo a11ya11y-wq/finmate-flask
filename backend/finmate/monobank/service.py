@@ -10,6 +10,7 @@ from .api_client import MonoAPI
 from backend.finmate.exceptions import ThrottlingError
 from backend.finmate.models.transaction_model import Transactions
 from backend.finmate.exceptions import BusinessLogicError, ForbiddenError
+from backend.finmate.utils.caching import invalidate_cache
 
 
 
@@ -65,10 +66,11 @@ class MonobankService:
         all_categories = self.cat_service.get_all_categories(user_id)
 
         for cat in all_categories:
-            if cat.mcc_code:
-                codes = cat.mcc_code.split(',')
+            mcc_code_val = cat.get('mcc_code')
+            if mcc_code_val:
+                codes = mcc_code_val.split(',')
                 for code in codes:
-                    mcc_map[code.strip()] = cat.id
+                    mcc_map[code.strip()] = cat['id']
 
         mono_ids = {t['id'] for t in transactions_from_mono}
 
@@ -98,4 +100,14 @@ class MonobankService:
 
         added_count = self.tx_repo.bulk_insert_transactions(new_transactions_to_add)
 
+        if added_count > 0:
+            self._clear_related_caches(user_id)
+
+        print(f"Added {added_count} new transactions for user {user_id} from Monobank.")
         return added_count
+
+
+    @staticmethod
+    def _clear_related_caches(user_id):
+        invalidate_cache(f"dashboard:{user_id}:*")
+        invalidate_cache(f"budgets:{user_id}")
