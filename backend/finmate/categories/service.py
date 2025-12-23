@@ -4,6 +4,7 @@ from .schemas import CategoryCreateSchema, CategoryUpdateSchema
 from backend.finmate.exceptions import ConflictError, BusinessLogicError, ResourceNotFound
 from backend.finmate.utils.caching import redis_cache, invalidate_cache
 from backend.finmate.constants import ALLOWED_ICONS
+from backend.finmate.transactions.repository import TransactionRepository
 
 
 
@@ -15,6 +16,7 @@ class CategoryService:
 
     def __init__(self):
         self.repo = CategoryRepository()
+        self.repo_tx = TransactionRepository()
         self.MAX_CATEGORIES_PER_USER = 10 #TODO: Замінити на імпорт з config
 
     @redis_cache(ttl=86400, key_builder=categories_key_builder)
@@ -79,6 +81,10 @@ class CategoryService:
 
         if not cat_to_delete:
             raise ResourceNotFound(f"Category {cat_id} not found or access denied.")
+
+        count_tx = self.repo_tx.get_count_by_category(user_id, cat_id)
+        if count_tx > 0:
+            raise BusinessLogicError(f"Cannot delete category. It has {count_tx} related transactions.")
 
         self.repo.delete_category(cat_to_delete)
 
