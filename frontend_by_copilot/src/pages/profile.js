@@ -3,6 +3,7 @@ import { getToken } from '../auth/auth.js'
 import { renderHeader } from '../components/layout.js'
 import { showSuccess, showError, showInfo } from '../utils/toast.js'
 import { getProfile, clearProfileCache } from '../utils/profileCache.js'
+import { initIconPicker } from '../ui/iconPicker.js'
 
 // State
 let currentUser = null
@@ -134,6 +135,12 @@ function getCategoryIcon(categoryName) {
     return { icon: CATEGORY_ICONS.default, class: 'default' }
 }
 
+// Simple HTML escaper used by templates
+function escapeHtml(s){
+    if(s === null || s === undefined) return ''
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')
+}
+
 // Render Categories List on Main Page
 function renderCategories() {
     // Render Categories List directly on page (not in modal anymore)
@@ -143,7 +150,11 @@ function renderCategories() {
             container.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 40px 20px;">No categories yet. Add your first category above!</p>'
         } else {
             container.innerHTML = categories.map(cat => {
-                const { icon, class: iconClass } = getCategoryIcon(cat.name)
+                // Prefer icon from backend (may be 'bi-bag' etc.). If absent, fall back to name-based mapping.
+                const rawIcon = cat.icon ? String(cat.icon).trim() : null
+                const { icon: fallbackIcon } = getCategoryIcon(cat.name)
+                const iconClass = rawIcon ? rawIcon : `bi-${fallbackIcon}`
+
                 // Backend uses mcc_code (singular)
                 const mccCode = cat.mcc_code || cat.mcc_codes || cat.mccCode || ''
                 const mccDisplay = mccCode && mccCode.trim()
@@ -153,7 +164,7 @@ function renderCategories() {
                 return `
                     <div class="category-item-modal">
                         <div class="category-icon-modal">
-                            <i class="bi bi-${icon}"></i>
+                            <i class="${escapeHtml(iconClass)}"></i>
                         </div>
                         <div class="category-info-modal">
                             <div class="category-name-modal">${cat.name}</div>
@@ -320,6 +331,9 @@ async function addCategory(e) {
 
     const name = document.getElementById('categoryName').value.trim()
     const mccCodes = document.getElementById('mccCodes').value.trim()
+    // selected icon from picker (hidden input may be created dynamically)
+    const iconInput = document.getElementById('addCategoryIcon')
+    const iconValue = iconInput ? (iconInput.value || null) : null
 
     // Basic validation to reduce backend spam
     if (!name || name.length < 2) {
@@ -330,7 +344,8 @@ async function addCategory(e) {
     try {
         await api.post('/categories/', {
             name: name,
-            mcc_code: mccCodes || null  // Backend expects mcc_code (singular)
+            mcc_code: mccCodes || null,  // Backend expects mcc_code (singular)
+            icon: iconValue || null
         })
 
         showSuccess('Category added successfully')
@@ -352,6 +367,36 @@ window.editCategory = async function(categoryId) {
     // Backend uses mcc_code (singular)
     document.getElementById('editMccCodes').value = category.mcc_code || ''
 
+    // Initialize or update icon picker inside edit modal
+    try{
+        const modalEl = document.getElementById('editCategoryModal')
+        if(modalEl){
+            // ensure hidden input exists
+            let hidden = modalEl.querySelector('input[name="icon"]')
+            if(!hidden){
+                hidden = document.createElement('input')
+                hidden.type = 'hidden'
+                hidden.id = 'editCategoryIcon'
+                hidden.name = 'icon'
+                modalEl.querySelector('form')?.appendChild(hidden)
+            }
+            hidden.value = category.icon || ''
+
+            // ensure picker container exists
+            let picker = modalEl.querySelector('.icon-picker-grid')
+            if(!picker){
+                picker = document.createElement('div')
+                picker.className = 'icon-picker-grid'
+                picker.id = 'editIconPicker'
+                const form = modalEl.querySelector('form')
+                if(form) form.insertBefore(picker, form.querySelector('.mb-3') || form.firstChild)
+            }
+
+            // init picker with current icon selected
+            initIconPicker(picker, hidden, category.icon || null)
+        }
+    }catch(e){ console.error('[profile] Failed to init edit icon picker', e) }
+
     const modal = new bootstrap.Modal(document.getElementById('editCategoryModal'))
     modal.show()
 }
@@ -361,6 +406,8 @@ async function saveEditCategory() {
     const categoryId = document.getElementById('editCategoryId').value
     const name = document.getElementById('editCategoryName').value.trim()
     const mccCodes = document.getElementById('editMccCodes').value.trim()
+    const iconInput = document.getElementById('editCategoryIcon')
+    const iconValue = iconInput ? (iconInput.value || null) : null
 
     // Basic validation to reduce backend spam
     if (!name || name.length < 2) {
@@ -371,7 +418,8 @@ async function saveEditCategory() {
     try {
         await api.put(`/categories/${categoryId}/`, {
             name: name,
-            mcc_code: mccCodes || null  // Backend expects mcc_code (singular)
+            mcc_code: mccCodes || null,  // Backend expects mcc_code (singular)
+            icon: iconValue || null
         })
 
         showSuccess('Category updated successfully')
@@ -580,6 +628,29 @@ function attachEventListeners() {
     // Add category form
     const categoryForm = document.getElementById('addCategoryForm')
     if (categoryForm) {
+        // ensure icon picker exists for add form
+        try{
+            let picker = document.getElementById('addIconPicker')
+            if(!picker){
+                picker = document.createElement('div')
+                picker.id = 'addIconPicker'
+                picker.className = 'icon-picker-grid'
+                // insert before submit button
+                const submitBtn = categoryForm.querySelector('button[type="submit"]')
+                categoryForm.insertBefore(picker, submitBtn)
+            }
+            // hidden input for selected icon
+            let hidden = document.getElementById('addCategoryIcon')
+            if(!hidden){
+                hidden = document.createElement('input')
+                hidden.type = 'hidden'
+                hidden.id = 'addCategoryIcon'
+                hidden.name = 'icon'
+                categoryForm.appendChild(hidden)
+            }
+            initIconPicker(picker, hidden, null)
+        }catch(e){ console.error('[profile] init add icon picker failed', e) }
+
         categoryForm.addEventListener('submit', addCategory)
     }
 

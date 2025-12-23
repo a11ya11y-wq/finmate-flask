@@ -276,7 +276,11 @@ canvas {
   .container .row.align-top{display:flex !important; flex-wrap:nowrap !important; align-items:flex-start !important; gap:24px !important}
   .container .row.align-top > .col-md-4{flex:0 0 36% !important; max-width:36% !important}
   .container .row.align-top > .col-md-8{flex:0 0 62% !important; max-width:62% !important}
-  .container .row.align-top > .col-md-4 .card, .container .row.align-top > .col-md-8 .card{width:100%}
+  /* Chart-specific adjustments: ensure charts align with table and have consistent height */
+  .row.align-top .chart-card {
+    min-height: 370px !important;
+    height: 370px !important;
+  }
 }
 
 /* ✅ CHART HEIGHT FIX: Set both charts to same container height */
@@ -853,5 +857,108 @@ select,
   opacity: 1 !important;
 }
 
+/* icon picker neutralized: no background/border forced */
+.category-icon-modal {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      /* neutral: let backend-provided icon class control appearance */
+      background: transparent !important;
+      border: none !important;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+}
 
+.category-icon-modal i {
+      font-size: 20px;
+      color: inherit !important;
+      background: transparent !important;
+}
 
+/* icon picker neutralized: no background/border forced */
+.icon-picker-item {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      min-height: 48px;
+      border: none !important;
+      border-radius: 10px;
+      background: transparent !important;
+      color: inherit !important;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition);
+      font-size: 1.4rem;
+      padding: 0;
+}
+
+.icon-picker-item:hover {
+      background: transparent !important;
+      border-color: transparent !important;
+      color: inherit !important;
+      transform: none;
+}
+
+.icon-picker-item.selected {
+      background: transparent !important;
+      border-color: transparent !important;
+      color: inherit !important;
+      box-shadow: none !important;
+}
+
+/* Category icon badge used in dashboard recent transactions */
+.category-icon-badge{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.category-icon-badge i{
+  font-size: 16px;
+  color: inherit; /* icon color comes from inline style color set in JS */
+}
+
+/* Prevent horizontal scrollbar for categories list */
+#categoriesList, .categories-list-container, .list-group {
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Handle negative margins from bootstrap rows which may cause horizontal scroll */
+.row { margin-left: 0 !important; margin-right: 0 !important; }
+
+/* Icon picker active state */
+.icon-option-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.icon-option-btn i { font-size: 20px; }
+
+.icon-option-btn:hover{
+  transform: translateY(-2px);
+}
+
+.icon-option-btn.active{
+  border-color: #10b981 !important;
+  background-color: rgba(16, 185, 129, 0.15) !important;
+  box-shadow: 0 4px 14px rgba(16,185,129,0.12);
+}

@@ -149,7 +149,10 @@
 
 /* Ensure small icons inside category badges remain visible (white) */
 .category-badge .category-icon i {
-  color: #fff !important;
+  /* Neutral: let the icon class from backend decide color */
+  color: inherit !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 /* Also ensure header logo icon uses accent color */

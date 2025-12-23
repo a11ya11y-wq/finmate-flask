@@ -657,7 +657,9 @@ label,
 /* if still dark, force icons color too */
 .bi,
 .icon {
-  color: rgba(255,255,255,0.9) !important;
+  /* Allow icon color to be controlled by more specific classes or backend-provided classes */
+  color: inherit !important;
+  background: transparent !important;
 }
 
 /* End targeted fixes */

@@ -5,6 +5,27 @@ import Chart from 'chart.js/auto'
 import { openModal, closeModal, closeAllModals } from '../utils/simpleModal.js'
 import { showSuccess, showError, showWarning } from '../utils/toast.js'
 
+// New: mapping of category display names to badge styles (gradient background + icon color)
+const CATEGORY_STYLES = {
+  'Food': { bg: 'linear-gradient(135deg, #f59e0b, #d97706)', iconColor: '#fff' },
+  'Transport': { bg: 'linear-gradient(135deg, #3b82f6, #2563eb)', iconColor: '#fff' },
+  'Shopping': { bg: 'linear-gradient(135deg, #ec4899, #db2777)', iconColor: '#fff' },
+  'Entertainment': { bg: 'linear-gradient(135deg, #8b5cf6, #7c3aed)', iconColor: '#fff' },
+  'Health': { bg: 'linear-gradient(135deg, #ef4444, #dc2626)', iconColor: '#fff' },
+  'Utilities': { bg: 'linear-gradient(135deg, #eab308, #ca8a04)', iconColor: '#fff' },
+  'Salary': { bg: 'linear-gradient(135deg, #10b981, #059669)', iconColor: '#fff' },
+  'Uncategorized': { bg: 'linear-gradient(135deg, #64748b, #475569)', iconColor: '#fff' }
+}
+
+function getCategoryStyle(name){
+  if(!name) return CATEGORY_STYLES['Uncategorized']
+  // Try exact match first, then case-insensitive
+  if(CATEGORY_STYLES[name]) return CATEGORY_STYLES[name]
+  const foundKey = Object.keys(CATEGORY_STYLES).find(k => String(name).toLowerCase() === String(k).toLowerCase())
+  if(foundKey) return CATEGORY_STYLES[foundKey]
+  return CATEGORY_STYLES['Uncategorized']
+}
+
 // Module-level state to avoid duplicate handlers and reuse/destroy Chart instances
 let balanceChart = null
 let categoryChart = null
@@ -716,13 +737,31 @@ async function loadData(period = 'all'){
         const desc = tx.title || ''
 
         // Category badge with icon
-        const categoryIcon = getCategoryIcon(tx.category_name)
+        // Strategy: use tx.category object if present; otherwise if backend included 'data.categories' try to match by id; fallback to tx.category_name
+        let categoryObj = null
+        if(tx && tx.category && typeof tx.category === 'object'){
+          categoryObj = tx.category
+        } else if(tx && (tx.category_id || tx.category) && Array.isArray(data.categories)){
+          // tx.category might be id or category_id
+          const cid = tx.category_id || tx.category
+          try{ categoryObj = data.categories.find(c => c && (c.id === cid || String(c.id) === String(cid))) }catch(_){ categoryObj = null }
+        }
+        if(!categoryObj) categoryObj = { name: tx.category_name }
+
+        // Determine iconClass: prefer tx.category_icon, then categoryObj.icon, fallback to 'bi-tag-fill'
+        const rawIcon = (tx && tx.category_icon) ? tx.category_icon : (categoryObj && categoryObj.icon ? categoryObj.icon : 'bi-tag-fill')
+        // Normalize: remove any leading 'bi ' if present so we can render as `bi ${name}` safely
+        const iconName = String(rawIcon || '').trim().replace(/^bi\s+/, '')
+
+        const categoryName = (categoryObj && categoryObj.name) ? categoryObj.name : (tx.category_name || 'Uncategorized')
+        const styleObj = getCategoryStyle(categoryName)
+
         const categoryBadge = `
-          <div class="category-badge">
-            <div class="category-icon" style="background: ${getCategoryColor(tx.category_name)}">
-              <i class="bi ${categoryIcon}"></i>
+          <div class="d-flex align-items-center">
+            <div class="category-icon-badge" style="background: ${escapeHtml(styleObj.bg)}; color: ${escapeHtml(styleObj.iconColor)}">
+              <i class="bi ${escapeHtml(iconName)}" aria-hidden="true"></i>
             </div>
-            <span>${escapeHtml(tx.category_name || 'Uncategorized')}</span>
+            <span>${escapeHtml(categoryName)}</span>
           </div>
         `
 
@@ -932,44 +971,31 @@ async function loadData(period = 'all'){
       }
 
       // Expenses by Category Doughnut Chart
-      if(ctxDonut){
+      if (ctxDonut) {
         const labels = ((data.charts && data.charts.expenses_by_category && data.charts.expenses_by_category.labels) || [])
         const values = ((data.charts && data.charts.expenses_by_category && data.charts.expenses_by_category.data) || [])
 
-        // Показуємо/ховаємо empty state
+        // Show/hide empty state
         const categoryEmptyEl = document.getElementById('categoryChartEmpty')
         const hasCategoryData = labels.length > 0 && values.length > 0 && values.some(v => v > 0)
 
-        if(categoryEmptyEl) {
-          categoryEmptyEl.style.display = hasCategoryData ? 'none' : 'block'
-        }
+        if (categoryEmptyEl) categoryEmptyEl.style.display = hasCategoryData ? 'none' : 'block'
 
-        // Ховаємо легенду, якщо немає даних
+        // Legend container
         const legendEl = document.getElementById('categoryLegend')
-        if(legendEl) {
-          legendEl.style.display = hasCategoryData ? 'block' : 'none'
-        }
+        if (legendEl) legendEl.style.display = hasCategoryData ? 'block' : 'none'
 
-        if(hasCategoryData) {
-          // Показуємо canvas
-          if(ctxDonut) ctxDonut.style.opacity = '1'
+        if (hasCategoryData) {
+          if (ctxDonut) ctxDonut.style.opacity = '1'
 
-          try{
-            if(categoryChart){
-              try{ categoryChart.destroy() }catch(e){}
+          try {
+            if (categoryChart) {
+              try { categoryChart.destroy() } catch (e) {}
               categoryChart = null
             }
 
-            // Modern premium color palette
             const bgColors = [
-              '#6366f1', // Indigo
-              '#14b8a6', // Teal
-              '#f59e0b', // Amber
-              '#ef4444', // Red
-              '#8b5cf6', // Purple
-              '#06b6d4', // Cyan
-              '#ec4899', // Pink
-              '#10b981'  // Green
+              '#6366f1', '#14b8a6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#10b981'
             ]
 
             categoryChart = new Chart(ctxDonut, {
@@ -998,84 +1024,77 @@ async function loadData(period = 'all'){
                     padding: 12,
                     titleColor: '#fff',
                     bodyColor: '#10b981',
-                    titleFont: {
-                      size: 14,
-                      weight: 'bold'
-                    },
-                    bodyFont: {
-                      size: 16,
-                      weight: 'bold'
-                    },
                     borderColor: 'rgba(58, 160, 255, 0.5)',
                     borderWidth: 2,
                     cornerRadius: 8,
                     displayColors: true,
                     boxWidth: 12,
                     boxHeight: 12,
-                    boxPadding: 6,
                     callbacks: {
-                      label: function(context) {
+                      label: function (context) {
                         const label = context.label || ''
                         const value = context.parsed || 0
                         const total = context.dataset.data.reduce((a, b) => a + b, 0)
-                        const percentage = ((value / total) * 100).toFixed(1)
+                        const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0'
                         return label + ': ' + currencySymbol + value.toFixed(2) + ' (' + percentage + '%)'
                       }
                     }
                   }
                 },
-                elements: {
-                  arc: {
-                    borderWidth: 3,
-                    hoverOffset: 12,
-                    borderRadius: 4
-                  }
-                },
-                layout: {
-                  padding: 10
-                },
-                animation: {
-                  animateRotate: true,
-                  animateScale: true,
-                  duration: 200,
-                  easing: 'easeOutCubic'
-                }
+                elements: { arc: { borderWidth: 3, hoverOffset: 12, borderRadius: 4 } },
+                layout: { padding: 10 },
+                animation: { animateRotate: true, animateScale: true, duration: 200, easing: 'easeOutCubic' }
               }
-            });
+            })
 
-          // Modern legend for categories
-            // Render custom HTML legend below the chart
-            try{
+            // Build custom HTML legend enriched with server icons when available
+            try {
               const catLegend = document.getElementById('categoryLegend')
-              if(catLegend){
+              if (catLegend) {
                 catLegend.innerHTML = ''
                 const lbls = (categoryChart && categoryChart.data && categoryChart.data.labels) || []
                 const total = values.reduce((a, b) => a + b, 0)
+                const serverCats = (data && data.categories && Array.isArray(data.categories)) ? data.categories : []
 
-                lbls.forEach((lbl, i)=>{
+                lbls.forEach((lbl, i) => {
                   const value = values[i] || 0
-                  const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0
+                  const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0'
 
                   const el = document.createElement('div')
                   el.className = 'legend-item'
-                  el.setAttribute('role','button')
-                  el.setAttribute('tabindex','0')
-                  el.style.cssText = 'cursor: pointer; padding: 6px 10px; border-radius: 6px; transition: all 0.2s ease;'
+                  el.setAttribute('role', 'button')
+                  el.setAttribute('tabindex', '0')
+                  el.style.cssText = 'cursor: pointer; padding: 6px 10px; border-radius: 6px; transition: all 0.2s ease; display:flex; align-items:center; gap:8px;'
 
-                  const colorBox = document.createElement('span')
-                  colorBox.className = 'legend-color'
-                  // Ensure visible color box via inline styles (use backgroundColor for consistency)
-                  const bg = (categoryChart.data.datasets[0].backgroundColor[i] || '#666')
-                  colorBox.style.backgroundColor = bg
-                  colorBox.style.display = 'inline-block'
-                  colorBox.style.width = '14px'
-                  colorBox.style.height = '14px'
-                  colorBox.style.minWidth = '14px'
-                  colorBox.style.borderRadius = '3px'
-                  colorBox.style.boxShadow = '0 1px 0 rgba(0,0,0,0.25) inset'
-                  colorBox.style.border = '1px solid rgba(0,0,0,0.12)'
-                  colorBox.setAttribute('aria-hidden','true')
-                  colorBox.setAttribute('title', lbl + ' - ' + percentage + '%')
+                  // prefer server-provided icon (match by name case-insensitive)
+                  let iconClass = null
+                  try {
+                    const found = serverCats.find(c => c && c.name && String(c.name).toLowerCase() === String(lbl).toLowerCase())
+                    if (found && found.icon) iconClass = String(found.icon).trim()
+                  } catch (_e) { iconClass = null }
+
+                  if (iconClass) {
+                    const iconEl = document.createElement('i')
+                    iconEl.className = iconClass
+                    iconEl.style.marginRight = '8px'
+                    iconEl.setAttribute('aria-hidden', 'true')
+                    el.appendChild(iconEl)
+                  } else {
+                    const colorBox = document.createElement('span')
+                    colorBox.className = 'legend-color'
+                    const bg = (categoryChart.data.datasets[0].backgroundColor[i] || '#666')
+                    colorBox.style.backgroundColor = bg
+                    colorBox.style.display = 'inline-block'
+                    colorBox.style.width = '14px'
+                    colorBox.style.height = '14px'
+                    colorBox.style.minWidth = '14px'
+                    colorBox.style.borderRadius = '3px'
+                    colorBox.style.boxShadow = '0 1px 0 rgba(0,0,0,0.25) inset'
+                    colorBox.style.border = '1px solid rgba(0,0,0,0.12)'
+                    colorBox.setAttribute('aria-hidden', 'true')
+                    colorBox.setAttribute('title', lbl + ' - ' + percentage + '%')
+                    el.appendChild(colorBox)
+                  }
 
                   const textSpan = document.createElement('span')
                   textSpan.style.cssText = 'font-weight: 500; color: rgba(255,255,255,0.9); font-size: 0.8125rem;'
@@ -1085,54 +1104,45 @@ async function loadData(period = 'all'){
                   valueSpan.style.cssText = 'margin-left: auto; font-weight: 600; color: rgba(255,255,255,0.7); font-size: 0.8125rem;'
                   valueSpan.textContent = percentage + '%'
 
-                  el.appendChild(colorBox)
                   el.appendChild(textSpan)
                   el.appendChild(valueSpan)
 
-                  // Hover effect
-                  el.addEventListener('mouseenter', ()=>{
-                    el.style.background = 'rgba(255,255,255,0.05)'
-                  })
-                  el.addEventListener('mouseleave', ()=>{
-                    el.style.background = 'transparent'
-                  })
+                  el.addEventListener('mouseenter', () => { el.style.background = 'rgba(255,255,255,0.05)' })
+                  el.addEventListener('mouseleave', () => { el.style.background = 'transparent' })
 
-                  // Click to toggle visibility
-                  el.addEventListener('click', ()=>{
-                    try{
+                  el.addEventListener('click', () => {
+                    try {
                       const idx = i
-                      if(categoryChart){
+                      if (categoryChart) {
                         const meta = categoryChart.getDatasetMeta(0)
                         meta.data[idx].hidden = !meta.data[idx].hidden
                         categoryChart.update()
                         el.style.opacity = meta.data[idx].hidden ? '0.4' : '1'
 
-                        // Перевіряємо, чи всі категорії приховані
                         const allHidden = meta.data.every(arc => arc.hidden)
-                        const categoryEmptyEl = document.getElementById('categoryChartEmpty')
-                        const ctxDonut = document.getElementById('categoryDonutChart')
+                        const categoryEmptyEl2 = document.getElementById('categoryChartEmpty')
+                        const ctxDonut2 = document.getElementById('categoryDonutChart')
 
-                        if(allHidden) {
-                          // Всі категорії приховані - показуємо empty state
-                          if(categoryEmptyEl) categoryEmptyEl.style.display = 'block'
-                          if(ctxDonut) ctxDonut.style.opacity = '0'
+                        if (allHidden) {
+                          if (categoryEmptyEl2) categoryEmptyEl2.style.display = 'block'
+                          if (ctxDonut2) ctxDonut2.style.opacity = '0'
                         } else {
-                          // Є хоча б одна видима категорія - ховаємо empty state
-                          if(categoryEmptyEl) categoryEmptyEl.style.display = 'none'
-                          if(ctxDonut) ctxDonut.style.opacity = '1'
+                          if (categoryEmptyEl2) categoryEmptyEl2.style.display = 'none'
+                          if (ctxDonut2) ctxDonut2.style.opacity = '1'
                         }
                       }
-                    }catch(_){ }
+                    } catch (_err) { }
                   })
 
                   catLegend.appendChild(el)
                 })
               }
-            }catch(e){ /* legend build failed (silent) */ }
+            } catch (_e) { /* silent */ }
 
-          }catch(errDonut){
+          } catch (errDonut) {
             console.error('[CHART UPDATE] Donut chart error:', errDonut)
           }
+
         } else {
           // Якщо немає даних, ховаємо canvas
           if(ctxDonut) ctxDonut.style.opacity = '0'

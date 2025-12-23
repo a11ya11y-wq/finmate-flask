@@ -339,17 +339,19 @@ body.settings-container header {
   width: 42px;
   height: 42px;
   border-radius: 10px;
-  background: linear-gradient(135deg, rgba(58, 160, 255, 0.15), rgba(106, 208, 255, 0.05));
+  /* neutral container: let icon class/style decide visual */
+  background: transparent !important;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  border: 1px solid rgba(58, 160, 255, 0.2);
+  border: none !important;
 }
 
 .category-icon-modal i {
   font-size: 20px;
-  color: #3aa0ff;
+  color: inherit !important;
+  background: transparent !important;
 }
 
 .category-info-modal {
@@ -444,4 +446,3 @@ body.settings-container header {
     justify-content: center;
   }
 }
-
