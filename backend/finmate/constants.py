@@ -41,3 +41,42 @@ ALLOWED_AVATARS = [
         'avatars/default/8.svg',
         'avatars/default/9.svg',
     ]
+
+
+DEFAULT_CATEGORIES = [
+    {
+        "name": "Food",
+        "mcc_code": "5411, 5812, 5814, 5499",
+        "icon": "bi-cup-hot-fill"
+    },
+    {
+        "name": "Transport",
+        "mcc_code": "5541, 5542, 4121, 4111, 4784",
+        "icon": "bi-car-front-fill"
+    },
+    {
+        "name": "Entertainment",
+        "mcc_code": "5813, 7832, 7922, 7996, 7999",
+        "icon": "bi-controller"
+    },
+    {
+        "name": "Shopping",
+        "mcc_code": "5311, 5691, 5732, 5912, 5941, 5942",
+        "icon": "bi-bag-fill"
+    },
+    {
+        "name": "Utilities",
+        "mcc_code": "4900, 4814, 4899",
+        "icon": "bi-lightning-fill"
+    },
+    {
+        "name": "Salary",
+        "mcc_code": None,
+        "icon": "bi-wallet-fill"
+    },
+    {
+        "name": "Uncategorized",
+        "mcc_code": None,
+        "icon": "bi-tag-fill"
+    }
+]

@@ -29,6 +29,7 @@ class Transactions(db.Model):
             'category_id': self.category_id,
 
             'category_name': self.category.name if self.category else 'Uncategorized',
+            'category_icon': self.category.icon if self.category else None,
 
             'created_at': self.created_at.isoformat(),
 

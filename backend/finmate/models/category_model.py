@@ -8,6 +8,7 @@ class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    icon = db.Column(db.String(50), default='bi-tag-fill', nullable=False)
     mcc_code = db.Column(db.String(200), nullable=True)
 
     user = db.relationship('Users', back_populates='categories', lazy=True)
@@ -24,5 +25,6 @@ class Category(db.Model):
             "id": self.id,
             "name": self.name,
             "user_id": self.user_id,
+            "icon": self.icon,
             "mcc_code": self.mcc_code
         }

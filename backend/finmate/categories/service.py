@@ -36,6 +36,9 @@ class CategoryService:
         if existing_category:
             raise ConflictError(f"Category with name {name} already exists.")
 
+        if validated_data.icon not in ALLOWED_ICONS:
+            raise BusinessLogicError(f"Icon {validated_data.icon} is not allowed.")
+
         payload = validated_data.model_dump()
         payload['user_id'] = user_id
 
@@ -57,6 +60,9 @@ class CategoryService:
             existing_category = self.repo.get_by_name_and_user(validated_data.name, user_id)
             if existing_category and existing_category.id != cat_id:
                 raise ConflictError(f"Category with name {validated_data.name} already exists.")
+
+            if validated_data.icon and validated_data.icon not in ALLOWED_ICONS:
+                raise BusinessLogicError(f"Icon {validated_data.icon} is not allowed.")
 
         payload = validated_data.model_dump(exclude_unset=True)
         if not payload:

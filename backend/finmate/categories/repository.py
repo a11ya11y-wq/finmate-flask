@@ -38,6 +38,7 @@ class CategoryRepository:
         new_category = Category(
             name=data.get('name'),
             user_id=data.get('user_id'),
+            icon=data.get('icon'),
             mcc_code=data.get('mcc_code')
         )
         try:
@@ -52,6 +53,7 @@ class CategoryRepository:
     def update_category(self, cat_obj, data):
         try:
             cat_obj.name = data.get('name', cat_obj.name)
+            cat_obj.icon = data.get('icon', cat_obj.icon)
             cat_obj.mcc_code=data.get('mcc_code', cat_obj.mcc_code)
             db.session.commit()
             return cat_obj
