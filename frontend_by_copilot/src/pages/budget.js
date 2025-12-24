@@ -2,6 +2,7 @@ import api from '../api/apiClient.js'
 import { clearToken } from '../auth/auth.js'
 import { renderHeader } from '../components/layout.js'
 import { showError, showSuccess } from '../utils/toast.js'
+import { getProfile, getCachedProfile } from '../utils/profileCache.js'
 
 let currentUser = null
 let categories = []
@@ -38,9 +39,21 @@ async function initBudgetPage() {
 // Load user profile
 async function loadUserProfile() {
   try {
-    currentUser = await api.get('/profile/me/')
+    // Try to reuse any cached or inflight profile request to avoid duplicate API calls
+    // First check cached profile (fast, synchronous)
+    const cached = getCachedProfile()
+    if (cached) {
+      currentUser = cached
+    } else {
+      // Fallback: call getProfile which returns cached data or inflight promise
+      currentUser = await getProfile()
+    }
+
     // directly set currency symbol in DOM (avoid redundant local variable)
-    document.getElementById('currencySymbol').textContent = currencySymbols[currentUser.currency] || currentUser.currency
+    const currencySymbolEl = document.getElementById('currencySymbol')
+    if (currencySymbolEl && currentUser && currentUser.currency) {
+      currencySymbolEl.textContent = currencySymbols[currentUser.currency] || currentUser.currency
+    }
   } catch (error) {
     console.error('Failed to load user profile:', error)
     throw error
