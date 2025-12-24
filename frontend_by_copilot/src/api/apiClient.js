@@ -103,9 +103,31 @@ async function request(path, options = {}){
 
     console.error('[apiClient] Request failed:', { url: fullUrl, status: res.status, errDetail, data })
 
-    // For user-friendly errors, throw just the message without status code prefix
-    // (login form will add its own context)
-    throw new Error(errDetail)
+    // Throw an Error object but attach response data and status so callers can inspect details
+    const err = new Error(errDetail)
+    try{ err.status = res.status }catch(e){}
+    try{ err.data = data }catch(e){}
+    // keep original res.statusText for reference
+    try{ err.errDetail = errDetail }catch(e){}
+
+    // If backend provided detailed validation messages, build a combined message
+    try{
+      if(data){
+        if(Array.isArray(data.details) && data.details.length){
+          err.message = data.details.join('\n')
+        } else if(data.details && typeof data.details === 'object'){
+          const parts = []
+          for(const k of Object.keys(data.details)){
+            const v = data.details[k]
+            if(Array.isArray(v)) parts.push(...v)
+            else if(typeof v === 'string') parts.push(v)
+          }
+          if(parts.length) err.message = parts.join('\n')
+        }
+      }
+    }catch(e){ /* ignore */ }
+
+    throw err
   }
 
   return data

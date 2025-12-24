@@ -5,15 +5,31 @@ const statusDiv = document.getElementById('status_message')
 const submitBtn = form?.querySelector('button[type="submit"]')
 const btnText = submitBtn?.querySelector('.btn-text')
 const spinner = submitBtn?.querySelector('.spinner-border')
-// Reference the terms checkbox (exists in register.html with id="terms")
 const termsCheckbox = document.getElementById('terms')
+
+// === Helpers ===
 
 function showError(message) {
   if (!statusDiv) return
+  // Sanitize extremely long/technical email validation messages coming from backend
+  try {
+    const m = (message || '').toString()
+    const lower = m.toLowerCase()
+    if (lower.includes('part after the @-sign') || lower.includes('top-level domain')) {
+      message = 'Please enter a valid email address'
+    }
+  } catch (e) {
+    // ignore
+  }
+
+  // Замінюємо переноси рядків (\n) на <br> для коректного відображення в HTML
+  const formattedMessage = message ? message.replace(/\n/g, '<br>') : 'Unknown error'
+
   const statusText = statusDiv.querySelector('.status-text')
-  if (statusText) statusText.textContent = message
-  statusDiv.classList.remove('d-none')
-  statusDiv.classList.remove('alert-success')
+  // ВАЖЛИВО: Використовуємо innerHTML, щоб працювали переноси рядків
+  if (statusText) statusText.innerHTML = formattedMessage
+
+  statusDiv.classList.remove('d-none', 'alert-success')
   statusDiv.classList.add('alert-danger')
 }
 
@@ -21,8 +37,8 @@ function showSuccess(message) {
   if (!statusDiv) return
   const statusText = statusDiv.querySelector('.status-text')
   if (statusText) statusText.textContent = message
-  statusDiv.classList.remove('d-none')
-  statusDiv.classList.remove('alert-danger')
+
+  statusDiv.classList.remove('d-none', 'alert-danger')
   statusDiv.classList.add('alert-success')
 }
 
@@ -34,11 +50,11 @@ function setLoading(loading) {
   if (!submitBtn) return
   submitBtn.disabled = loading
   if (loading) {
-    btnText.textContent = 'Creating Account...'
-    spinner.classList.remove('d-none')
+    if (btnText) btnText.textContent = 'Creating Account...'
+    if (spinner) spinner.classList.remove('d-none')
   } else {
-    btnText.textContent = 'Create Account'
-    spinner.classList.add('d-none')
+    if (btnText) btnText.textContent = 'Create Account'
+    if (spinner) spinner.classList.add('d-none')
   }
 }
 
@@ -47,14 +63,9 @@ function validateEmail(email) {
   return re.test(email)
 }
 
-function validatePassword(password) {
-  if (password.length < 8) {
-    return 'Password must be at least 8 characters long'
-  }
-  return null
-}
+// === Main Logic ===
 
-if(form){
+if (form) {
   form.addEventListener('submit', async (e) => {
     e.preventDefault()
     hideError()
@@ -64,71 +75,120 @@ if(form){
     const password = document.getElementById('password').value
     const confirm_password = document.getElementById('confirm_password').value
 
-    // Basic validation to reduce backend spam
+    // --- Validation Section ---
+
+    // 1. Check if empty
     if (!username || !email || !password || !confirm_password) {
       showError('Please fill in all fields')
       return
     }
 
+    // 2. Username
     if (username.length < 3) {
-      showError('Username must be at least 3 characters')
-      return
-    }
-
-    // Basic email format check
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      showError('Please enter a valid email address')
-      return
-    }
-
-    if (password.length < 6) {
-      showError('Password must be at least 6 characters')
-      return
-    }
-
-    if (password !== confirm_password) {
-      showError('Passwords do not match')
-      return
-    }
-
-    // Client-side validation
-    if (!username || username.length < 3) {
       showError('Username must be at least 3 characters long')
       return
     }
 
-    if (!email || !validateEmail(email)) {
+    // 3. Email
+    if (!validateEmail(email)) {
       showError('Please enter a valid email address')
       return
     }
 
-    const passwordError = validatePassword(password)
-    if (passwordError) {
-      showError(passwordError)
+    // 4. Password
+    if (password.length < 6) {
+      showError('Password must be at least 6 characters long')
       return
     }
 
+    // 5. Match
     if (password !== confirm_password) {
       showError('Passwords do not match')
       return
     }
 
+    // 6. Terms
     if (termsCheckbox && !termsCheckbox.checked) {
       showError('You must agree to the Terms of Service and Privacy Policy')
       return
     }
 
+    // --- API Request ---
     setLoading(true)
 
-    try{
-      await api.post('/auth/register', {username, email, password, confirm_password})
+    try {
+      await api.post('/auth/register', {
+        username,
+        email,
+        password,
+        confirm_password
+      })
+
       // on success show message and redirect to login
       showSuccess('Account created successfully! Redirecting to login...')
       setTimeout(() => {
         window.location.href = '/login.html'
       }, 1500)
-    }catch(err){
-      showError(err.message || 'Registration failed. Please try again.')
+    } catch (err) {
+      // Improved error handling: prefer details array from backend 422 responses
+      let msg = 'Registration failed. Please try again.'
+      try {
+        let data = err?.data || err?.response?.data || null
+        console.error('[register] request error (initial):', { err, data })
+
+        // If no structured data, try to parse JSON from err.errDetail or err.message
+        if (!data) {
+          const candidate = err?.errDetail || err?.message || null
+          if (candidate && typeof candidate === 'string') {
+            try {
+              const parsed = JSON.parse(candidate)
+              if (parsed) data = parsed
+              console.warn('[register] parsed JSON from errDetail/message', parsed)
+            } catch (e) {
+              // not JSON
+            }
+          }
+        }
+
+        if (data) {
+          // 1) details as array of strings
+          if (Array.isArray(data.details) && data.details.length) {
+            msg = data.details.join('\n')
+
+          // 2) details as object like {email: ['msg'], password: ['msg']}
+          } else if (data.details && typeof data.details === 'object') {
+            const parts = []
+            for (const k of Object.keys(data.details)) {
+              const v = data.details[k]
+              if (Array.isArray(v)) parts.push(...v)
+              else if (typeof v === 'string') parts.push(v)
+            }
+            if (parts.length) msg = parts.join('\n')
+
+          // 3) generic errors array
+          } else if (Array.isArray(data.errors) && data.errors.length) {
+            msg = data.errors.join('\n')
+
+          // 4) fallback message fields
+          } else if (typeof data.error === 'string' && data.error) {
+            msg = data.error
+          } else if (typeof data.message === 'string' && data.message) {
+            msg = data.message
+          } else if (typeof data === 'string' && data) {
+            msg = data
+          }
+        } else if (typeof err?.errDetail === 'string' && err.errDetail) {
+          msg = err.errDetail
+        } else if (typeof err?.message === 'string' && err.message) {
+          msg = err.message
+        }
+      } catch (e) {
+        // ignore parsing errors and keep generic message
+        console.error('[register] error parsing failure response', e)
+      }
+
+      showError(msg)
+    } finally {
       setLoading(false)
     }
   })

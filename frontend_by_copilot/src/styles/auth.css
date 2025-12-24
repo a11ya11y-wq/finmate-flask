@@ -87,6 +87,11 @@
   overflow: hidden;
   animation: cardFadeIn 0.6s ease-out;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  max-width: 450px !important;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+  min-width: 0; /* allow flex/col children to shrink */
 }
 
 .auth-card:hover {
@@ -116,6 +121,8 @@
 
 .auth-card-body {
   padding: 2rem;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .auth-card-footer {
@@ -504,3 +511,25 @@
   }
 }
 
+/* Constrain auth card/form width to prevent layout breaking from long error messages */
+.auth-card {
+  max-width: 450px !important;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+  min-width: 0; /* allow flex/col children to shrink */
+}
+
+#registerForm, .auth-card-body {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Ensure error alert wraps long strings and doesn't expand container */
+#status_message, #status_message .status-text {
+  max-width: 100%;
+  box-sizing: border-box;
+  white-space: normal;      /* allow wrapping */
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
