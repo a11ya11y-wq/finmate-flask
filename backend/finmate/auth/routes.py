@@ -27,7 +27,7 @@ def login():
             httponly=True,
             secure=False,  # На продакшн сервері має бути True і в логаут добавить!
             samesite='Lax',
-            path='/api/auth/refresh',
+            path='/api/v1/auth/refresh',
             max_age=delta
         )
         return resp
@@ -43,10 +43,27 @@ def refresh():
         return jsonify({"error": "Missing refresh token, please login again"}), 401
 
     try:
-        new_access_token = service.refresh_access_token(refresh_token)
-        return jsonify(access_token=new_access_token), 200
+        new_access_token, new_refresh_token = service.refresh_access_token(refresh_token)
+        resp = jsonify({"access_token": new_access_token})
+
+        max_age_seconds = 30 * 24 * 60 * 60
+
+        resp.set_cookie(
+            key='finmate_refresh_token',
+            value=new_refresh_token,
+            httponly=True,
+            secure=False,
+            samesite='Lax',
+            path='/api/v1/auth/refresh',
+            max_age=max_age_seconds #TODO: добавити перевырку на remember_me
+        )
+        return resp, 200
+
     except Exception as e:
-        return parse_exception(e)
+        error_resp = jsonify({"error": "Session expired, please login again"})
+
+        error_resp.delete_cookie('finmate_refresh_token', path='/api/v1/auth/refresh')
+        return error_resp, 401
 
 
 @bp.route('/register', methods=['POST'])
@@ -81,7 +98,7 @@ def logout():
             expires=0,
             httponly=True,
             secure=False,
-            path='/api/auth/refresh'
+            path='/api/v1/auth/refresh'
         )
         return resp
     except Exception as e:

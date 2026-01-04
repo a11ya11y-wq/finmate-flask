@@ -61,8 +61,15 @@ class AuthService:
                 expires_delta=timedelta(minutes=30)
             )
 
-            #TODO: РОТАЦІЯ РЕФРЕШ ТОКЕНІВ
-            return new_access_token
+            new_refresh_token = create_refresh_token(
+                identity=str(user.id),
+                expires_delta=timedelta(days=30)
+            )
+
+            self.repo.update_refresh_token(user_id, new_refresh_token)
+
+            return new_access_token, new_refresh_token
+
         except Exception as e:
             raise AuthenticationError("Invalid refresh token")
 
