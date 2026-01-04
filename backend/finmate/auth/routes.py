@@ -38,7 +38,7 @@ def login():
 
 @bp.route('/refresh', methods=['POST'])
 def refresh():
-    refresh_token = request.cookies.get("finmate_refresh_token")
+    refresh_token = request.cookies.get("finmate_refresh_token") #TODO: Перевірка на коректний токен
     if not refresh_token:
         return jsonify({"error": "Missing refresh token, please login again"}), 401
 

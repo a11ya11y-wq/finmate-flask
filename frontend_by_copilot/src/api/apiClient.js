@@ -1,6 +1,10 @@
 const DEFAULT_BASE = 'http://localhost:5000/api/v1'
 const BASE_URL = (import.meta.env.VITE_API_ROOT || '').replace(/\/$/, '') || DEFAULT_BASE
 
+// Interceptor Queue Pattern variables to prevent race conditions
+let isRefreshing = false
+let failedQueue = []
+
 // JWT with HttpOnly Cookies - only manage access_token in localStorage
 function getAccessToken(){
   try {
@@ -14,6 +18,8 @@ function getAccessToken(){
 function setAccessToken(token) {
   try {
     localStorage.setItem('finmate_access_token', token)
+    // Dispatch auth:login event for UI synchronization
+    window.dispatchEvent(new Event('auth:login'))
   } catch(e) {
     console.error('Failed to save access token:', e)
   }
@@ -22,12 +28,14 @@ function setAccessToken(token) {
 function clearAccessToken() {
   try {
     localStorage.removeItem('finmate_access_token')
+    // Dispatch auth:logout event for UI synchronization
+    window.dispatchEvent(new Event('auth:logout'))
   } catch(e) {
     console.warn('Failed to clear access token:', e)
   }
 }
 
-// Silent refresh function
+// Silent refresh function - simplified, no queue logic here
 async function attemptSilentRefresh() {
   try {
     const response = await fetch(BASE_URL + '/auth/refresh', {
@@ -98,7 +106,7 @@ async function authorizedFetch(path, options = {}) {
   try {
     const response = await fetch(fullUrl, fetchOptions)
 
-    // Handle 401 Unauthorized with silent refresh
+    // Handle 401 Unauthorized with Interceptor Queue pattern
     if (response.status === 401) {
       const isLoginRequest = path.includes('/auth/login')
       const isRefreshRequest = path.includes('/auth/refresh')
@@ -108,9 +116,35 @@ async function authorizedFetch(path, options = {}) {
         return await handleResponse(response, fullUrl)
       }
 
-      // Attempt silent refresh
+      // If already refreshing, queue this request
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({
+            resolve: (token) => {
+              // Retry original request with new token
+              fetchOptions.headers['Authorization'] = `Bearer ${token}`
+              fetch(fullUrl, fetchOptions)
+                .then(response => handleResponse(response, fullUrl))
+                .then(resolve)
+                .catch(reject)
+            },
+            reject
+          })
+        })
+      }
+
+      // Start refresh process
+      isRefreshing = true
+
       try {
         const newAccessToken = await attemptSilentRefresh()
+
+        // Process all queued requests
+        failedQueue.forEach(({ resolve }) => {
+          resolve(newAccessToken)
+        })
+        failedQueue = []
+        isRefreshing = false
 
         // Retry original request with new token
         fetchOptions.headers['Authorization'] = `Bearer ${newAccessToken}`
@@ -119,6 +153,14 @@ async function authorizedFetch(path, options = {}) {
 
       } catch (refreshError) {
         console.error('Silent refresh failed, redirecting to login:', refreshError)
+
+        // Reject all queued requests
+        failedQueue.forEach(({ reject }) => {
+          reject(new Error('Authentication failed'))
+        })
+        failedQueue = []
+        isRefreshing = false
+
         clearAccessToken()
 
         // Only redirect if we're not on login page
