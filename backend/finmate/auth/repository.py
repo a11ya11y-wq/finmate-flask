@@ -9,8 +9,24 @@ class AuthRepository:
     def find_user_by_name(self, username):
         return Users.query.filter_by(username=username).first()
 
+
     def find_user_by_email(self, email):
         return Users.query.filter_by(email=email).first()
+
+
+    def find_user_by_id(self, user_id):
+        return Users.query.get(user_id)
+
+
+    def update_refresh_token(self, user_id, new_token):
+        try:
+            user = self.find_user_by_id(user_id)
+            if user:
+                user.refresh_token = new_token
+                db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            raise Exception(f'Error while updating refresh token in DB: {e}')
 
 
     def create_user_with_cat(self, data):

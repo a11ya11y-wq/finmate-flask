@@ -12,6 +12,7 @@ class Users(db.Model):
     currency = db.Column(db.String(5), nullable=False, default='USD')
     password_hash = db.Column(db.String, nullable=False)
     monobank_api_token = db.Column(db.LargeBinary, nullable=True)
+    refresh_token = db.Column(db.String(500), nullable=True, index=True) #TODO: Зробити мульти сесії
 
     budgets = db.relationship('Budget', back_populates='user', lazy=True, cascade="all, delete-orphan")
     categories = db.relationship('Category', back_populates='user', lazy=True, cascade="all, delete-orphan")
