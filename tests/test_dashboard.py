@@ -53,8 +53,8 @@ class TestGetDashboard:
 
         stats = data["stats"]
 
-        assert float(stats["total_income"]) == 1000.00
-        assert float(stats["total_expense"]) == 250.00
+        assert float(stats["current_income"]) == 1000.00
+        assert float(stats["current_expense"]) == 250.00
         assert float(stats["current_balance"]) == 750.00
         assert len(data["recent_transactions"]) == 2
 
