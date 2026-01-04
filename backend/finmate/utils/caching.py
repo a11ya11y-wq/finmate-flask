@@ -1,7 +1,7 @@
 import functools
 import json
 
-from backend.finmate.extensions import redis_client
+from backend.finmate import extensions
 
 def redis_cache(ttl=300, key_builder=None):
     def decorator(func):
@@ -18,7 +18,7 @@ def redis_cache(ttl=300, key_builder=None):
                 return func(*args, **kwargs)
 
             try:
-                cached_data = redis_client.get(cache_key)
+                cached_data = extensions.redis_client.get(cache_key)
                 if cached_data:
                     print(f"🟢 [CACHE HIT]: {cache_key}")
                     return json.loads(cached_data)
@@ -28,7 +28,7 @@ def redis_cache(ttl=300, key_builder=None):
             result = func(*args, **kwargs)
 
             try:
-                redis_client.setex(
+                extensions.redis_client.setex(
                     name=cache_key,
                     time=ttl,
                     value=json.dumps(result, default=str)
@@ -46,10 +46,10 @@ def invalidate_cache(key_pattern):
         raise ValueError("Key pattern must be provided for cache invalidation.")
     deleted_count = 0
     try:
-        keys_to_delete = [key for key in redis_client.scan_iter(match=key_pattern)]
+        keys_to_delete = [key for key in extensions.redis_client.scan_iter(match=key_pattern)]
 
         if keys_to_delete:
-            redis_client.delete(*keys_to_delete)
+            extensions.redis_client.delete(*keys_to_delete)
             deleted_count = len(keys_to_delete)
             print(f'Invalidated {deleted_count} cache entries matching pattern: {key_pattern}')
         else:
