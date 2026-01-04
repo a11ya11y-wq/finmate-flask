@@ -1,4 +1,4 @@
-import api from '../api/apiClient.js'
+import * as api from '../api/apiClient.js'
 
 const form = document.getElementById('registerForm')
 const statusDiv = document.getElementById('status_message')

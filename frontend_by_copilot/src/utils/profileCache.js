@@ -1,5 +1,5 @@
 // Profile Cache - уникаємо дублювання запитів до /profile/me
-import api from '../api/apiClient.js'
+import * as api from '../api/apiClient.js'
 
 let cachedProfile = null
 let cachePromise = null

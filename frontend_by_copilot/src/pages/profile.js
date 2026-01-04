@@ -1,4 +1,4 @@
-import api from '../api/apiClient.js'
+import * as api from '../api/apiClient.js'
 import { getToken } from '../auth/auth.js'
 import { renderHeader } from '../components/layout.js'
 import { showSuccess, showError, showInfo } from '../utils/toast.js'
@@ -587,16 +587,11 @@ async function deleteAccount() {
         await api.del('/profile/me/')
         showSuccess('Account deleted')
 
-        // Logout
-        localStorage.removeItem('finmate_token')
-        sessionStorage.removeItem('finmate_token')
-
-        setTimeout(() => {
-            window.location.href = '/login.html'
-        }, 1500)
+        // Use the proper logout function from API client
+        await api.logout()
     } catch (error) {
         console.error('[profile] Error deleting account:', error)
-        showError(error.message || 'Помилка видалення облікового запису')
+        showError(error.message || 'Failed to delete account')
     }
 }
 

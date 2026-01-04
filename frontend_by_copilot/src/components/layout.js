@@ -1,4 +1,5 @@
 import { getToken, clearToken } from '../auth/auth.js'
+import { logout as apiLogout } from '../api/apiClient.js'
 import { getProfile } from '../utils/profileCache.js'
 
 export async function renderHeader(){
@@ -70,10 +71,22 @@ export async function renderHeader(){
     // Logout handler
     const logoutBtn = document.getElementById('logout-button')
     if(logoutBtn){
-      logoutBtn.addEventListener('click', (e)=>{
+      logoutBtn.addEventListener('click', async (e) => {
         e.preventDefault()
-        clearToken()
-        window.location.href = '/login.html'
+
+        // Disable button to prevent double clicks
+        logoutBtn.disabled = true
+        logoutBtn.innerHTML = '<i class="bi bi-arrow-clockwise me-2 spin"></i>Signing out...'
+
+        try {
+          // Call API logout (handles server request + local cleanup)
+          await apiLogout()
+        } catch (error) {
+          console.error('Logout error:', error)
+          // Even if API call fails, ensure local cleanup and redirect
+          clearToken()
+          window.location.href = '/login.html'
+        }
       })
     }
 

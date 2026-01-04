@@ -1,4 +1,4 @@
-import api from '../api/apiClient.js'
+import * as api from '../api/apiClient.js'
 import { clearToken } from '../auth/auth.js'
 import { renderHeader } from '../components/layout.js'
 import { showError, showSuccess } from '../utils/toast.js'
