@@ -37,7 +37,8 @@ class AuthService:
 
         refresh_token = create_refresh_token(
             identity=str(user.id),
-            expires_delta=refresh_expires
+            expires_delta=refresh_expires,
+            additional_claims={"remember": remember_me}
         )
 
         self.repo.update_refresh_token(user.id, refresh_token)
@@ -48,13 +49,21 @@ class AuthService:
     def refresh_access_token(self, refresh_token):
         try:
             payload = decode_token(refresh_token)
+
             user_id = payload.get("sub")
             user = self.repo.find_user_by_id(user_id)
+            is_remember_me = payload.get("remember", False)
+
             if not user:
                 raise AuthenticationError("User no longer exists")
 
             if user.refresh_token != refresh_token:
                 raise AuthenticationError("Token revoked or replaced")
+
+            if is_remember_me:
+                refresh_expires = timedelta(days=30)
+            else:
+                refresh_expires = timedelta(days=1)
 
             new_access_token = create_access_token(
                 identity=str(user.id),
@@ -63,12 +72,13 @@ class AuthService:
 
             new_refresh_token = create_refresh_token(
                 identity=str(user.id),
-                expires_delta=timedelta(days=30)
+                expires_delta=refresh_expires,
+                additional_claims={"remember": is_remember_me}
             )
 
             self.repo.update_refresh_token(user_id, new_refresh_token)
 
-            return new_access_token, new_refresh_token
+            return new_access_token, new_refresh_token, refresh_expires
 
         except Exception as e:
             raise AuthenticationError("Invalid refresh token")

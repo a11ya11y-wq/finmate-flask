@@ -43,7 +43,7 @@ def refresh():
         return jsonify({"error": "Missing refresh token, please login again"}), 401
 
     try:
-        new_access_token, new_refresh_token = service.refresh_access_token(refresh_token)
+        new_access_token, new_refresh_token, token_validity = service.refresh_access_token(refresh_token)
         resp = jsonify({"access_token": new_access_token})
 
         max_age_seconds = 30 * 24 * 60 * 60
@@ -55,7 +55,7 @@ def refresh():
             secure=False,
             samesite='Lax',
             path='/api/v1/auth/refresh',
-            max_age=max_age_seconds #TODO: добавити перевырку на remember_me
+            max_age=token_validity
         )
         return resp, 200
 
