@@ -5,6 +5,8 @@ MAX_CATEGORIES_PER_USER = 10
 
 VALID_PERIODS = ('all', 'week', 'month')
 
+MAX_CATEGORIES_PER_USER = 10
+
 ALLOWED_ICONS = [
         'bi-bag-fill',
         'bi-cart-fill',

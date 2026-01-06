@@ -69,6 +69,9 @@ class ProfileService:
         self.repo.delete_user(user_to_delete)
 
         self._clear_related_caches(user_id)
+        invalidate_cache(f"categories:{user_id}")
+        invalidate_cache(f"dashboard:{user_id}:*")
+
         return True
 
 
@@ -105,7 +108,7 @@ class ProfileService:
 
             encrypted_token = cipher_suite.encrypt(raw_token_bytes)
 
-        except Exception as e: #TODO: Ловити конкретніші помилки з Фернет
+        except Exception as e:
             raise Exception(f"Token encryption failed: {e}")
 
         payload = {

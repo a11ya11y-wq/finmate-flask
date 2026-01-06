@@ -11,7 +11,7 @@ service = MonobankService()
 
 @bp.route('/sync-transactions', methods=["POST"])
 @jwt_required()
-def sync_transactions(): #TODO: Захист від спаму (в бд добавить ласт_моно_реквест(Дейттайм))
+def sync_transactions():
     try:
         user_id = int(get_jwt_identity())
         added_count = service.sync_tx(user_id)

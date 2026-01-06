@@ -30,8 +30,11 @@ def create_or_update_budget():
         user_id = int(get_jwt_identity())
         data = request.get_json()
 
-        budget = service.create_or_update_budget(user_id, data)
-        return jsonify(budget.to_dict()), 201 #TODO: Код логіку Upsert
+        budget, is_created = service.create_or_update_budget(user_id, data)
+
+        status_code = 201 if is_created else 200
+
+        return jsonify(budget.to_dict()), 201
 
     except Exception as e:
         return parse_exception(e)

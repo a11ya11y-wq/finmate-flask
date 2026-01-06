@@ -97,7 +97,7 @@ class BudgetService:
             updated_budget = self.repo.update_budget(budget_exist, payload)
 
             self._clear_related_caches(user_id)
-            return updated_budget
+            return updated_budget, False
 
         else:
             current_user_budget_count = self.repo.get_count_by_user(user_id)
@@ -109,7 +109,7 @@ class BudgetService:
                 new_budget = self.repo.create_budget(payload)
 
                 self._clear_related_caches(user_id)
-                return new_budget
+                return new_budget, True
 
 
     def delete_budget(self, user_id, budget_id):

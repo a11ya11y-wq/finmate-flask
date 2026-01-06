@@ -3,7 +3,7 @@ from backend.finmate.categories.repository import CategoryRepository
 from .schemas import CategoryCreateSchema, CategoryUpdateSchema
 from backend.finmate.exceptions import ConflictError, BusinessLogicError, ResourceNotFound
 from backend.finmate.utils.caching import redis_cache, invalidate_cache
-from backend.finmate.constants import ALLOWED_ICONS
+from backend.finmate.constants import ALLOWED_ICONS, MAX_CATEGORIES_PER_USER
 from backend.finmate.transactions.repository import TransactionRepository
 
 
@@ -17,7 +17,6 @@ class CategoryService:
     def __init__(self):
         self.repo = CategoryRepository()
         self.repo_tx = TransactionRepository()
-        self.MAX_CATEGORIES_PER_USER = 10 #TODO: Замінити на імпорт з config
 
     @redis_cache(ttl=86400, key_builder=categories_key_builder)
     def get_all_categories(self, user_id):
@@ -27,8 +26,8 @@ class CategoryService:
 
     def create_category(self, user_id, data):
 
-        if self.MAX_CATEGORIES_PER_USER <= self.repo.get_count_by_user(user_id):
-            raise BusinessLogicError(f'You have reached the limit of {self.MAX_CATEGORIES_PER_USER} categories')
+        if MAX_CATEGORIES_PER_USER <= self.repo.get_count_by_user(user_id):
+            raise BusinessLogicError(f'You have reached the limit of {MAX_CATEGORIES_PER_USER} categories')
 
         validated_data = CategoryCreateSchema.model_validate(data)
 
