@@ -37,7 +37,12 @@ def init_redis(app):
     return redis_client
 
 def init_celery(app):
-    celery.config_from_object(app.config, namespace='CELERY')
+    celery.conf.update(app.config)
+
+    celery.conf.update(
+        broker_url=app.config.get("CELERY_BROKER_URL"),
+        result_backend=app.config.get("CELERY_RESULT_BACKEND"),
+    )
 
     class ContextTask(celery.Task):
         def __call__(self, *args, **kwargs):

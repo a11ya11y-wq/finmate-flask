@@ -4,5 +4,9 @@ from .service import MonobankService
 @celery.task
 def task_sync_monobank_tx(user_id):
     service = MonobankService()
-    service.sync_tx(user_id)
-    return f"User {user_id} synced."
+    added_count = service.sync_tx(user_id)
+    return {
+        "added_count": added_count,
+        "message": f"Successfully synchronized {added_count} transaction(s)"
+    }
+
