@@ -5,7 +5,7 @@ import redis
 
 
 load_dotenv()
-from .extensions import db, migrate, jwt, redis_client, init_redis
+from .extensions import db, migrate, jwt, redis_client, init_redis, init_celery
 from .config import config
 
 
@@ -32,6 +32,7 @@ def create_app(config_name='default'):
 
     jwt.init_app(app)
     db.init_app(app)
+    init_celery(app)
     migrate.init_app(app, db)
     redis_conn = init_redis(app)
 

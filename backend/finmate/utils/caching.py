@@ -1,7 +1,7 @@
 import functools
 import json
 
-from backend.finmate import extensions
+from finmate import extensions
 
 def redis_cache(ttl=300, key_builder=None):
     def decorator(func):

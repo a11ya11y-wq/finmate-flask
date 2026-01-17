@@ -1,12 +1,12 @@
 from datetime import datetime, timezone
 import calendar
 
-from backend.finmate.budgets.repository import BudgetRepository
-from backend.finmate.categories.repository import CategoryRepository
+from finmate.budgets.repository import BudgetRepository
+from finmate.categories.repository import CategoryRepository
 from .schemas import BudgetSchema
-from backend.finmate.exceptions import ResourceNotFound, BusinessLogicError
-from backend.finmate.utils.caching import redis_cache, invalidate_cache
-from backend.finmate.constants import MAX_BUDGET_PER_USER
+from finmate.exceptions import ResourceNotFound, BusinessLogicError
+from finmate.utils.caching import redis_cache, invalidate_cache
+from finmate.constants import MAX_BUDGET_PER_USER
 
 
 def budgets_key_builder(self, user_id):

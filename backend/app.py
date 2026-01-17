@@ -1,4 +1,4 @@
-from backend.finmate import create_app, db
+from finmate import create_app, db
 
 app = create_app(config_name="development")
 

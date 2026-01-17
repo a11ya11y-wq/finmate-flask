@@ -3,11 +3,13 @@ from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from flask import jsonify
 import redis
+from celery import Celery
 
 
 db = SQLAlchemy()
 migrate = Migrate()
 jwt = JWTManager()
+celery = Celery()
 
 @jwt.invalid_token_loader
 def invalid_token_callback(error):
@@ -33,3 +35,14 @@ def init_redis(app):
     redis_client = redis.from_url(redis_url, decode_responses=True)
 
     return redis_client
+
+def init_celery(app):
+    celery.config_from_object(app.config, namespace='CELERY')
+
+    class ContextTask(celery.Task):
+        def __call__(self, *args, **kwargs):
+            with app.app_context():
+                return self.run(*args, **kwargs)
+
+    celery.Task = ContextTask
+    return celery

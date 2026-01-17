@@ -2,7 +2,7 @@ from flask import request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from . import bp
-from backend.finmate.dashboard.service import DashboardService
+from finmate.dashboard.service import DashboardService
 from finmate.utils.error_parser import parse_exception
 
 dashboard_service = DashboardService()

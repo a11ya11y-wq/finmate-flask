@@ -1,6 +1,6 @@
 from pydantic import ValidationError
 
-from backend.finmate.exceptions import FinMateError
+from finmate.exceptions import FinMateError
 import traceback
 from flask import jsonify
 

@@ -1,9 +1,9 @@
 from flask import jsonify, request
 
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from backend.finmate.budgets import bp
+from finmate.budgets import bp
 from .service import BudgetService
-from backend.finmate.utils.error_parser import parse_exception
+from finmate.utils.error_parser import parse_exception
 
 
 

@@ -1,4 +1,4 @@
-from backend.finmate.extensions import db
+from finmate.extensions import db
 from sqlalchemy import func
 
 

@@ -1,6 +1,6 @@
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask import request, jsonify
-from backend.finmate.profile import bp
+from finmate.profile import bp
 from .service import ProfileService
 from finmate.utils.error_parser import parse_exception
 

@@ -4,9 +4,9 @@ from flask import current_app
 
 from .repository import ProfileRepository
 from  .schemas import ProfileUpdateSchema, MonoTokenUpdateSchema, PasswordChangeSchema
-from backend.finmate.exceptions import ResourceNotFound, BusinessLogicError, AuthenticationError
-from backend.finmate.utils.caching import invalidate_cache, redis_cache
-from backend.finmate.constants import ALLOWED_AVATARS
+from finmate.exceptions import ResourceNotFound, BusinessLogicError, AuthenticationError
+from finmate.utils.caching import invalidate_cache, redis_cache
+from finmate.constants import ALLOWED_AVATARS
 
 
 def profile_key_builder(self, user_id):

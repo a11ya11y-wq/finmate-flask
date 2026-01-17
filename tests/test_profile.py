@@ -1,7 +1,7 @@
 import pytest
 
 from tests.conftest import db_session
-from backend.finmate.models import Users
+from finmate.models import Users
 
 @pytest.mark.usefixtures("db_session")
 class TestGetUser:

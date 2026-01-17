@@ -1,9 +1,9 @@
 from datetime import  datetime, timedelta
 
-from backend.finmate.transactions.repository import TransactionRepository
-from backend.finmate.exceptions import BusinessLogicError
-from backend.finmate.utils.caching import redis_cache
-from backend.finmate.constants import VALID_PERIODS
+from finmate.transactions.repository import TransactionRepository
+from finmate.exceptions import BusinessLogicError
+from finmate.utils.caching import redis_cache
+from finmate.constants import VALID_PERIODS
 
 
 

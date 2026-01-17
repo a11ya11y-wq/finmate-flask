@@ -3,7 +3,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from .service import CategoryService
 from  . import bp
-from backend.finmate.utils.error_parser import parse_exception
+from finmate.utils.error_parser import parse_exception
 
 
 service = CategoryService()

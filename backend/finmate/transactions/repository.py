@@ -1,6 +1,6 @@
-from backend.finmate.extensions import db
+from finmate.extensions import db
 from sqlalchemy import func, case
-from backend.finmate.models import Category, Transactions
+from finmate.models import Category, Transactions
 
 
 

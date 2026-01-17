@@ -6,6 +6,8 @@ class Config:
     ENCRYPTION_KEY=os.environ.get('ENCRYPTION_KEY')
     JWT_SECRET_KEY=os.environ.get('JWT_SECRET_KEY')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/0') #TODO: В .енв записать
+    CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
 
 
 class DevelopmentConfig(Config):

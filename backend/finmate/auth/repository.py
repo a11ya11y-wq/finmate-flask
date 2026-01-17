@@ -1,6 +1,6 @@
-from backend.finmate.extensions import db
-from backend.finmate.models import Category, Users
-from backend.finmate.constants import DEFAULT_CATEGORIES
+from finmate.extensions import db
+from finmate.models import Category, Users
+from finmate.constants import DEFAULT_CATEGORIES
 
 
 class AuthRepository:

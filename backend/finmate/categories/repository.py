@@ -1,5 +1,5 @@
-from backend.finmate.extensions import db
-from backend.finmate.models import Category
+from finmate.extensions import db
+from finmate.models import Category
 
 
 class CategoryRepository:

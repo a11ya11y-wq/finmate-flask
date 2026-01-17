@@ -2,7 +2,7 @@ from flask import request, jsonify, make_response
 from flask_jwt_extended import jwt_required
 
 from .service import AuthService
-from backend.finmate.auth import bp
+from finmate.auth import bp
 from finmate.utils.error_parser import parse_exception
 
 

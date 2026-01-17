@@ -3,7 +3,8 @@ from flask import  jsonify
 
 from . import bp
 from .service import MonobankService
-from backend.finmate.utils.error_parser import parse_exception
+from finmate.utils.error_parser import parse_exception
+from .tasks import task_sync_monobank_tx
 
 
 service = MonobankService()
@@ -14,14 +15,9 @@ service = MonobankService()
 def sync_transactions():
     try:
         user_id = int(get_jwt_identity())
-        added_count = service.sync_tx(user_id)
+        task = task_sync_monobank_tx.delay(user_id)
 
-        if added_count == 0:
-            message = "Your transactions are already up to date."
-        else:
-            message = f"Successfully added {added_count} new transactions!"
-
-        return jsonify({"message": message, "count": added_count}), 200
+        return jsonify({"task_id": task.id}), 202
 
     except Exception as e:
         return parse_exception(e)

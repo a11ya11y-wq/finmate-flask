@@ -2,9 +2,9 @@ from decimal import Decimal
 
 import pytest
 
-from backend.finmate.monobank.service import MonobankService
-from backend.finmate.models import Users, Category
-from backend.finmate.exceptions import ThrottlingError
+from finmate.monobank.service import MonobankService
+from finmate.models import Users, Category
+from finmate.exceptions import ThrottlingError
 
 
 

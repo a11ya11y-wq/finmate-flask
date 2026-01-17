@@ -1,10 +1,10 @@
 
-from backend.finmate.categories.repository import CategoryRepository
+from finmate.categories.repository import CategoryRepository
 from .schemas import CategoryCreateSchema, CategoryUpdateSchema
-from backend.finmate.exceptions import ConflictError, BusinessLogicError, ResourceNotFound
-from backend.finmate.utils.caching import redis_cache, invalidate_cache
-from backend.finmate.constants import ALLOWED_ICONS, MAX_CATEGORIES_PER_USER
-from backend.finmate.transactions.repository import TransactionRepository
+from finmate.exceptions import ConflictError, BusinessLogicError, ResourceNotFound
+from finmate.utils.caching import redis_cache, invalidate_cache
+from finmate.constants import ALLOWED_ICONS, MAX_CATEGORIES_PER_USER
+from finmate.transactions.repository import TransactionRepository
 
 
 

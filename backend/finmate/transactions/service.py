@@ -1,10 +1,10 @@
 from datetime import  datetime, time
 
-from backend.finmate.transactions.repository import TransactionRepository
-from backend.finmate.categories.repository import CategoryRepository
+from finmate.transactions.repository import TransactionRepository
+from finmate.categories.repository import CategoryRepository
 from .schemas import TransactionCreateSchema, TransactionUpdateSchema
-from backend.finmate.exceptions import ResourceNotFound, BusinessLogicError
-from backend.finmate.utils.caching import invalidate_cache
+from finmate.exceptions import ResourceNotFound, BusinessLogicError
+from finmate.utils.caching import invalidate_cache
 
 
 

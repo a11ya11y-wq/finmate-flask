@@ -2,15 +2,15 @@ import requests
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 
-from backend.finmate.profile.repository import ProfileRepository
-from backend.finmate.transactions.repository import TransactionRepository
-from backend.finmate.categories.repository import CategoryRepository
-from backend.finmate.categories.service import CategoryService
+from finmate.profile.repository import ProfileRepository
+from finmate.transactions.repository import TransactionRepository
+from finmate.categories.repository import CategoryRepository
+from finmate.categories.service import CategoryService
 from .api_client import MonoAPI
-from backend.finmate.exceptions import ThrottlingError
-from backend.finmate.models.transaction_model import Transactions
-from backend.finmate.exceptions import BusinessLogicError, ForbiddenError
-from backend.finmate.utils.caching import invalidate_cache
+from finmate.exceptions import ThrottlingError
+from finmate.models.transaction_model import Transactions
+from finmate.exceptions import BusinessLogicError, ForbiddenError
+from finmate.utils.caching import invalidate_cache
 
 
 
