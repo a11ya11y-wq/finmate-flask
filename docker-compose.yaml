@@ -10,6 +10,11 @@ services:
       - "5433:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U myuser -d finmate_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
     container_name: finmate_redis
@@ -18,7 +23,47 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
+  backend:
+    image: finmate-backend
+    build: ./backend
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./backend/.env
+    environment:
+      - DATABASE_URL=postgresql://myuser:mypassword@db:5432/finmate_db
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - ./backend:/app
+    depends_on:
+        db:
+          condition: service_healthy
+        redis:
+          condition: service_healthy
+
+  celery_worker:
+    image: finmate-backend
+    build: ./backend
+    command: celery -A celery_worker.celery worker --pool=solo --loglevel=info
+    env_file:
+      - ./backend/.env
+    environment:
+      - DATABASE_URL=postgresql://myuser:mypassword@db:5432/finmate_db
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - backend
 
 volumes:
    pg_data:
