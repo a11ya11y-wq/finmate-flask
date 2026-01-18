@@ -1162,6 +1162,36 @@ button.period-btn.active,
   flex-direction: column;
   gap: 0.5rem;
   margin-top: 12px;
+  max-height: 200px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+}
+
+/* Custom scrollbar for category legend (dark theme) */
+#categoryLegend::-webkit-scrollbar {
+  width: 6px;
+}
+
+#categoryLegend::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 3px;
+}
+
+#categoryLegend::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+#categoryLegend::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Firefox scrollbar styling */
+#categoryLegend {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) rgba(255, 255, 255, 0.03);
 }
 
 #categoryLegend .legend-item {
