@@ -1388,20 +1388,80 @@ function attachHandlers(){
     })
   }
 
+  // Helper function to poll task status
+  async function pollTask(taskId, maxAttempts = 60) {
+    let attempts = 0
+
+    while (attempts < maxAttempts) {
+      try {
+        const response = await api.get(`/monobank/tasks/${taskId}`)
+        const { status, result } = response
+
+        if (status === 'SUCCESS') {
+          return { success: true, result }
+        }
+
+        if (status === 'FAILURE') {
+          return { success: false, error: result || 'Task failed' }
+        }
+
+        // Status is PENDING or STARTED - wait and poll again
+        await new Promise(resolve => setTimeout(resolve, 2000))
+        attempts++
+
+      } catch (error) {
+        logError('Polling error', error)
+        throw error
+      }
+    }
+
+    // Max attempts reached
+    throw new Error('Sync timeout - please try again')
+  }
+
   // sync button
   const syncBtn = document.getElementById('sync-button')
   if(syncBtn){
     syncBtn.addEventListener('click', async ()=>{
+      const originalText = syncBtn.innerHTML
       try{
+        // Disable button and show loading state
         syncBtn.disabled = true
-        await api.post('/monobank/sync-transactions', {})
-        await loadData(currentPeriod)
-        showSuccess('Transactions synced successfully!')
-      }catch(e){
+        syncBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Syncing...'
+
+        // Initiate sync task
+        const { task_id } = await api.post('/monobank/sync-transactions', {})
+
+        // Start polling
+        const pollResult = await pollTask(task_id)
+
+        if (pollResult.success) {
+          const addedCount = pollResult.result?.added_count || 0
+          const message = pollResult.result?.message || `Successfully synchronized ${addedCount} transaction(s)`
+
+          // Reload data to show new transactions
+          await loadData(currentPeriod)
+
+          // Show success message with count
+          showSuccess(message)
+        } else {
+          showError(`Sync failed: ${pollResult.error}`)
+        }
+
+      } catch(e) {
         logError('Sync failed', e)
-        showError('Sync failed: ' + (e.message || e))
+
+        // Check for 429 Too Many Requests
+        if (e.response?.status === 429 || e.status === 429) {
+          showError('Too many sync requests. Please wait a moment and try again.')
+        } else {
+          showError('Sync failed: ' + (e.message || e))
+        }
+      } finally {
+        // Restore button state
+        syncBtn.disabled = false
+        syncBtn.innerHTML = originalText
       }
-      finally{ syncBtn.disabled = false }
     })
   }
 
