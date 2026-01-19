@@ -12,13 +12,17 @@ class Transactions(db.Model):
     title = db.Column(db.String(128))
     note = db.Column(db.String(128), nullable=True)
     created_at = db.Column(db.DateTime(timezone=True), server_default=func.now(), nullable=False)
-    mono_id = db.Column(db.String(50), nullable=True, unique=True)
+    mono_id = db.Column(db.String(50), nullable=True)
 
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
     category = db.relationship('Category', back_populates='transactions')
     user = db.relationship('Users', back_populates='transactions')
+
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'mono_id', name='unique_user_mono_tx'),
+    )
 
     def to_dict(self):
         return {

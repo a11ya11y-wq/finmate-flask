@@ -41,7 +41,12 @@ class MonobankService:
         except Exception as e:
             raise ForbiddenError(f"Invalid token or API error: {str(e)}")
 
-        account_id = client_info['accounts'][0]['id'] #TODO: У багатьох людей першим може бути ФОП рахунок, виправити
+        account_id = client_info['accounts'][0]['id']
+
+        for acc in client_info['accounts']:
+            if acc['type'] == 'black':
+                account_id = acc['id']
+                break
 
         thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
         from_time = int(thirty_days_ago.timestamp())
