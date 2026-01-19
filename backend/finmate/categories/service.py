@@ -1,5 +1,6 @@
 
 from finmate.categories.repository import CategoryRepository
+from finmate.budgets.repository import BudgetRepository
 from .schemas import CategoryCreateSchema, CategoryUpdateSchema
 from finmate.exceptions import ConflictError, BusinessLogicError, ResourceNotFound
 from finmate.utils.caching import redis_cache, invalidate_cache
@@ -17,6 +18,7 @@ class CategoryService:
     def __init__(self):
         self.repo = CategoryRepository()
         self.repo_tx = TransactionRepository()
+        self.repo_bud = BudgetRepository()
 
     @redis_cache(ttl=86400, key_builder=categories_key_builder)
     def get_all_categories(self, user_id):
@@ -57,6 +59,10 @@ class CategoryService:
 
         validated_data = CategoryUpdateSchema.model_validate(data)
 
+        if cat_to_update.name.strip().lower() == "uncategorized":
+            if validated_data.name and validated_data.name.strip().lower() != "uncategorized":
+                raise BusinessLogicError("Cannot rename the default 'Uncategorized' category.")
+
         if validated_data.name:
             existing_category = self.repo.get_by_name_and_user(validated_data.name, user_id)
             if existing_category and existing_category.id != cat_id:
@@ -72,6 +78,7 @@ class CategoryService:
         updated_cat = self.repo.update_category(cat_to_update, payload)
 
         self._clear_related_caches(user_id)
+        invalidate_cache(f"budgets:{user_id}")
         return updated_cat
 
 
@@ -84,6 +91,13 @@ class CategoryService:
         count_tx = self.repo_tx.get_count_by_category(user_id, cat_id)
         if count_tx > 0:
             raise BusinessLogicError(f"Cannot delete category. It has {count_tx} related transactions.")
+
+        if cat_to_delete.name.strip().lower() == "uncategorized":
+            raise BusinessLogicError("Cannot delete the default 'Uncategorized' category.")
+
+        budget_exist = self.repo_bud.get_by_category_and_user(user_id, cat_id)
+        if budget_exist:
+            raise BusinessLogicError("Cannot delete category. It is associated with existing budgets.")
 
         self.repo.delete_category(cat_to_delete)
 

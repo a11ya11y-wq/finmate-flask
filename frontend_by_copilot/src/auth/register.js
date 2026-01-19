@@ -9,37 +9,53 @@ const termsCheckbox = document.getElementById('terms')
 
 // === Helpers ===
 
+const iconError = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="me-2"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+const iconSuccess = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="me-2"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+
 function showError(message) {
-  if (!statusDiv) return
-  // Sanitize extremely long/technical email validation messages coming from backend
+  if (!statusDiv) return;
+
+  // Форматуємо повідомлення
   try {
-    const m = (message || '').toString()
-    const lower = m.toLowerCase()
-    if (lower.includes('part after the @-sign') || lower.includes('top-level domain')) {
-      message = 'Please enter a valid email address'
-    }
-  } catch (e) {
-    // ignore
-  }
+     const m = (message || '').toString();
+     if (m.toLowerCase().includes('part after the @-sign') || m.toLowerCase().includes('top-level domain')) {
+        message = 'Please enter a valid email address';
+     }
+  } catch (e) {}
 
-  // Замінюємо переноси рядків (\n) на <br> для коректного відображення в HTML
-  const formattedMessage = message ? message.replace(/\n/g, '<br>') : 'Unknown error'
+  const formattedMessage = message ? message.replace(/\n/g, '<br>') : 'Unknown error';
 
-  const statusText = statusDiv.querySelector('.status-text')
-  // ВАЖЛИВО: Використовуємо innerHTML, щоб працювали переноси рядків
-  if (statusText) statusText.innerHTML = formattedMessage
+  // 1. Жорстко задаємо стилі через JS, щоб перебити будь-які CSS налаштування
+  statusDiv.className = 'alert alert-danger d-flex align-items-center'; // Bootstrap класи
+  statusDiv.style.borderColor = '#ff4d4f'; // Червона рамка
+  statusDiv.style.color = '#ff4d4f';       // Червоний текст
+  statusDiv.style.backgroundColor = 'rgba(255, 77, 79, 0.1)'; // Легкий червоний фон
 
-  statusDiv.classList.remove('d-none', 'alert-success')
-  statusDiv.classList.add('alert-danger')
+  // 2. Вставляємо ІКОНКУ помилки + текст
+  statusDiv.innerHTML = `
+    ${iconError}
+    <div>${formattedMessage}</div>
+  `;
+
+  statusDiv.classList.remove('d-none');
 }
 
 function showSuccess(message) {
-  if (!statusDiv) return
-  const statusText = statusDiv.querySelector('.status-text')
-  if (statusText) statusText.textContent = message
+  if (!statusDiv) return;
 
-  statusDiv.classList.remove('d-none', 'alert-danger')
-  statusDiv.classList.add('alert-success')
+  // 1. Жорстко задаємо стилі успіху
+  statusDiv.className = 'alert alert-success d-flex align-items-center';
+  statusDiv.style.borderColor = '#28a745'; // Зелена рамка
+  statusDiv.style.color = '#28a745';       // Зелений текст
+  statusDiv.style.backgroundColor = 'rgba(40, 167, 69, 0.1)'; // Легкий зелений фон
+
+  // 2. Вставляємо ІКОНКУ успіху + текст
+  statusDiv.innerHTML = `
+    ${iconSuccess}
+    <div>${message}</div>
+  `;
+
+  statusDiv.classList.remove('d-none');
 }
 
 function hideError() {
