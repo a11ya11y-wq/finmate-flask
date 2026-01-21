@@ -1,4 +1,5 @@
 import pytest
+from werkzeug.security import generate_password_hash
 
 from tests.conftest import db_session
 from finmate.models import Users
@@ -105,7 +106,11 @@ change_pass_failed_json = [
 @pytest.mark.usefixtures("db_session")
 class TestChangePassword:
 
-    def test_change_password_success(self, client,auth_headers):
+    def test_change_password_success(self, client,auth_headers, db_session):
+        user = db_session.get(Users, 1)
+        user.password_hash = generate_password_hash("ValidPassword123")
+        db_session.commit()
+
         response = client.post("/api/v1/profile/change-password",
                               headers=auth_headers,
                               json=BASE_CHANGE_PASS_JSON

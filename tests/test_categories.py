@@ -39,7 +39,7 @@ class TestCreateCategory:
         assert "already exists" in str(response.get_json())
 
     def test_create_category_overlimit(self, client, auth_headers):
-        for i in range(3):
+        for i in range(4):
             response = client.post("/api/v1/categories/", headers=auth_headers, json={"name": f"Cat {i}"})
             assert response.status_code == 201
 
