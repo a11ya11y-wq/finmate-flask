@@ -1,4 +1,5 @@
 from datetime import  datetime, time
+import logging
 
 from finmate.transactions.repository import TransactionRepository
 from finmate.categories.repository import CategoryRepository
@@ -7,7 +8,7 @@ from finmate.exceptions import ResourceNotFound, BusinessLogicError
 from finmate.utils.caching import invalidate_cache
 
 
-
+logger = logging.getLogger(__name__)
 
 class TransactionService:
 
@@ -25,6 +26,7 @@ class TransactionService:
         cat_obj = self.cat_repo.get_by_id_and_user(category_id, user_id)
 
         if not cat_obj:
+            logger.warning(f"Category {category_id} not found")
             raise ResourceNotFound(f"Category {category_id} not found or access denied.")
 
         payload = validated_data.model_dump()
@@ -34,6 +36,7 @@ class TransactionService:
 
         self._clear_related_caches(user_id)
 
+        logger.info(f"Transaction {new_tx.id} created for user {user_id}.")
         return new_tx
 
 
@@ -41,12 +44,14 @@ class TransactionService:
         tx_to_delete = self.repo.get_by_id_and_user(user_id, tx_id)
 
         if not tx_to_delete:
+            logger.warning(f"Transaction {tx_id} not found for deletion.")
             raise ResourceNotFound(f"Transaction {tx_id} not found or access denied.")
 
         self.repo.delete_transaction(tx_to_delete)
 
         self._clear_related_caches(user_id)
 
+        logger.info(f"Transaction {tx_id} deleted for user {user_id}.")
         return True
 
 
@@ -54,6 +59,7 @@ class TransactionService:
         tx_to_update = self.repo.get_by_id_and_user(user_id, tx_id)
 
         if not tx_to_update:
+            logger.warning(f"Transaction {tx_id} not found for update.")
             raise ResourceNotFound(f"Transaction {tx_id} not found or access denied.")
 
         validated_data  = TransactionUpdateSchema.model_validate(data)
@@ -68,6 +74,7 @@ class TransactionService:
             cat_obj = self.cat_repo.get_by_id_and_user(new_cat_id, user_id)
 
             if not cat_obj:
+                logger.warning(f"Category {new_cat_id} not found for update.")
                 raise ResourceNotFound(f"Category {new_cat_id} not found or access denied.")
 
         if 'created_at' in update_payload: # Додає час для дати (При редагуванні дати, час має залишатися той самий)
@@ -82,6 +89,7 @@ class TransactionService:
 
         self._clear_related_caches(user_id)
 
+        logger.info(f"Transaction {tx_id} updated for user {user_id}.")
         return updated_tx
 
 
@@ -89,6 +97,7 @@ class TransactionService:
         transaction = self.repo.get_by_id_and_user(user_id, tx_id)
 
         if not transaction:
+            logger.warning(f"Transaction {tx_id} not found.")
             raise ResourceNotFound(f"Transaction {tx_id} not found or access denied.")
 
         return transaction

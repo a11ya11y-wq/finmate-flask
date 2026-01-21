@@ -1,4 +1,3 @@
-
 from finmate.categories.repository import CategoryRepository
 from finmate.budgets.repository import BudgetRepository
 from .schemas import CategoryCreateSchema, CategoryUpdateSchema
@@ -6,8 +5,9 @@ from finmate.exceptions import ConflictError, BusinessLogicError, ResourceNotFou
 from finmate.utils.caching import redis_cache, invalidate_cache
 from finmate.constants import ALLOWED_ICONS, MAX_CATEGORIES_PER_USER
 from finmate.transactions.repository import TransactionRepository
+import logging
 
-
+logger = logging.getLogger(__name__)
 
 def categories_key_builder(self, user_id):
     return f"categories:{user_id}"
@@ -37,9 +37,11 @@ class CategoryService:
         existing_category = self.repo.get_by_name_and_user(name, user_id)
 
         if existing_category:
+            logger.warning(f"Category creation failed: duplicate name {name} for user {user_id}")
             raise ConflictError(f"Category with name {name} already exists.")
 
         if validated_data.icon not in ALLOWED_ICONS:
+            logger.warning(f"Category creation failed: invalid icon {validated_data.icon} for user {user_id}")
             raise BusinessLogicError(f"Icon {validated_data.icon} is not allowed.")
 
         payload = validated_data.model_dump()
@@ -48,6 +50,7 @@ class CategoryService:
         new_cat = self.repo.create_category(payload)
 
         self._clear_related_caches(user_id)
+        logger.info(f"New category created for user {user_id} with name {name}")
         return new_cat
 
 
@@ -55,6 +58,7 @@ class CategoryService:
         cat_to_update = self.repo.get_cat_by_id_and_user(cat_id, user_id)
 
         if not cat_to_update:
+            logger.warning(f"Attempt to update non-existing category {cat_id} by user {user_id}")
             raise ResourceNotFound(f"Category {cat_to_update} not found or access denied.")
 
         validated_data = CategoryUpdateSchema.model_validate(data)
@@ -66,9 +70,11 @@ class CategoryService:
         if validated_data.name:
             existing_category = self.repo.get_by_name_and_user(validated_data.name, user_id)
             if existing_category and existing_category.id != cat_id:
+                logger.warning(f"Category update failed: duplicate name {validated_data.name} for user {user_id}")
                 raise ConflictError(f"Category with name {validated_data.name} already exists.")
 
             if validated_data.icon and validated_data.icon not in ALLOWED_ICONS:
+                logger.warning(f"Category update failed: invalid icon {validated_data.icon} for user {user_id}")
                 raise BusinessLogicError(f"Icon {validated_data.icon} is not allowed.")
 
         payload = validated_data.model_dump(exclude_unset=True)
@@ -79,6 +85,7 @@ class CategoryService:
 
         self._clear_related_caches(user_id)
         invalidate_cache(f"budgets:{user_id}")
+        logger.info(f"Category {cat_id} updated for user {user_id}")
         return updated_cat
 
 
@@ -86,6 +93,7 @@ class CategoryService:
         cat_to_delete = self.repo.get_cat_by_id_and_user(cat_id, user_id)
 
         if not cat_to_delete:
+            logger.warning(f"Attempt to delete non-existing category {cat_id} by user {user_id}")
             raise ResourceNotFound(f"Category {cat_id} not found or access denied.")
 
         count_tx = self.repo_tx.get_count_by_category(user_id, cat_id)
@@ -102,6 +110,7 @@ class CategoryService:
         self.repo.delete_category(cat_to_delete)
 
         self._clear_related_caches(user_id)
+        logger.info(f"Category {cat_id} deleted for user {user_id}")
         return True
 
 

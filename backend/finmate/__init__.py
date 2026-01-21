@@ -2,12 +2,17 @@ from dotenv import load_dotenv
 from flask import Flask
 from flask_cors import CORS
 import redis
+import logging
 
 
 load_dotenv()
 from .extensions import db, migrate, jwt, redis_client, init_redis, init_celery
 from .config import config
 
+FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO, format=FORMAT)
 
 
 def create_app(config_name='default'):
@@ -38,9 +43,9 @@ def create_app(config_name='default'):
 
     try:
         response = redis_conn.ping()
-        print(f"Redis connection successful: {response}")
+        logger.info(f"Redis connection successful: {response}")
     except redis.ConnectionError  as e:
-        print(f"Redis connection error: {e}")
+        logger.error(f"Redis connection error: {e}")
 
 
     with app.app_context():

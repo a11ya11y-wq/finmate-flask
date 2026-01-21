@@ -1,11 +1,15 @@
 from pydantic import ValidationError
 
 from finmate.exceptions import FinMateError
-import traceback
-from flask import jsonify
+from flask import jsonify, request
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 def parse_exception(e: Exception):
     if isinstance(e, FinMateError):
+        logger.warning(f"Business error on {request.path}: {str(e)}")
         return jsonify({"error": str(e)}), e.code
 
     if isinstance(e, ValidationError):
@@ -17,10 +21,11 @@ def parse_exception(e: Exception):
             else:
                 message = err['msg']
             errors.append(message)
+
+        logger.warning(f"Validation error on {request.path}: {errors}")
         return jsonify({"error": "Validation Error", "details": errors}), 422
 
-    print("!CRITICAL SERVER ERROR!")
-    traceback.print_exc()
+    logger.exception("Unhandled exception occurred")
 
     return jsonify({
         "error": "Internal Server Error",

@@ -1,5 +1,6 @@
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask import  jsonify
+import logging
 
 from . import bp
 from .service import MonobankService
@@ -7,6 +8,8 @@ from finmate.utils.error_parser import parse_exception
 from .tasks import task_sync_monobank_tx
 from finmate.extensions import celery
 
+
+logger = logging.getLogger(__name__)
 
 service = MonobankService()
 
@@ -16,6 +19,8 @@ service = MonobankService()
 def sync_transactions():
     try:
         user_id = int(get_jwt_identity())
+        logger.info(f"Initiating Monobank transaction sync for user {user_id}")
+
         task = task_sync_monobank_tx.delay(user_id)
 
         return jsonify({"task_id": task.id}), 202

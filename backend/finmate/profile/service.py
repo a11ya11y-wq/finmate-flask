@@ -1,12 +1,17 @@
 from werkzeug.security import generate_password_hash
 from cryptography.fernet import Fernet
 from flask import current_app
+import logging
 
 from .repository import ProfileRepository
 from  .schemas import ProfileUpdateSchema, MonoTokenUpdateSchema, PasswordChangeSchema
 from finmate.exceptions import ResourceNotFound, BusinessLogicError, AuthenticationError
 from finmate.utils.caching import invalidate_cache, redis_cache
 from finmate.constants import ALLOWED_AVATARS
+
+
+
+logger = logging.getLogger(__name__)
 
 
 def profile_key_builder(self, user_id):
@@ -23,6 +28,7 @@ class ProfileService:
         user = self.repo.get_user_info(user_id)
 
         if not user:
+            logger.warning(f"User entity not found for user_id: {user_id}")
             raise ResourceNotFound("User not found.")
 
         return user
@@ -50,15 +56,19 @@ class ProfileService:
         if 'username' in payload:
             existing = self.repo.get_by_username(payload['username'])
             if existing:
+                logger.warning(f"User {user_id} attempted to change username to an already taken one: {payload['username']}")
                 raise BusinessLogicError("Username already taken.")
 
         if 'avatar' in payload:
             if payload['avatar'] not in ALLOWED_AVATARS:
+                logger.warning(f"User {user_id} attempted to set invalid avatar: {payload['avatar']}")
                 raise BusinessLogicError("Invalid avatar selection.")
 
         updated_user = self.repo.update_user(user, payload)
 
         self._clear_related_caches(user_id)
+
+        logger.info(f"User {user_id} profile updated.")
         return updated_user
 
 
@@ -72,6 +82,7 @@ class ProfileService:
         invalidate_cache(f"categories:{user_id}")
         invalidate_cache(f"dashboard:{user_id}:*")
 
+        logger.info(f"User {user_id} deleted.")
         return True
 
 
@@ -85,6 +96,7 @@ class ProfileService:
         user_obj = self.get_user_entity(user_id)
 
         if not user_obj.chek_hash_pwd(old_password):
+            logger.warning(f"User {user_id} provided invalid old password for password change.")
             raise AuthenticationError("Invalid old password.")
 
         new_hash = generate_password_hash(new_password)
@@ -92,6 +104,8 @@ class ProfileService:
         self.repo.change_password_hash(user_obj, new_hash)
 
         self._clear_related_caches(user_id)
+
+        logger.info(f"User {user_id} changed password.")
         return True
 
 
@@ -109,7 +123,8 @@ class ProfileService:
             encrypted_token = cipher_suite.encrypt(raw_token_bytes)
 
         except Exception as e:
-            raise Exception(f"Token encryption failed: {e}")
+            logger.exception(f"Token encryption failed for user {user_id}")
+            raise Exception("Server error: Could not encrypt token. Please try again.")
 
         payload = {
             "monobank_api_token": encrypted_token
@@ -118,6 +133,8 @@ class ProfileService:
         updated_user = self.repo.update_user(user_obj, payload)
 
         self._clear_related_caches(user_id)
+
+        logger.info(f"User {user_id} updated Monobank token.")
         return updated_user
 
 
@@ -126,6 +143,7 @@ class ProfileService:
         self.repo.delete_monobank_token(user_obj)
 
         self._clear_related_caches(user_id)
+        logger.info(f"User {user_id} deleted Monobank token.")
         return True
 
 

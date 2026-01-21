@@ -1,4 +1,5 @@
 from datetime import  datetime, timedelta
+import logging
 
 from finmate.transactions.repository import TransactionRepository
 from finmate.exceptions import BusinessLogicError
@@ -6,6 +7,7 @@ from finmate.utils.caching import redis_cache
 from finmate.constants import VALID_PERIODS
 
 
+logger = logging.getLogger(__name__)
 
 def dashboard_key_builder(self, user_id, period):
     return f"dashboard:{user_id}:{period}"
@@ -20,6 +22,7 @@ class DashboardService:
     def get_dashboard_data(self, user_id, period):
 
         if period not in VALID_PERIODS:
+            logger.warning(f"Dashboard data retrieval failed: invalid period '{period}' for user {user_id}")
             raise BusinessLogicError(f"Invalid period '{period}'. Must be one of: {', '.join(VALID_PERIODS)}.")
 
         start_date = self._calculate_start_date(period)

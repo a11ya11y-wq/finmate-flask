@@ -7,6 +7,10 @@ from .repository import AuthRepository
 from .schemas import LoginSchema, RegisterSchema
 from finmate.exceptions import ConflictError, AuthenticationError
 from finmate import extensions
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class AuthService:
 
@@ -24,6 +28,7 @@ class AuthService:
         user = self.repo.find_user_by_email(validated_data.email)
 
         if not user or not check_password_hash(user.password_hash, validated_data.password):
+            logger.warning(f"Failed login attempt for email: {validated_data.email}")
             raise AuthenticationError("Invalid email or password.")
 
         access_token = create_access_token(
@@ -42,6 +47,8 @@ class AuthService:
         )
 
         self.repo.update_refresh_token(user.id, refresh_token)
+
+        logger.info(f"User {user.id} logged in successfully.")
 
         return access_token, refresh_token, refresh_expires
 
@@ -78,9 +85,11 @@ class AuthService:
 
             self.repo.update_refresh_token(user_id, new_refresh_token)
 
+            logger.info(f"Access token refreshed for user {user_id}")
             return new_access_token, new_refresh_token, refresh_expires
 
         except Exception as e:
+            logger.warning(f"Failed to refresh access token: {e}")
             raise AuthenticationError("Invalid refresh token")
 
 
@@ -89,9 +98,11 @@ class AuthService:
         validated_data = RegisterSchema.model_validate(data)
 
         if self.repo.find_user_by_email(validated_data.email):
+            logger.warning(f"Registration failed: Email {validated_data.email} already exists")
             raise ConflictError("Email already registered.")
 
         if self.repo.find_user_by_name(validated_data.username):
+            logger.warning(f"Registration failed: Username {validated_data.username} already exists")
             raise ConflictError("Username already registered")
 
         hashed_password = generate_password_hash(validated_data.password)
@@ -103,6 +114,8 @@ class AuthService:
         }
 
         new_user = self.repo.create_user_with_cat(user_data_payload)
+
+        logger.info(f"New user created with ID: {new_user.id}")
         return new_user
 
 
@@ -122,5 +135,6 @@ class AuthService:
             if ttl > 0:
                 self.redis.setex(f"auth:blacklist:{jti}", ttl, "revoked")
 
+            logger.info(f"User {user_id} logged out successfully.")
         except Exception as e:
-            print(f"!!! REDIS ERROR !!!: {e}")
+            logger.exception("Error during logout")

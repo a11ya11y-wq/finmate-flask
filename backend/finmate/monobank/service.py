@@ -1,6 +1,7 @@
 import requests
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
+import logging
 
 from finmate.profile.repository import ProfileRepository
 from finmate.transactions.repository import TransactionRepository
@@ -13,6 +14,7 @@ from finmate.exceptions import BusinessLogicError, ForbiddenError
 from finmate.utils.caching import invalidate_cache
 
 
+logger = logging.getLogger(__name__)
 
 class MonobankService:
     def __init__(self):
@@ -27,6 +29,7 @@ class MonobankService:
         token_bytes = user.monobank_api_token
 
         if not user or not token_bytes:
+            logger.warning(f"Monobank sync failed: API token not found or access denied for user {user_id}")
             raise BusinessLogicError("API token not found or user access denied.")
 
         api = MonoAPI(encrypted_token_bytes=token_bytes)
@@ -37,8 +40,10 @@ class MonobankService:
                 raise ForbiddenError(client_info['errorDescription'])
 
         except requests.RequestException as e:
+            logger.exception(f"Monobank API request error for user {user_id}")
             raise ThrottlingError(f"Monobank connection failed: {str(e)}")
         except Exception as e:
+            logger.exception(f"Monobank sync failed for user {user_id}")
             raise ForbiddenError(f"Invalid token or API error: {str(e)}")
 
         account_id = client_info['accounts'][0]['id']
@@ -57,8 +62,9 @@ class MonobankService:
             error_msg = transactions_from_mono['errorDescription']
 
             if error_msg == 'Too many requests':
+                logger.warning(f"Monobank API throttling error for user {user_id}: {error_msg}")
                 raise ThrottlingError(error_msg)
-
+            logger.error(f"Monobank API error for user {user_id}: {error_msg}")
             raise ForbiddenError(f'Monobank API Error: {error_msg}')
 
         default_category = self.cat_repo.get_by_name_and_user("Uncategorized", user_id)
@@ -101,6 +107,7 @@ class MonobankService:
                 new_transactions_to_add.append(new_tx)
 
         if not new_transactions_to_add:
+            logger.info(f"No new transactions to add for user {user_id} from Monobank.")
             return 0
 
         added_count = self.tx_repo.bulk_insert_transactions(new_transactions_to_add)
@@ -108,7 +115,7 @@ class MonobankService:
         if added_count > 0:
             self._clear_related_caches(user_id)
 
-        print(f"Added {added_count} new transactions for user {user_id} from Monobank.")
+        logger.info(f"Added {added_count} new transactions for user {user_id} from Monobank.")
         return added_count
 
 

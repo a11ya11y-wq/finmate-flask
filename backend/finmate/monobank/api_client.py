@@ -1,8 +1,10 @@
 import requests
 from  cryptography.fernet import Fernet
 from flask import current_app
+import logging
 
 
+logger = logging.getLogger(__name__)
 
 BASE_URL = "https://api.monobank.ua"
 
@@ -16,8 +18,9 @@ class MonoAPI:
             cipher_suite = Fernet(key)
             decrypted_token_bytes = cipher_suite.decrypt(encrypted_token_bytes)
             self.api_token = decrypted_token_bytes.decode()
+
         except Exception as e:
-            print(f"Failed to decrypt token: {e}")
+            logger.exception(f"Failed to decrypt Monobank API token")
             raise ValueError("Invalid or corrupted API token")
 
 
@@ -31,7 +34,7 @@ class MonoAPI:
             response = requests.get(f'{BASE_URL}{endpoint}', headers=self.headers)
             return response.json()
         except Exception as e:
-            print(f'Error: {e}')
+            logger.exception(f"Monobank API request failed")
             raise requests.RequestException(f"API Request failed: {e}")
 
     def get_client_info(self):

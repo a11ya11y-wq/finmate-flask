@@ -7,7 +7,9 @@ from .schemas import BudgetSchema
 from finmate.exceptions import ResourceNotFound, BusinessLogicError
 from finmate.utils.caching import redis_cache, invalidate_cache
 from finmate.constants import MAX_BUDGET_PER_USER
+import logging
 
+logger = logging.getLogger(__name__)
 
 def budgets_key_builder(self, user_id):
     return f"budgets:{user_id}"
@@ -89,6 +91,7 @@ class BudgetService:
         category_id = payload['category_id']
         category = self.cat_repo.get_by_id_and_user(category_id, user_id)
         if not category:
+            logger.warning(f"Category {category_id} not found for user {user_id} during budget creation/update")
             raise ResourceNotFound(f"Category {category_id} not found or access denied.")
 
         budget_exist = self.repo.get_by_category_and_user(user_id, payload['category_id'])
@@ -97,6 +100,7 @@ class BudgetService:
             updated_budget = self.repo.update_budget(budget_exist, payload)
 
             self._clear_related_caches(user_id)
+            logger.info(f"Budget updated for user {user_id} in category {category_id}")
             return updated_budget, False
 
         else:
@@ -109,6 +113,7 @@ class BudgetService:
                 new_budget = self.repo.create_budget(payload)
 
                 self._clear_related_caches(user_id)
+                logger.info(f"New budget created for user {user_id} in category {category_id}")
                 return new_budget, True
 
 
@@ -116,11 +121,13 @@ class BudgetService:
         budget_to_delete = self.repo.get_by_id_and_user(budget_id, user_id)
 
         if not budget_to_delete:
+            logger.warning(f"Attempt to delete non-existing budget {budget_id} by user {user_id}")
             raise ResourceNotFound(f"Budget {budget_id} not found or access denied.")
 
         self.repo.delete_budget(budget_to_delete)
 
         self._clear_related_caches(user_id)
+        logger.info(f"Budget {budget_id} deleted for user {user_id}")
         return True
 
     @staticmethod
