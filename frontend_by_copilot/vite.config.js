@@ -1,8 +1,7 @@
 import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import { resolve } from 'path'; // 👈 1. Обов'язково додай цей імпорт
 
 export default defineConfig({
-  plugins: [react()],
   server: {
     port: 5173,
     // Proxy all /api requests to the backend running on localhost:5000 during development
@@ -11,8 +10,21 @@ export default defineConfig({
         target: 'http://127.0.0.1:5000',
         changeOrigin: true,
         secure: false,
-        // rewrite: (path) => path.replace(/^\/api/, '/api') // not needed, kept for reference
       }
     }
-  }
+  },
+
+  build: {
+    rollupOptions: {
+      input: {
+        // Тут ми даємо імена сторінкам і вказуємо шлях до них
+        main: resolve(__dirname, 'index.html'),
+        dashboard: resolve(__dirname, 'dashboard.html'),
+        profile: resolve(__dirname, 'profile.html'),
+        login: resolve(__dirname, 'login.html'),
+        register: resolve(__dirname, 'register.html'),
+        budget: resolve(__dirname, 'budget.html'),
+      },
+    },
+  },
 });

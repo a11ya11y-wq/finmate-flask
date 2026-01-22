@@ -1,4 +1,4 @@
-const DEFAULT_BASE = 'http://localhost:5000/api/v1'
+const DEFAULT_BASE = 'http://192.168.0.107:5000/api/v1'
 const BASE_URL = (import.meta.env.VITE_API_ROOT || '').replace(/\/$/, '') || DEFAULT_BASE
 
 // Interceptor Queue Pattern variables to prevent race conditions

@@ -9,6 +9,10 @@
   <body>
     <div id="root"></div>
 
-    <script type="module" src="/src/main.js"></script>
+    <script>
+      // Миттєвий редирект на дашборд.
+      // replace() краще ніж href, бо користувач не зможе натиснути "Назад" і повернутися на цей редирект
+      window.location.replace('/dashboard.html');
+    </script>
   </body>
 </html>

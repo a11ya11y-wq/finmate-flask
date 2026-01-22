@@ -17,6 +17,9 @@ backend/.idea/
 frontend_by_copilot/node_modules
 node_modules/
 
+dist/
+build/
+
 .env
 *.env
 .env.*

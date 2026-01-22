@@ -43,22 +43,22 @@ Screenshots are located in `frontend_by_copilot/public/img/screenshots/`. Below 
 
 | Dashboard (1)                                                                 | Dashboard (2)                                                                 |
 |-------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
-| ![dashboard1](frontend_by_copilot/public/img/screenshots/dashboard_page1.png) | ![dashboard2](frontend_by_copilot/public/img/screenshots/dashboard_page2.png) |
+| ![dashboard1](screenshots/dashboard_page1.png) | ![dashboard2](screenshots/dashboard_page2.png) |
 
 <details>
 <summary>More screenshots</summary>
 
 | Profile | Profile (edit) |
 | --- | --- |
-| ![profile](frontend_by_copilot/public/img/screenshots/profile_page1.png) | ![profile_edit](frontend_by_copilot/public/img/screenshots/profile_page2.png) |
+| ![profile](screenshots/profile_page1.png) | ![profile_edit](screenshots/profile_page2.png) |
 
 | Budgets | Login / Register |
 | --- | --- |
-| ![budgets](frontend_by_copilot/public/img/screenshots/budgets_page.png) | ![login_reg](frontend_by_copilot/public/img/screenshots/login_page.png) |
+| ![budgets](screenshots/budgets_page.png) | ![login_reg](screenshots/login_page.png) |
 
 | Add Transaction (modal) | Edit / Delete examples |
 | --- | --- |
-| ![add_tx](frontend_by_copilot/public/img/screenshots/add_tx.png) | ![edit_delete](frontend_by_copilot/public/img/screenshots/edit_tx.png) |
+| ![add_tx](screenshots/add_tx.png) | ![edit_delete](screenshots/edit_tx.png) |
 
 </details>
 

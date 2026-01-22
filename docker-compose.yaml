@@ -30,7 +30,7 @@ services:
       retries: 5
 
   backend:
-    image: finmate-backend
+    image: finmate_backend
     build: ./backend
     ports:
       - "5000:5000"
@@ -62,6 +62,14 @@ services:
       - REDIS_URL=redis://redis:6379/0
     volumes:
       - ./backend:/app
+    depends_on:
+      - backend
+
+  frontend:
+    container_name: finmate_frontend
+    build: ./frontend_by_copilot
+    ports:
+      - "80:80"
     depends_on:
       - backend
 
