@@ -25,7 +25,6 @@ ALLOWED_ICONS = [
         'bi-piggy-bank-fill',
         'bi-wallet-fill',
         'bi-gift-fill',
-        'bi-tools',
         'bi-airplane-fill',
         'bi-tag-fill',
         'bi-question-circle-fill'

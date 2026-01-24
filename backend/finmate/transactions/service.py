@@ -106,4 +106,5 @@ class TransactionService:
     @staticmethod
     def _clear_related_caches(user_id):
         invalidate_cache(f"dashboard:{user_id}:*")
+        invalidate_cache(f"categories:{user_id}")
         invalidate_cache(f"budgets:{user_id}")
