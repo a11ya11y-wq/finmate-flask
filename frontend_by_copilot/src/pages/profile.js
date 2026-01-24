@@ -1,9 +1,8 @@
 import * as api from '../api/apiClient.js'
 import { getToken } from '../auth/auth.js'
 import { renderHeader } from '../components/layout.js'
-import { showSuccess, showError, showInfo } from '../utils/toast.js'
+import { showSuccess, showError } from '../utils/toast.js'
 import { getProfile, clearProfileCache } from '../utils/profileCache.js'
-import { initIconPicker } from '../ui/iconPicker.js'
 
 // State
 let currentUser = null
@@ -331,8 +330,8 @@ async function addCategory(e) {
 
     const name = document.getElementById('categoryName').value.trim()
     const mccCodes = document.getElementById('mccCodes').value.trim()
-    // selected icon from picker (hidden input may be created dynamically)
-    const iconInput = document.getElementById('addCategoryIcon')
+    // selected icon from picker (use selectedIcon from HTML)
+    const iconInput = document.getElementById('selectedIcon') || document.getElementById('addCategoryIcon')
     const iconValue = iconInput ? (iconInput.value || null) : null
 
     // Basic validation to reduce backend spam
@@ -350,6 +349,13 @@ async function addCategory(e) {
 
         showSuccess('Category added successfully')
         document.getElementById('addCategoryForm').reset()
+        // Reset icon selection to first icon
+        const firstIcon = document.querySelector('.icon-picker-item')
+        if (firstIcon) {
+            document.querySelectorAll('.icon-picker-item').forEach(btn => btn.classList.remove('selected'))
+            firstIcon.classList.add('selected')
+            if (iconInput) iconInput.value = firstIcon.getAttribute('data-icon')
+        }
         await loadCategories()
     } catch (error) {
         console.error('[profile] Error adding category:', error)
@@ -367,35 +373,30 @@ window.editCategory = async function(categoryId) {
     // Backend uses mcc_code (singular)
     document.getElementById('editMccCodes').value = category.mcc_code || ''
 
-    // Initialize or update icon picker inside edit modal
-    try{
-        const modalEl = document.getElementById('editCategoryModal')
-        if(modalEl){
-            // ensure hidden input exists
-            let hidden = modalEl.querySelector('input[name="icon"]')
-            if(!hidden){
-                hidden = document.createElement('input')
-                hidden.type = 'hidden'
-                hidden.id = 'editCategoryIcon'
-                hidden.name = 'icon'
-                modalEl.querySelector('form')?.appendChild(hidden)
-            }
-            hidden.value = category.icon || ''
+    // Set selected icon in the static icon picker
+    const editSelectedIconInput = document.getElementById('editSelectedIcon')
+    const categoryIcon = category.icon || 'bi-tag-fill'
 
-            // ensure picker container exists
-            let picker = modalEl.querySelector('.icon-picker-grid')
-            if(!picker){
-                picker = document.createElement('div')
-                picker.className = 'icon-picker-grid'
-                picker.id = 'editIconPicker'
-                const form = modalEl.querySelector('form')
-                if(form) form.insertBefore(picker, form.querySelector('.mb-3') || form.firstChild)
-            }
+    if (editSelectedIconInput) {
+        editSelectedIconInput.value = categoryIcon
+    }
 
-            // init picker with current icon selected
-            initIconPicker(picker, hidden, category.icon || null)
+    // Update visual selection in icon picker
+    const editIconButtons = document.querySelectorAll('.icon-picker-item-edit')
+    editIconButtons.forEach(btn => {
+        btn.classList.remove('selected')
+        if (btn.getAttribute('data-icon') === categoryIcon) {
+            btn.classList.add('selected')
         }
-    }catch(e){ console.error('[profile] Failed to init edit icon picker', e) }
+    })
+
+    // If no icon is selected, select first one
+    if (!document.querySelector('.icon-picker-item-edit.selected') && editIconButtons.length > 0) {
+        editIconButtons[0].classList.add('selected')
+        if (editSelectedIconInput) {
+            editSelectedIconInput.value = editIconButtons[0].getAttribute('data-icon')
+        }
+    }
 
     const modal = new bootstrap.Modal(document.getElementById('editCategoryModal'))
     modal.show()
@@ -406,7 +407,7 @@ async function saveEditCategory() {
     const categoryId = document.getElementById('editCategoryId').value
     const name = document.getElementById('editCategoryName').value.trim()
     const mccCodes = document.getElementById('editMccCodes').value.trim()
-    const iconInput = document.getElementById('editCategoryIcon')
+    const iconInput = document.getElementById('editSelectedIcon')
     const iconValue = iconInput ? (iconInput.value || null) : null
 
     // Basic validation to reduce backend spam
@@ -434,17 +435,32 @@ async function saveEditCategory() {
 // Show custom confirmation dialog (replaces browser confirm())
 function showConfirmDialog(title, message, confirmText = 'Confirm', type = 'danger') {
     return new Promise((resolve) => {
-        // Create modal HTML
+        // Create custom overlay (instead of Bootstrap backdrop)
+        const customOverlay = document.createElement('div')
+        customOverlay.id = 'customConfirmOverlay'
+        customOverlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1050;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+        `
+
+        // Create modal HTML (z-index ВИЩИЙ за overlay - модалка світла!)
         const modalHTML = `
-            <div class="modal fade" id="confirmDialog" tabindex="-1" data-bs-backdrop="static">
-                <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal" id="confirmDialog" tabindex="-1" style="display: block; z-index: 9999 !important; position: fixed;">
+                <div class="modal-dialog modal-dialog-centered modal-sm" style="position: relative; z-index: 10000 !important;">
                     <div class="modal-content">
                         <div class="modal-header ${type === 'danger' ? 'border-danger' : ''}">
                             <h5 class="modal-title ${type === 'danger' ? 'text-danger' : ''}">
                                 <i class="bi bi-${type === 'danger' ? 'exclamation-triangle' : 'question-circle'}"></i>
                                 ${title}
                             </h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <button type="button" class="btn-close" id="confirmDialogClose" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
                             <p style="color: var(--text-primary); margin: 0; font-size: 0.95rem; line-height: 1.6;">
@@ -452,7 +468,7 @@ function showConfirmDialog(title, message, confirmText = 'Confirm', type = 'dang
                             </p>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-secondary" id="confirmDialogCancel">Cancel</button>
                             <button type="button" class="btn btn-${type}" id="confirmDialogBtn">
                                 <i class="bi bi-check-lg"></i> ${confirmText}
                             </button>
@@ -465,33 +481,67 @@ function showConfirmDialog(title, message, confirmText = 'Confirm', type = 'dang
         // Remove existing dialog if any
         const existing = document.getElementById('confirmDialog')
         if (existing) existing.remove()
+        const existingOverlay = document.getElementById('customConfirmOverlay')
+        if (existingOverlay) existingOverlay.remove()
 
-        // Append to body
+        // Append overlay and modal to body
+        document.body.appendChild(customOverlay)
         document.body.insertAdjacentHTML('beforeend', modalHTML)
 
         const modalEl = document.getElementById('confirmDialog')
 
-        // Check if there's already an active modal (to avoid double backdrop)
-        const hasActiveModal = document.querySelector('.modal.show')
+        // Force ЕКСТРЕМАЛЬНО високий z-index через JavaScript
+        // Overlay ЗА модалкою - не затемнює її!
+        customOverlay.style.zIndex = '1050'
+        modalEl.style.zIndex = '9999'
+        const dialogEl = modalEl.querySelector('.modal-dialog')
+        if (dialogEl) dialogEl.style.zIndex = '10000'
 
-        const modal = new bootstrap.Modal(modalEl, {
-            backdrop: hasActiveModal ? false : 'static', // No backdrop if modal already open
-            keyboard: true
-        })
+        // Animate in
+        setTimeout(() => {
+            customOverlay.style.opacity = '1'
+            modalEl.classList.add('show')
+            // Force z-index ЗНОВУ після анімації
+            modalEl.style.zIndex = '9999'
+            if (dialogEl) dialogEl.style.zIndex = '10000'
+        }, 10)
+
+        // Close function
+        const closeDialog = (result) => {
+            customOverlay.style.opacity = '0'
+            modalEl.classList.remove('show')
+
+            setTimeout(() => {
+                customOverlay.remove()
+                modalEl.remove()
+                resolve(result)
+            }, 150)
+        }
 
         // Handle confirm
         document.getElementById('confirmDialogBtn').addEventListener('click', () => {
-            modal.hide()
-            resolve(true)
+            closeDialog(true)
         })
 
-        // Handle cancel/close
-        modalEl.addEventListener('hidden.bs.modal', () => {
-            modalEl.remove()
-            resolve(false)
-        }, { once: true })
+        // Handle cancel
+        document.getElementById('confirmDialogCancel').addEventListener('click', () => {
+            closeDialog(false)
+        })
 
-        modal.show()
+        // Handle X button
+        document.getElementById('confirmDialogClose').addEventListener('click', () => {
+            closeDialog(false)
+        })
+
+        // Handle overlay click (close on background click)
+        customOverlay.addEventListener('click', () => {
+            closeDialog(false)
+        })
+
+        // Prevent clicks inside modal from closing overlay
+        modalEl.addEventListener('click', (e) => {
+            e.stopPropagation()
+        })
     })
 }
 
@@ -576,12 +626,15 @@ async function deleteMonobankToken() {
 
 // Delete account
 async function deleteAccount() {
-    const confirmText = document.getElementById('confirmDeleteText').value
+    // Use custom confirmation dialog instead of modal with text input
+    const confirmed = await showConfirmDialog(
+        'Delete Account',
+        'Warning! This action is irreversible. All your data will be permanently deleted. Are you sure you want to delete your account?',
+        'Delete My Account',
+        'danger'
+    )
 
-    if (confirmText !== 'DELETE') {
-        showError('Please type "DELETE" to confirm')
-        return
-    }
+    if (!confirmed) return
 
     try {
         await api.del('/profile/me/')
@@ -623,28 +676,6 @@ function attachEventListeners() {
     // Add category form
     const categoryForm = document.getElementById('addCategoryForm')
     if (categoryForm) {
-        // ensure icon picker exists for add form
-        try{
-            let picker = document.getElementById('addIconPicker')
-            if(!picker){
-                picker = document.createElement('div')
-                picker.id = 'addIconPicker'
-                picker.className = 'icon-picker-grid'
-                // insert before submit button
-                const submitBtn = categoryForm.querySelector('button[type="submit"]')
-                categoryForm.insertBefore(picker, submitBtn)
-            }
-            // hidden input for selected icon
-            let hidden = document.getElementById('addCategoryIcon')
-            if(!hidden){
-                hidden = document.createElement('input')
-                hidden.type = 'hidden'
-                hidden.id = 'addCategoryIcon'
-                hidden.name = 'icon'
-                categoryForm.appendChild(hidden)
-            }
-            initIconPicker(picker, hidden, null)
-        }catch(e){ console.error('[profile] init add icon picker failed', e) }
 
         categoryForm.addEventListener('submit', addCategory)
     }
@@ -691,6 +722,83 @@ document.addEventListener('hidden.bs.modal', (e) => {
             document.body.style.paddingRight = ''
         }
     }, 100)
+})
+
+// Additional: АГРЕСИВНИЙ FIX для backdrop - постійний моніторинг
+document.addEventListener('show.bs.modal', (e) => {
+    const modal = e.target
+
+    // Функція для виправлення z-index
+    const fixZIndex = () => {
+        if (modal) {
+            modal.style.setProperty('z-index', '10060', 'important')
+
+            const modalDialog = modal.querySelector('.modal-dialog')
+            if (modalDialog) {
+                modalDialog.style.setProperty('z-index', '10061', 'important')
+            }
+
+            const modalContent = modal.querySelector('.modal-content')
+            if (modalContent) {
+                modalContent.style.setProperty('z-index', '10062', 'important')
+                modalContent.style.setProperty('pointer-events', 'auto', 'important')
+            }
+        }
+
+        // Fix ALL backdrops
+        const backdrops = document.querySelectorAll('.modal-backdrop')
+        backdrops.forEach((backdrop, index) => {
+            if (index === backdrops.length - 1) {
+                // Last backdrop - keep it but fix z-index
+                backdrop.style.setProperty('z-index', '10050', 'important')
+            } else {
+                // Remove old backdrops
+                backdrop.remove()
+            }
+        })
+    }
+
+    // Fix immediately
+    fixZIndex()
+
+    // Fix repeatedly during animation (Bootstrap can override)
+    const intervals = [10, 50, 100, 150, 200, 300, 500]
+    intervals.forEach(delay => {
+        setTimeout(fixZIndex, delay)
+    })
+})
+
+// Additional: Force fix z-index after modal is shown (after animation completes)
+document.addEventListener('shown.bs.modal', (e) => {
+    const modal = e.target
+
+    const fixZIndex = () => {
+        if (modal) {
+            modal.style.setProperty('z-index', '10060', 'important')
+
+            const modalDialog = modal.querySelector('.modal-dialog')
+            if (modalDialog) {
+                modalDialog.style.setProperty('z-index', '10061', 'important')
+            }
+
+            const modalContent = modal.querySelector('.modal-content')
+            if (modalContent) {
+                modalContent.style.setProperty('z-index', '10062', 'important')
+                modalContent.style.setProperty('pointer-events', 'auto', 'important')
+            }
+        }
+
+        const backdrops = document.querySelectorAll('.modal-backdrop')
+        backdrops.forEach(backdrop => {
+            backdrop.style.setProperty('z-index', '10050', 'important')
+        })
+    }
+
+    // Fix multiple times after modal is shown
+    fixZIndex()
+    setTimeout(fixZIndex, 50)
+    setTimeout(fixZIndex, 100)
+    setTimeout(fixZIndex, 200)
 })
 
 // Initialize on page load

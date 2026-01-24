@@ -46,6 +46,9 @@ export async function renderHeader(){
           </div>
         </div>
       `
+
+      // ✅ Add mobile bottom navigation
+      addMobileBottomNav(user, avatarUrl)
      }catch(e){
        // failed to load profile - show login buttons
        headerUserSection.innerHTML = `
@@ -90,6 +93,21 @@ export async function renderHeader(){
       })
     }
 
+    // Mobile nav logout handler
+    const mobileLogoutBtn = document.getElementById('mobile-logout-button')
+    if(mobileLogoutBtn){
+      mobileLogoutBtn.addEventListener('click', async (e) => {
+        e.preventDefault()
+        try {
+          await apiLogout()
+        } catch (error) {
+          console.error('Logout error:', error)
+          clearToken()
+          window.location.href = '/login.html'
+        }
+      })
+    }
+
     // Initialize Bootstrap Dropdown
     const dropdownToggle = document.getElementById('userDropdown')
     if(dropdownToggle && typeof bootstrap !== 'undefined'){
@@ -102,6 +120,47 @@ export async function renderHeader(){
       }
     }
   }, 100)
+}
+
+// ✅ Mobile Bottom Navigation
+function addMobileBottomNav(user, avatarUrl) {
+  // Remove existing mobile nav if present
+  const existingNav = document.getElementById('mobile-bottom-nav')
+  if (existingNav) {
+    existingNav.remove()
+  }
+
+  // Determine current page
+  const currentPath = window.location.pathname
+  const isDashboard = currentPath.includes('dashboard')
+  const isBudgets = currentPath.includes('budget')
+  const isProfile = currentPath.includes('profile')
+
+  const mobileNavHTML = `
+    <nav class="mobile-bottom-nav" id="mobile-bottom-nav">
+      <a href="/dashboard.html" class="mobile-nav-item ${isDashboard ? 'active' : ''}">
+        <i class="bi bi-speedometer2"></i>
+        <span>Dashboard</span>
+      </a>
+      
+      <a href="/budget.html" class="mobile-nav-item ${isBudgets ? 'active' : ''}">
+        <i class="bi bi-piggy-bank"></i>
+        <span>Budgets</span>
+      </a>
+      
+      <a href="/profile.html" class="mobile-nav-item ${isProfile ? 'active' : ''}">
+        <i class="bi bi-person"></i>
+        <span>Profile</span>
+      </a>
+      
+      <button class="mobile-nav-item" id="mobile-logout-button">
+        <i class="bi bi-box-arrow-right"></i>
+        <span>Logout</span>
+      </button>
+    </nav>
+  `
+
+  document.body.insertAdjacentHTML('beforeend', mobileNavHTML)
 }
 
 export default { renderHeader }

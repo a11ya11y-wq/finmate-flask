@@ -2,6 +2,99 @@
 :root{--bg:#0d1117;--muted:#9ca3af}
 html,body{height:100%;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 body{background:var(--bg);color:#fff;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;margin:0}
+
+/* Dashboard body - НЕ overflow-x hidden на desktop! */
+body.dashboard-container {
+  overflow-x: visible;
+  max-width: 100%;
+}
+
+/* Модалки на dashboard - високий z-index щоб бути над backdrop */
+body.dashboard-container .modal {
+  z-index: 9999 !important;
+}
+
+body.dashboard-container .modal-dialog {
+  z-index: 10000 !important;
+}
+
+body.dashboard-container .modal-content {
+  z-index: 10001 !important;
+}
+
+body.dashboard-container .modal-backdrop {
+  z-index: 1050 !important;
+}
+
+/* Dashboard table - іконки категорій */
+.category-icon-badge {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 8px !important;
+  margin-right: 12px !important;
+  font-size: 18px !important;
+  flex-shrink: 0 !important;
+}
+
+/* Desktop: показувати тільки note під назвою транзакції (дата в окремій колонці) */
+@media (min-width: 769px) {
+  /* Приховуємо дату під назвою на декстопі (вона в окремій колонці) */
+  .td-desc .tx-date-inline {
+    display: none !important;
+  }
+
+  /* За замовчуванням приховуємо блок */
+  .td-desc .tx-note-block {
+    display: none !important;
+  }
+
+  /* Показуємо блок тільки якщо є note */
+  .td-desc .tx-note-block.has-note {
+    display: block !important;
+    margin-top: 4px !important;
+    font-size: 0.8125rem !important;
+    color: var(--fm-muted) !important;
+    line-height: 1.3 !important;
+  }
+
+  /* Обрізаємо довгий note на 1 рядок з ... */
+  .td-desc .tx-note {
+    display: block !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    max-width: 280px !important;
+  }
+}
+
+/* Mobile: показувати дату під назвою */
+@media (max-width: 768px) {
+  .td-date {
+    display: none !important;
+  }
+
+  /* Показуємо блок з датою та note */
+  .td-desc .tx-note-block {
+    display: block !important;
+  }
+
+  /* Показуємо дату та note під назвою транзакції */
+  .td-desc .tx-date-inline,
+  .td-desc .tx-note {
+    display: inline !important;
+  }
+
+  /* Додаємо роздільник • між датою та note на мобільній */
+  .td-desc .tx-date-inline:not(:empty) + .tx-note:not(:empty)::before {
+    content: ' • ';
+    color: var(--fm-muted);
+  }
+}
+
 .auth-form-container{max-width:420px;margin:5vh auto;padding:2rem;background:rgba(255,255,255,0.04);border-radius:8px}
 .logo{filter:drop-shadow(0 1px 2px rgba(0,0,0,0.6))}
 .container{max-width:1200px;margin:0 auto;padding:1.25rem}
@@ -36,7 +129,359 @@ h1,h2,h3,h4,h5{color:inherit;margin-top:0}
 .card{padding:10px}
 
 /* small responsive helpers */
-@media(max-width:768px){.container{padding:12px}}
+@media(max-width:768px){
+  .container{
+    padding: 20px !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+
+  /* Prevent horizontal scroll на мобільних */
+  body,
+  html,
+  body.dashboard-container {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+  }
+
+  /* ===================================
+     FIX 4: MODALS - COMPACT FIT (NO EMPTY SPACE)
+     =================================== */
+
+  .modal-dialog {
+    /* DEFAULT BOOTSTRAP BEHAVIOR RESTORED + MOBILE TWEAKS */
+    margin: 1.75rem auto !important; /* Vertically centered-ish */
+    display: flex !important;
+    align-items: center !important;
+    min-height: calc(100% - 3.5rem) !important; /* This centers it but might stretch if we are not careful */
+    height: auto !important; /* Allow it to shrink */
+    width: auto !important;
+    max-width: none !important;
+    padding: 0 !important;
+    pointer-events: none !important; /* Pass clicks through invisible parts */
+  }
+
+  /* ACTUALLY, "min-height" on dialog can cause the stretch if content is flex-grow.
+     Let's override for "shrink-wrap" behavior */
+  .modal-dialog {
+    min-height: 0 !important;
+    display: block !important; /* Allow normal flow */
+    margin: 20px auto !important; /* Top margin */
+    pointer-events: none;
+  }
+
+  .modal-content {
+    /* Size to content ONLY */
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+
+    /* Visuals */
+    width: 100% !important;
+    border-radius: 16px !important;
+    background-color: #121212 !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+
+    /* Layout */
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 0 !important;
+
+    /* Events */
+    pointer-events: auto !important;
+
+    /* CRITICAL: No extra space at bottom */
+    margin-bottom: 20px !important;
+  }
+
+  .modal-header {
+    padding: 20px 20px 10px 20px !important;
+    border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+    flex-shrink: 0 !important;
+  }
+
+  .modal-body {
+    padding: 10px 20px !important;
+    flex: 0 0 auto !important; /* Do NOT grow - fits content */
+    overflow-y: visible !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+
+  /* Footer: Tightly wrapped, no gap below */
+  .modal-footer {
+    height: auto !important;
+    min-height: 0 !important;
+    flex-grow: 0 !important;
+    flex-shrink: 0 !important;
+
+    padding: 20px !important;
+    background-color: transparent !important;
+    margin-top: 0 !important;
+    border-top: none !important;
+  }
+
+  /* Button tweaks */
+  .modal-footer .btn {
+    margin: 0 !important;
+    display: block !important;
+    width: 100% !important;
+    min-height: 50px !important; /* Nice touch target */
+  }
+
+  /* Reset other container interference */
+  .modal {
+    padding: 0 !important;
+  }
+
+
+
+  /* ✅ Fix radio buttons alignment - PERFECT ALIGNMENT */
+  .modal .form-check {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important; /* ✅ Reduced gap for tighter alignment */
+    padding: 10px 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  .modal .form-check-input {
+    margin: 0 !important;
+    flex-shrink: 0 !important;
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  .modal .form-check-label {
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 20px !important; /* ✅ Match input height */
+  }
+
+  /* Radio button group container - stack vertically */
+  .modal .d-flex.gap-3,
+  .modal .d-flex.gap-2 {
+    flex-direction: column !important;
+    gap: 0 !important;
+    align-items: flex-start !important;
+  }
+
+  /* ✅ Additional modal fixes for better mobile experience */
+
+  /* Ensure modal doesn't get cut off by keyboard */
+  .modal {
+    padding: 0 !important; /* Reset padding for full screen */
+    z-index: 10100 !important; /* ✅ Increased from 10000 to be above bottom nav (9999) */
+  }
+
+  /* Modal backdrop should cover bottom nav */
+  .modal-backdrop {
+    z-index: 10050 !important; /* ✅ Increased from 9998 to be above bottom nav (9999) */
+  }
+
+
+  /* Form elements inside modal - better spacing */
+  .modal .form-group,
+  .modal .mb-3 {
+    margin-bottom: 16px !important;
+  }
+
+  .modal .form-label {
+    margin-bottom: 8px !important;
+  }
+
+  /* Radio button container - better touch targets */
+  .modal .form-check {
+    min-height: 44px !important; /* ✅ Touch-friendly */
+  }
+
+  .modal .form-check-input[type="radio"] {
+    cursor: pointer !important;
+  }
+
+  .modal .form-check-label {
+    cursor: pointer !important;
+  }
+
+  /* Auth form mobile optimization */
+  .auth-form-container {
+    margin: 2vh auto !important;
+    padding: 20px !important;
+    max-width: calc(100vw - 32px) !important;
+  }
+
+  /* Touch-friendly inputs */
+  .form-control,
+  .form-select,
+  textarea,
+  input {
+    min-height: 44px !important;
+    padding: 12px 16px !important;
+    font-size: 16px !important;
+  }
+
+  /* Touch-friendly buttons */
+  .btn {
+    min-height: 44px !important;
+    padding: 12px 20px !important;
+    font-size: 16px !important;
+  }
+
+  /* Readable fonts */
+  body {
+    font-size: 16px !important;
+  }
+
+  h1 {
+    font-size: 1.75rem !important;
+  }
+
+  h2 {
+    font-size: 1.5rem !important;
+  }
+
+  h3 {
+    font-size: 1.25rem !important;
+  }
+
+  /* Cards full width */
+  .card {
+    width: 100% !important;
+    padding: 16px !important;
+    margin-bottom: 12px !important;
+  }
+
+
+  /* ===================================
+     FIX 5: BUDGETS PAGE - TOGGLE & BUTTON
+     =================================== */
+
+  /* Fix recurring budget toggle alignment */
+  .form-switch,
+  .form-check.form-switch {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 12px 0 !important;
+  }
+
+  .form-switch .form-check-input {
+    margin: 0 !important;
+    flex-shrink: 0 !important;
+  }
+
+  .form-switch .form-check-label {
+    margin: 0 !important;
+    flex: 1 !important;
+  }
+
+  /* Save Budget button - full width */
+  .budget-form .btn-success,
+  .budget-form .btn-primary,
+  #saveBudgetBtn,
+  button[type="submit"] {
+    width: 100% !important;
+    min-height: 48px !important;
+    padding: 14px 20px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+  }
+
+  /* ===================================
+     FIX 6: AUTH PAGES - CHECKBOX ALIGNMENT
+     =================================== */
+
+  /* Remember me checkbox alignment */
+  .form-check {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+
+  .form-check-input {
+    margin: 0 !important;
+    flex-shrink: 0 !important;
+  }
+
+  .form-check-label {
+    margin: 0 !important;
+  }
+
+  /* ===================================
+     FIX 7: ICON SELECTOR - GRID LAYOUT
+     =================================== */
+
+  /* Icon picker grid */
+  .icon-picker-grid,
+  .icon-grid,
+  .icons-container,
+  div[id*="iconPicker"],
+  div[id*="icon-picker"] {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)) !important;
+    gap: 8px !important;
+    padding: 12px !important;
+  }
+
+  /* Icon option buttons */
+  button[class*="icon"],
+  .icon-btn,
+  .icon-option {
+    width: 100% !important;
+    aspect-ratio: 1 !important;
+    min-width: 45px !important;
+    min-height: 45px !important;
+    padding: 8px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+  }
+
+  button[class*="icon"] i,
+  .icon-btn i,
+  .icon-option i {
+    font-size: 20px !important;
+  }
+
+  button[class*="icon"]:hover,
+  .icon-btn:hover,
+  .icon-option:hover {
+    background: rgba(58, 160, 255, 0.15) !important;
+    border-color: rgba(58, 160, 255, 0.3) !important;
+  }
+
+  button[class*="icon"].active,
+  .icon-btn.active,
+  .icon-option.active {
+    background: rgba(58, 160, 255, 0.2) !important;
+    border-color: #3aa0ff !important;
+  }
+
+  /* ===================================
+     FIX 8: HIDE DESKTOP HEADER USER DROPDOWN
+     =================================== */
+
+  /* Hide desktop header user profile on mobile */
+  #header-user-section,
+  #user-dropdown,
+  .app-header #auth-controls {
+    display: none !important;
+  }
+
+  /* Ensure app header doesn't take space */
+  .app-header {
+    display: none !important;
+  }
+}
 
 /* ✅ Modal styles - темна тема з правильним z-index */
 .modal {
@@ -45,7 +490,7 @@ h1,h2,h3,h4,h5{color:inherit;margin-top:0}
   left: 0 !important;
   width: 100% !important;
   height: 100% !important;
-  z-index: 1060 !important;
+  z-index: 10060 !important; /* ВИЩЕ за backdrop */
   overflow-y: auto !important;
   pointer-events: none !important; /* Контейнер не блокує кліки */
   display: none;
@@ -53,22 +498,23 @@ h1,h2,h3,h4,h5{color:inherit;margin-top:0}
 
 .modal.show {
   display: block !important;
+  pointer-events: none !important; /* Контейнер пропускає кліки */
 }
 
 .modal-backdrop {
   position: fixed !important;
   top: 0 !important;
   left: 0 !important;
-  z-index: 1050 !important;
+  z-index: 10050 !important; /* НИЖЧЕ за modal */
   width: 100vw !important;
   height: 100vh !important;
-  background-color: rgba(0, 0, 0, 0.7) !important; /* Трохи темніше для кращого контрасту */
+  background-color: rgba(0, 0, 0, 0.7) !important;
   pointer-events: auto !important;
 }
 
 .modal-dialog {
   position: relative !important;
-  z-index: 1061 !important;
+  z-index: 10061 !important; /* ✅ Increased from 1061 to 10061 */
   pointer-events: auto !important; /* Dialog отримує кліки */
   margin: 1.75rem auto !important;
   max-width: 500px !important;
@@ -120,6 +566,37 @@ h1,h2,h3,h4,h5{color:inherit;margin-top:0}
   border-top: 1px solid rgba(255,255,255,0.1) !important;
   padding: 1rem 1.25rem !important;
   border-radius: 0 0 0.75rem 0.75rem !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  flex-direction: row !important;
+}
+
+#editTransactionModal .modal-footer,
+#addTransactionModal .modal-footer,
+.modal-edit-transaction .modal-footer,
+.modal-add-transaction .modal-footer {
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  flex-direction: row !important;
+}
+
+.modal-footer-actions {
+  display: flex !important;
+  gap: 0.75rem !important;
+  align-items: center !important;
+  flex-direction: row !important;
+  margin-left: auto !important;
+}
+
+.modal-footer .btn {
+  min-width: auto !important;
+  padding: 0.5rem 1.25rem !important;
+  font-size: 0.9375rem !important;
+  font-weight: 500 !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
 }
 
 /* Стилі для форм всередині модальних вікон */
@@ -290,6 +767,35 @@ h1,h2,h3,h4,h5{color:inherit;margin-top:0}
   max-width: 280px !important;
   max-height: 280px !important;
   max-height: 100% !important;
+}
+
+/* Legend ribbon - контейнер для легенди донат чарту */
+#categoryLegend.legend-ribbon {
+  max-height: 180px; /* Приблизно 3-4 категорії по ~48px */
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(58, 160, 255, 0.3) rgba(255, 255, 255, 0.05);
+}
+
+/* Custom scrollbar для легенди (Chrome/Safari) */
+#categoryLegend.legend-ribbon::-webkit-scrollbar {
+  width: 6px;
+}
+
+#categoryLegend.legend-ribbon::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+#categoryLegend.legend-ribbon::-webkit-scrollbar-thumb {
+  background: rgba(58, 160, 255, 0.3);
+  border-radius: 3px;
+}
+
+#categoryLegend.legend-ribbon::-webkit-scrollbar-thumb:hover {
+  background: rgba(58, 160, 255, 0.5);
 }
 
 .legend-item {

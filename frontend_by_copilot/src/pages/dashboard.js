@@ -65,21 +65,26 @@ function logError(context, error){
 async function confirmDelete(){
   return new Promise((resolve) => {
     const modalHTML = `
-      <div class="modal-overlay" id="deleteConfirmModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; display: flex; align-items: center; justify-content: center;">
-        <div class="modal-content modal-delete-transaction" style="background: #1a1d23; border-radius: 12px; padding: 24px; max-width: 400px; width: 90%; box-shadow: 0 8px 32px rgba(0,0,0,0.4);">
-          <h5 style="color: #fff; margin-bottom: 16px; font-size: 18px; font-weight: 600;">
-            <i class="bi bi-exclamation-triangle-fill" style="color: #ff6b6b; margin-right: 8px;"></i>
+      <div class="modal-overlay" id="deleteConfirmModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 10200; display: flex; align-items: center; justify-content: center; padding: 20px;">
+        <div class="modal-content modal-delete-transaction" style="background: #1a1d23; border-radius: 16px; padding: 24px; max-width: 320px; width: 100%; box-shadow: 0 10px 40px rgba(0,0,0,0.6); border: 1px solid rgba(255,107,107,0.3); position: relative;">
+          <button id="closeDeleteModalBtn" style="position: absolute; top: 12px; right: 12px; background: transparent; border: none; color: #9aa1a6; font-size: 24px; cursor: pointer; padding: 4px 8px; line-height: 1; transition: color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#9aa1a6'">
+            <i class="bi bi-x"></i>
+          </button>
+          <div style="text-align: center; margin-bottom: 16px;">
+            <i class="bi bi-exclamation-triangle-fill" style="color: #ff6b6b; font-size: 48px;"></i>
+          </div>
+          <h5 style="color: #fff; margin-bottom: 12px; font-size: 18px; font-weight: 600; text-align: center;">
             Delete Transaction?
           </h5>
-          <p style="color: #9aa1a6; margin-bottom: 24px; font-size: 14px;">
+          <p style="color: #9aa1a6; margin-bottom: 24px; font-size: 14px; text-align: center; line-height: 1.5;">
             This action cannot be undone. Are you sure you want to delete this transaction?
           </p>
-          <div style="display: flex; gap: 12px; justify-content: flex-end;">
-            <button id="cancelDeleteBtn" class="btn btn-secondary" style="padding: 8px 20px; font-size: 14px;">
-              Cancel
-            </button>
-            <button id="confirmDeleteBtn" class="btn btn-danger" style="padding: 8px 20px; font-size: 14px;">
+          <div style="display: flex; flex-direction: column; gap: 10px; padding: 0 4px;">
+            <button id="confirmDeleteBtn" class="btn btn-danger" style="width: 100%; padding: 12px 20px; font-size: 15px; font-weight: 600;">
               <i class="bi bi-trash"></i> Delete
+            </button>
+            <button id="cancelDeleteBtn" class="btn btn-secondary" style="width: 100%; padding: 12px 20px; font-size: 15px;">
+              Cancel
             </button>
           </div>
         </div>
@@ -101,6 +106,11 @@ async function confirmDelete(){
     })
 
     document.getElementById('cancelDeleteBtn')?.addEventListener('click', () => {
+      cleanup()
+      resolve(false)
+    })
+
+    document.getElementById('closeDeleteModalBtn')?.addEventListener('click', () => {
       cleanup()
       resolve(false)
     })
@@ -211,11 +221,11 @@ function renderSkeleton(){
   <!-- Modern Dashboard Header (FULL WIDTH STICKY) -->
   <div class="dashboard-header mb-4">
     <div class="dashboard-header-content">
-      <div class="d-flex justify-content-between flex-wrap align-items-center">
+      <div class="d-flex justify-content-between align-items-center flex-wrap">
         <h1 class="dashboard-title">
           <i class="bi bi-speedometer2 me-2"></i>Dashboard
         </h1>
-        <div class="action-buttons">
+        <div class="dashboard-controls">
           <div class="period-selector">
             <button class="period-btn" data-period="week">Week</button>
             <button class="period-btn" data-period="month">Month</button>
@@ -223,11 +233,11 @@ function renderSkeleton(){
           </div>
           <button type="button" class="btn-modern btn-success-modern" id="add-transaction-button">
             <i class="bi bi-plus-lg"></i>
-            <span>Add</span>
+            <span>ADD</span>
           </button>
           <button type="button" class="btn-modern btn-primary-modern" id="sync-button">
             <i class="bi bi-arrow-repeat"></i>
-            <span>Sync</span>
+            <span>SYNC</span>
           </button>
         </div>
       </div>
@@ -289,7 +299,7 @@ function renderSkeleton(){
           </h3>
         </div>
         <div class="donut-wrap" style="position: relative;">
-          <canvas id="categoryDonutChart" width="280" height="280"></canvas>
+          <canvas id="categoryDonutChart" width="240" height="240"></canvas>
           <div id="categoryChartEmpty" class="chart-empty-state" style="display: none;">
             <div class="empty-state-icon">
               <i class="bi bi-pie-chart"></i>
@@ -434,8 +444,12 @@ function appendModalsToBody() {
             </div>
 
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" id="editModalCloseFooterBtn">Close</button>
-              <button type="submit" class="btn-modern btn-primary-modern">Save Changes</button>
+              <div class="modal-footer-actions">
+                <button type="button" class="btn btn-danger" id="deleteTransactionBtn">
+                  <i class="bi bi-trash"></i> Delete
+                </button>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+              </div>
             </div>
           </form>
         </div>
@@ -489,8 +503,9 @@ function appendModalsToBody() {
             </div>
 
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" id="addModalCloseFooterBtn">Close</button>
-              <button type="submit" class="btn-modern btn-success-modern">Add Transaction</button>
+              <div class="modal-footer-actions">
+                <button type="submit" class="btn btn-success">Add Transaction</button>
+              </div>
             </div>
           </form>
         </div>
@@ -766,22 +781,27 @@ async function loadData(period = 'all'){
         `
 
          return `
-         <tr>
+         <tr class="transaction-row" data-tx-id="${tx.id}">
            <td class="td-num" style="color: var(--fm-muted)">${idx+1}</td>
            <td class="td-desc" title="${escapeHtml(desc + (tx.note ? (' - ' + tx.note) : ''))}">
-             <div style="font-weight: 600;">${escapeHtml(desc)}</div>
-             ${tx.note ? `<div class="small text-muted text-truncate" style="max-width:100%; opacity: 0.7">${escapeHtml(tx.note)}</div>` : ''}
+             <div class="td-desc-wrapper">
+               <div style="font-weight: 600;">${escapeHtml(desc)}</div>
+               <div class="small text-muted tx-note-block${tx.note ? ' has-note' : ''}">
+                 <span class="tx-date-inline">${tx.created_at ? formatDateDMY(tx.created_at) : ''}</span>
+                 ${tx.note ? `<span class="tx-note">${escapeHtml(tx.note)}</span>` : ''}
+               </div>
+             </div>
            </td>
            <td class="td-cat">${categoryBadge}</td>
            <td class="td-amount" style="text-align:right">${amountHTML}</td>
            <td class="td-date" style="color: var(--fm-muted); font-size: 0.875rem">${tx.created_at ? formatDateDMY(tx.created_at) : ''}</td>
            <td class="td-actions">
              <div class="action-btn-group">
-               <button class="action-btn btn-edit" data-tx-id="${tx.id}" data-action="edit">
-                 <i class="bi bi-pencil"></i> Edit
+               <button class="action-btn btn-edit" data-tx-id="${tx.id}" data-action="edit" title="Edit" aria-label="Edit transaction">
+                 <i class="bi bi-pencil"></i><span class="btn-text"> Edit</span>
                </button>
-               <button class="action-btn btn-delete" data-tx-id="${tx.id}" data-action="delete">
-                 <i class="bi bi-trash"></i>
+               <button class="action-btn btn-delete" data-tx-id="${tx.id}" data-action="delete" title="Delete" aria-label="Delete transaction">
+                 <i class="bi bi-trash"></i><span class="btn-text"></span>
                </button>
              </div>
            </td>
@@ -846,7 +866,23 @@ async function loadData(period = 'all'){
         return
       }
 
-      // ✅ Ініціалізуємо контексти з willReadFrequently для уникнення попереджень
+      // Adjust canvas size based on screen width with high DPI support
+      const isMobile = window.innerWidth <= 768
+      if(ctxDonut) {
+        if(isMobile) {
+          // Set CSS size (displayed size)
+          ctxDonut.style.width = '240px'
+          ctxDonut.style.height = '240px'
+          ctxDonut.style.maxWidth = '240px'
+          ctxDonut.style.maxHeight = '240px'
+        } else {
+          ctxDonut.style.width = '280px'
+          ctxDonut.style.height = '280px'
+          ctxDonut.style.maxWidth = '280px'
+          ctxDonut.style.maxHeight = '280px'
+        }
+      }
+
       if(ctxLine) {
         try{ ctxLine.getContext('2d', { willReadFrequently: true }) }catch(e){}
       }
@@ -916,7 +952,8 @@ async function loadData(period = 'all'){
               options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                devicePixelRatio: Math.max(window.devicePixelRatio || 1, 3),
+                // ✅ PERFORMANCE FIX: Cap at 2x instead of forcing 3x (9x fewer pixels!)
+                devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2),
                 interaction: {
                   mode: 'index',
                   intersect: false
@@ -1012,10 +1049,10 @@ async function loadData(period = 'all'){
                 }]
               },
               options: {
-                responsive: false,
+                responsive: true,
                 maintainAspectRatio: true,
                 aspectRatio: 1,
-                devicePixelRatio: Math.max(window.devicePixelRatio || 1, 3),
+                devicePixelRatio: window.devicePixelRatio || 2,
                 cutout: '65%',
                 plugins: {
                   legend: { display: false },
@@ -1046,6 +1083,23 @@ async function loadData(period = 'all'){
                 animation: { animateRotate: true, animateScale: true, duration: 200, easing: 'easeOutCubic' }
               }
             })
+
+            // CRITICAL: Force canvas size AFTER chart creation on mobile (multiple attempts)
+            if(window.innerWidth <= 768 && ctxDonut) {
+              const forceSize = () => {
+                ctxDonut.style.width = '240px'
+                ctxDonut.style.height = '240px'
+                ctxDonut.style.maxWidth = '240px'
+                ctxDonut.style.maxHeight = '240px'
+                if(categoryChart && categoryChart.canvas) {
+                  categoryChart.canvas.style.width = '240px'
+                  categoryChart.canvas.style.height = '240px'
+                }
+              }
+              setTimeout(forceSize, 0)
+              setTimeout(forceSize, 50)
+              setTimeout(forceSize, 150)
+            }
 
             // Build custom HTML legend enriched with server icons when available
             try {
@@ -1136,6 +1190,28 @@ async function loadData(period = 'all'){
 
                   catLegend.appendChild(el)
                 })
+
+                // CRITICAL: Force remove white space on mobile
+                if(window.innerWidth <= 768) {
+                  setTimeout(() => {
+                    const chartContainer = document.querySelector('.chart-container:has(#categoryDonutChart)')
+                    if(chartContainer) {
+                      chartContainer.style.height = 'fit-content'
+                      chartContainer.style.minHeight = '0'
+                      chartContainer.style.paddingBottom = '8px'
+                    }
+                    if(catLegend) {
+                      catLegend.style.marginBottom = '0'
+                      catLegend.style.paddingBottom = '0'
+                    }
+                    const donutWrap = document.querySelector('.donut-wrap')
+                    if(donutWrap) {
+                      donutWrap.style.marginBottom = '4px'
+                      donutWrap.style.width = '240px'
+                      donutWrap.style.height = '240px'
+                    }
+                  }, 100)
+                }
               }
             } catch (_e) { /* silent */ }
 
@@ -1286,6 +1362,29 @@ function attachHandlers(){
   // delegate edit/delete buttons
   const txTable = document.getElementById('transactions-list')
   if(txTable){
+    // MOBILE: Click on row to open edit modal
+    txTable.addEventListener('click', (e) => {
+      const isMobile = window.innerWidth <= 768
+      if (!isMobile) return
+
+      if (e.target.closest('button')) return
+
+      let row = e.target.closest('tr[data-tx-id]')
+      if (!row) row = e.target.closest('tr.transaction-row')
+      if (!row) row = e.target.closest('tr')
+      if (!row) return
+
+      const txId = row.dataset.txId || row.getAttribute('data-tx-id')
+      if (!txId) return
+      if (modalOpening) return
+
+      setTimeout(() => {
+        openEditModal(txId).catch(err => {
+          console.error('Failed to open edit modal:', err)
+        })
+      }, 0)
+    }, false)
+
     // Capture-phase handler: if other code blocks propagation, this still runs early and will schedule action
     try{
       if(!window.__finmate_capture_debug_attached){
@@ -1616,6 +1715,39 @@ function attachHandlers(){
     })
   }
 
+  // ✅ Delete button in edit modal
+  const deleteBtn = document.getElementById('deleteTransactionBtn')
+  if (deleteBtn) {
+    deleteBtn.addEventListener('click', async () => {
+      const txId = document.getElementById('edit_tx_id').value
+      if (!txId) return
+
+      // Show confirmation dialog
+      const confirmed = await confirmDelete()
+      if (!confirmed) return
+
+      try {
+        deleteBtn.disabled = true
+        deleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Deleting...'
+
+        await api.del(`/transactions/${txId}`)
+
+        // Close modal
+        closeModal('editTransactionModal')
+
+        // Reload data
+        await loadData(currentPeriod)
+        showSuccess('Transaction deleted successfully!')
+      } catch (err) {
+        showError('Delete failed: ' + (err.message || err))
+        console.error('Delete failed:', err)
+      } finally {
+        deleteBtn.disabled = false
+        deleteBtn.innerHTML = '<i class="bi bi-trash"></i> Delete'
+      }
+    })
+  }
+
   // ✅ Add listeners to modal close buttons to restore scroll
   try{
     document.querySelectorAll('.modal .btn-close, .modal [data-bs-dismiss="modal"]').forEach(btn => {
@@ -1723,19 +1855,17 @@ function formatDateDMY(dateInput){
 }
 
 async function openEditModal(txId){
-  // Guard: if this txId is already being opened, ignore duplicate requests
   if (openingTxIds.has(txId)) return
   openingTxIds.add(txId)
 
-  // ✅ Save scroll position before opening modal
   saveScrollPosition()
 
-  // If another modal opening flow is in progress, queue the request instead of scheduling retries
-    if(modalOpening){
+  if(modalOpening){
      try{
        if(!pendingModalQueue.includes(txId)) pendingModalQueue.push(txId)
-       // silent queueing (no log)
-     }catch(e){ /* failed to queue modal open (silent) */ }
+     }catch(e){
+       console.error('Failed to queue modal:', e)
+     }
      return
    }
    modalOpening = true
@@ -1786,8 +1916,33 @@ async function openEditModal(txId){
       console.error('[dashboard] Failed to populate edit form categories', e)
     }
 
-    // ✅ Use simple modal implementation
-    openModal('editTransactionModal')
+    // Use Bootstrap Modal API to open modal
+    try {
+      if (window.bootstrap && bootstrap.Modal) {
+        const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl)
+        modalEl._bsModalInstance = bsModal
+
+        // Add event listener for cleanup when modal is hidden
+        modalEl.addEventListener('hidden.bs.modal', function cleanupHandler() {
+          delete modalEl._bsModalInstance
+          modalEl.removeEventListener('hidden.bs.modal', cleanupHandler)
+
+          // Ensure backdrop is removed
+          const backdrops = document.querySelectorAll('.modal-backdrop')
+          backdrops.forEach(b => b.remove())
+          document.body.classList.remove('modal-open')
+          document.body.style.overflow = ''
+          document.body.style.paddingRight = ''
+        }, { once: true })
+
+        bsModal.show()
+      } else {
+        openModal('editTransactionModal')
+      }
+    } catch (modalError) {
+      console.error('Failed to show modal:', modalError)
+      throw modalError
+    }
 
   }catch(e){
     console.error('[dashboard] openEditModal error', e)
@@ -1919,6 +2074,7 @@ try{ appendModalsToBody() }catch(e){ console.error('[Init] appendModalsToBody fa
 
   try{
     await loadData(currentPeriod)
+    // ✅ ULTIMATE FIX: Видалення білого простору в chart containers
   }catch(e){
     console.error('[Init] loadData failed:', e)
     logError('Failed to load dashboard data', e)

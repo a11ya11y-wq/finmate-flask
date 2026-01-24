@@ -279,24 +279,43 @@
 }
 
 /* --- Checkboxes --- */
-.auth-card .form-check-input {
+.auth-card .form-check-input,
+.auth-body .form-check-input,
+body.auth-body .form-check-input[type="checkbox"] {
   background-color: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.15);
-  width: 1.2em;
-  height: 1.2em;
+  width: 18px !important;  /* Force fixed size */
+  height: 18px !important; /* Force fixed size */
+  min-width: 18px !important;
+  min-height: 18px !important;
+  max-width: 18px !important;
+  max-height: 18px !important;
+  flex-shrink: 0 !important;
   cursor: pointer;
   transition: all 0.2s ease;
+  margin-top: 0.15rem !important; /* Better vertical alignment with text */
+  font-size: 1rem !important; /* Prevent em scaling */
+  padding: 0 !important; /* Remove any padding */
+  vertical-align: middle !important;
 }
 
-.auth-card .form-check-input:checked {
+.auth-card .form-check-input:checked,
+.auth-body .form-check-input:checked,
+body.auth-body .form-check-input[type="checkbox"]:checked {
   background-color: var(--fm-accent, #3aa0ff);
   border-color: var(--fm-accent, #3aa0ff);
   box-shadow: 0 0 0 0.2rem rgba(58, 160, 255, 0.15);
+  width: 18px !important;
+  height: 18px !important;
 }
 
-.auth-card .form-check-input:focus {
+.auth-card .form-check-input:focus,
+.auth-body .form-check-input:focus,
+body.auth-body .form-check-input[type="checkbox"]:focus {
   border-color: rgba(58, 160, 255, 0.5);
   box-shadow: 0 0 0 0.2rem rgba(58, 160, 255, 0.15);
+  width: 18px !important;
+  height: 18px !important;
 }
 
 .auth-card .form-check-label {

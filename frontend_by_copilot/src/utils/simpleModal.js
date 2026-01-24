@@ -43,8 +43,19 @@ export function closeModal(modalId) {
   const modal = document.getElementById(modalId)
   if (!modal) return
 
+  // Check if modal was opened with Bootstrap Modal API
+  if (modal._bsModalInstance) {
+    try {
+      modal._bsModalInstance.hide()
+      delete modal._bsModalInstance
+      openModals = openModals.filter(id => id !== modalId)
+      return
+    } catch (err) {
+      console.error('Bootstrap close failed:', err)
+    }
+  }
 
-  // Remove from open modals list
+  // Fallback: use manual close
   openModals = openModals.filter(id => id !== modalId)
 
   // Hide modal
@@ -58,22 +69,25 @@ export function closeModal(modalId) {
   if (openModals.length === 0) {
     removeBackdrop()
     document.body.style.overflow = ''
+    document.body.classList.remove('modal-open')
   }
 }
 
 export function closeAllModals() {
-
-  // Clone array to avoid modification during iteration
   const modalsToClose = [...openModals]
 
   modalsToClose.forEach(modalId => {
     closeModal(modalId)
   })
 
-  // Force cleanup
   openModals = []
   removeBackdrop()
+
+  const bsBackdrops = document.querySelectorAll('.modal-backdrop')
+  bsBackdrops.forEach(backdrop => backdrop.remove())
+
   document.body.style.overflow = ''
+  document.body.classList.remove('modal-open')
 }
 
 function createBackdrop() {

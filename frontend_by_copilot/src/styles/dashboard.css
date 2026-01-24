@@ -80,6 +80,16 @@
   width: 100%;
 }
 
+@media (max-width: 768px) {
+  .dashboard-header {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(15, 19, 22, 0.98) !important;
+    position: relative !important;
+    margin-top: 15px !important;
+  }
+}
+
 /* Контейнер всередині header - обмежена ширина */
 .dashboard-header-content {
   max-width: 1140px;
@@ -92,13 +102,6 @@
 @media (min-width: 1400px) {
   .dashboard-header-content {
     max-width: 1320px;
-  }
-}
-
-@media (max-width: 768px) {
-  .dashboard-header-content {
-    padding-left: 1rem;
-    padding-right: 1rem;
   }
 }
 
@@ -117,16 +120,39 @@
   font-size: 2rem;
 }
 
-/* Explicit icon colors to ensure original colorful states */
+/* Explicit icon colors - NEON STYLE (White icons on colored circles) */
 /* Stats cards icons */
+.stat-card.income-card .stat-card-icon {
+  background: rgba(16, 185, 129, 0.2) !important;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.2) !important;
+  border-radius: 50% !important;
+}
+
 .stat-card.income-card .stat-card-icon i {
-  color: #10b981 !important; /* green */
+  color: #ffffff !important; /* White icon on green glow */
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5)) !important;
 }
+
+.stat-card.expense-card .stat-card-icon {
+  background: rgba(239, 68, 68, 0.2) !important;
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.2) !important;
+  border-radius: 50% !important;
+}
+
 .stat-card.expense-card .stat-card-icon i {
-  color: #ef4444 !important; /* red */
+  color: #ffffff !important; /* White icon on red glow */
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5)) !important;
 }
+
+.stat-card.balance-card .stat-card-icon {
+  background: rgba(58, 160, 255, 0.2) !important;
+  box-shadow: 0 0 15px rgba(58, 160, 255, 0.2) !important;
+  border-radius: 50% !important;
+}
+
 .stat-card.balance-card .stat-card-icon i {
-  color: #3aa0ff !important; /* blue */
+  color: #ffffff !important; /* White icon on blue glow */
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5)) !important;
 }
 
 /* Chart title icons */
@@ -179,6 +205,20 @@
   overflow: hidden;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   animation: fadeInUp 0.6s ease-out backwards;
+}
+
+@media (max-width: 768px) {
+  .stat-card {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04)) !important;
+    animation-duration: 0.3s !important;
+  }
+
+  .stat-card:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
 }
 
 .stat-card:nth-child(1) { animation-delay: 0.1s; }
@@ -240,19 +280,19 @@
 .stat-card-icon {
   width: 50px;
   height: 50px;
-  border-radius: 14px;
+  border-radius: 50% !important; /* Perfect circle for neon effect */
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
   margin-bottom: 1rem;
-  background: rgba(255, 255, 255, 0.05);
   transition: all 0.3s ease;
+  /* Background and glow set per card variant below */
 }
 
 .stat-card:hover .stat-card-icon {
-  transform: rotate(5deg) scale(1.1);
-  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.1);
+  /* Keep rotation minimal to preserve neon circle shape */
 }
 
 .stat-card-label {
@@ -442,6 +482,38 @@
   align-items: center;
 }
 
+/* Desktop: збільшуємо canvas для категорій */
+@media (min-width: 769px) {
+  #categoryDonutChart {
+    width: 280px !important;
+    height: 280px !important;
+  }
+
+  .donut-wrap {
+    width: 280px;
+    height: 280px;
+  }
+}
+
+@media (max-width: 768px) {
+  .chart-container {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04)) !important;
+    animation-duration: 0.3s !important;
+    padding: 16px !important;
+  }
+
+  .chart-container:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  .chart-container::after {
+    display: none !important;
+  }
+}
+
 /* Fix chart card height alignment */
 .card.h-100 {
   display: flex;
@@ -473,7 +545,6 @@
 .chart-container canvas {
   position: relative;
   z-index: 1;
-  min-height: 280px;
 }
 
 /* Balance line chart - WIDER column, responsive height */
@@ -485,8 +556,6 @@
 
 /* Category donut chart - proportional sizing */
 #categoryDonutChart {
-  max-width: 100%;
-  max-height: 360px;
   display: block;
   margin: 0 auto;
 }
@@ -587,6 +656,16 @@
   overflow-y: visible;
 }
 
+@media (max-width: 768px) {
+  .transactions-container {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.03)) !important;
+    animation-duration: 0.3s !important;
+    padding: 1.25rem;
+  }
+}
+
 .transactions-header {
   display: flex;
   justify-content: space-between;
@@ -635,7 +714,7 @@
   border-radius: 8px;
   transition: all 0.3s ease;
   cursor: pointer;
-  min-height: 60px;
+  height: 64px;
 }
 
 .table-modern tbody tr:hover {
@@ -648,7 +727,7 @@
 }
 
 .table-modern tbody td {
-  padding: 1rem 1rem;
+  padding: 0.75rem 1rem;
   border: none;
   vertical-align: middle;
   line-height: 1.5;
@@ -674,14 +753,70 @@
   color: var(--fm-muted);
 }
 
-.table-modern .td-desc {
+.table-modern tbody .td-desc {
   max-width: 300px;
   overflow: visible;
   white-space: normal;
+  text-align: left;
+  vertical-align: middle !important;
+  padding: 0 1rem !important;
+  position: relative;
+  height: 64px;
+}
+
+.table-modern tbody .td-desc-wrapper {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: 1rem;
+  right: 1rem;
+}
+
+.table-modern tbody .td-desc > div {
+  line-height: 1.3;
+  margin: 0;
+}
+
+.table-modern tbody .td-desc-wrapper > div {
+  line-height: 1.3;
+  margin: 0;
+}
+
+.table-modern tbody .td-desc-wrapper > div:first-child {
+  margin-bottom: 2px;
+}
+
+.table-modern tbody .td-desc .small {
+  font-size: 0.8125rem;
+  line-height: 1.3;
+  margin: 0;
 }
 
 .table-modern .td-cat {
   min-width: 140px;
+  vertical-align: middle;
+}
+
+.table-modern .td-cat .d-flex {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+}
+
+.category-icon-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.category-icon-badge i {
+  font-size: 14px;
+  color: inherit;
 }
 
 .table-modern .td-amount {
@@ -776,42 +911,51 @@
 
 /* --- Period Selector --- */
 .period-selector {
-  display: inline-flex;
+  display: flex;
+  width: auto;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 0.25rem;
-  gap: 0.25rem;
-  overflow: visible; /* Prevent focus ring clipping on period buttons */
+  border-radius: 10px;
+  padding: 0.1875rem !important;
+  gap: 0.1875rem !important;
+  overflow: visible;
+  min-height: auto !important;
+}
+
+/* Dashboard controls - group period selector and action buttons */
+.dashboard-controls {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .period-btn {
-  padding: 0.5rem 1rem;
+  flex: 1;
+  padding: 0.25rem 0.875rem !important;
   border: none;
   background: transparent;
   color: var(--fm-muted, #9aa1a6);
-  font-size: 0.875rem;
+  font-size: 0.8125rem !important;
   font-weight: 600;
-  border-radius: 8px;
+  border-radius: 7px;
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
+  line-height: 1.2 !important;
 }
 
-/* ✅ Активна кнопка періоду - ЗАВЖДИ підсвічена, навіть без фокусу */
 .period-btn.active {
   background: rgba(58, 160, 255, 0.2) !important;
   color: #3aa0ff !important;
   box-shadow: 0 2px 8px rgba(58, 160, 255, 0.3) !important;
 }
 
-/* ✅ Активна кнопка при hover - ще яскравіша */
 .period-btn.active:hover {
   background: rgba(58, 160, 255, 0.25) !important;
   box-shadow: 0 3px 12px rgba(58, 160, 255, 0.4) !important;
 }
 
-/* ✅ Активна кнопка при focus - зберігає активний стиль */
 .period-btn.active:focus,
 .period-btn.active:focus-visible {
   background: rgba(58, 160, 255, 0.2) !important;
@@ -821,13 +965,11 @@
   outline-offset: 2px;
 }
 
-/* ✅ Активна кнопка при втраті фокусу - НЕ міняється */
 .period-btn.active:not(:focus) {
   background: rgba(58, 160, 255, 0.2) !important;
   color: #3aa0ff !important;
 }
 
-/* ✅ Додаткові правила з високою специфічністю для .active стану */
 button.period-btn.active,
 .period-selector .period-btn.active,
 .action-buttons .period-selector .period-btn.active {
@@ -836,31 +978,21 @@ button.period-btn.active,
   box-shadow: 0 2px 8px rgba(58, 160, 255, 0.3) !important;
 }
 
-/* ✅ Неактивні кнопки при hover */
 .period-btn:hover:not(.active) {
   background: rgba(255, 255, 255, 0.05);
   color: var(--fm-text, #e9eef2);
 }
 
-/* ✅ Переконуємося, що :active (при кліку) не перезаписує наш стиль */
 .period-btn.active:active {
   background: rgba(58, 160, 255, 0.25) !important;
   color: #3aa0ff !important;
 }
 
 /* --- Action Buttons (Add, Sync) --- */
-.action-buttons {
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
-  overflow: visible; /* Prevent focus ring clipping */
-}
-
-/* Специфічні стилі для кнопок на Dashboard */
-.dashboard-header .action-buttons .btn-primary-modern,
-.dashboard-header .action-buttons .btn-success-modern {
+/* Стилі для кнопок всередині dashboard-controls */
+.dashboard-controls .btn-modern {
   min-width: 100px;
-  max-width: 130px;
+  white-space: nowrap;
 }
 
 .btn-modern {
@@ -961,7 +1093,7 @@ button.period-btn.active,
   width: 100%;
   height: 5px;
   background: linear-gradient(135deg, #10b981, #059669);
-  z-index: 1;
+  border-radius: 16px 16px 0 0;   z-index: 1;
 }
 
 .modal-edit-transaction {
@@ -977,7 +1109,7 @@ button.period-btn.active,
   width: 100%;
   height: 5px;
   background: linear-gradient(135deg, #3aa0ff, #2563eb);
-  z-index: 1;
+  border-radius: 16px 16px 0 0;   z-index: 1;
 }
 
 .modal-delete-transaction {
@@ -993,7 +1125,7 @@ button.period-btn.active,
   width: 100%;
   height: 5px;
   background: linear-gradient(135deg, #ef4444, #dc2626);
-  z-index: 1;
+  border-radius: 16px 16px 0 0;   z-index: 1;
 }
 
 /* --- Loading States --- */
@@ -1112,7 +1244,6 @@ button.period-btn.active,
   outline-offset: 2px;
 }
 
-/* ✅ Period-btn має окремі стилі для :focus-visible вище (для .active стану) */
 .period-btn:focus-visible:not(.active) {
   outline: 2px solid rgba(255, 255, 255, 0.3);
   outline-offset: 2px;
@@ -1137,6 +1268,74 @@ button.period-btn.active,
    BUDGET PAGE STYLES
    =================================== */
 
+/* Budget page header - match Dashboard style (mobile) */
+@media (max-width: 768px) {
+  /* Remove background container and move header up */
+  .dashboard-header,
+  .dashboard-header.mb-4 {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 1.5rem !important;
+  }
+
+  /* Ensure icon is blue */
+  .dashboard-header i.bi-piggy-bank,
+  .dashboard-header h2 i {
+    color: #3aa0ff !important;
+  }
+
+  /* Clean text styling */
+  .dashboard-header h2 {
+    color: #e9eef2 !important;
+    font-size: 1.5rem !important;
+    font-weight: 600 !important;
+  }
+
+  .dashboard-header .text-muted {
+    color: rgba(255, 255, 255, 0.6) !important;
+    font-size: 0.875rem !important;
+  }
+
+  /* Fix Budget Amount input - light text (budget page and dashboard) */
+  #budgetAmount,
+  input#budgetAmount,
+  #edit_amount,
+  #add_amount,
+  input[type="number"],
+  input[type="text"]:not([type="date"]),
+  input.form-control {
+    color: #fff !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+
+  #budgetAmount::placeholder,
+  input::placeholder {
+    color: rgba(255, 255, 255, 0.4) !important;
+  }
+
+  /* Date inputs also light text */
+  input[type="date"] {
+    color: #fff !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* Textarea light text */
+  textarea.form-control {
+    color: #fff !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+
+  textarea.form-control::placeholder {
+    color: rgba(255, 255, 255, 0.4) !important;
+  }
+}
+
 /* Budget cards hover effect */
 .budget-card:hover {
   transform: translateY(-2px);
@@ -1156,82 +1355,1583 @@ button.period-btn.active,
   }
 }
 
-/* Custom legend styles for category donut chart */
+/* ===================================
+   CATEGORY LEGEND SCROLLBAR FIX
+   =================================== */
+
 #categoryLegend {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-top: 12px;
-  max-height: 200px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding-right: 4px;
+  max-height: 300px;   overflow-y: auto;
+  overflow-x: hidden !important;
+  padding-right: 8px;
 }
 
-/* Custom scrollbar for category legend (dark theme) */
+/* Custom scrollbar for dark theme */
 #categoryLegend::-webkit-scrollbar {
   width: 6px;
 }
 
 #categoryLegend::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 3px;
 }
 
 #categoryLegend::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 3px;
   transition: background 0.2s ease;
 }
 
 #categoryLegend::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.3);
 }
 
-/* Firefox scrollbar styling */
+/* Firefox scrollbar */
 #categoryLegend {
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.15) rgba(255, 255, 255, 0.03);
+  scrollbar-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.05);
 }
 
-#categoryLegend .legend-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 8px 10px;
-  border-radius: 8px;
-  background: transparent;
-  transition: background 0.15s ease, opacity 0.15s ease;
-  color: rgba(255,255,255,0.92);
+/* ===================================
+   MOBILE PERFORMANCE OPTIMIZATIONS
+   =================================== */
+
+/* ===================================
+   DESKTOP LAYOUT (>768px)
+   =================================== */
+@media (min-width: 769px) {
+  /* Dashboard controls - horizontal layout on desktop */
+  .dashboard-controls {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: nowrap;
+  }
+
+  .dashboard-controls .period-selector {
+    width: auto;
+  }
+
+  .dashboard-controls .btn-modern {
+    flex: 0 0 auto; /* Don't stretch buttons on desktop */
+  }
+
+  /* Ensure table rows have fixed height on desktop */
+  .table-modern tbody tr {
+    height: 64px !important;
+  }
+
+  /* Ensure all table cells are vertically centered on desktop */
+  body .table-modern tbody td {
+    vertical-align: middle !important;
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+    height: 64px !important;
+  }
+
+  /* Ensure transaction titles are vertically centered on desktop */
+  body .table-modern tbody .td-desc {
+    position: relative !important;
+    vertical-align: middle !important;
+    height: 64px !important;
+    padding: 0 1rem !important;
+  }
+
+  body .table-modern tbody .td-desc-wrapper {
+    position: absolute !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    left: 1rem !important;
+    right: 1rem !important;
+    width: auto !important;
+  }
+
+  body .table-modern tbody .td-desc-wrapper > div {
+    margin: 0 !important;
+    line-height: 1.3 !important;
+  }
+
+  body .table-modern tbody .td-desc-wrapper > div:first-child {
+    margin-bottom: 4px !important;
+  }
+
+  .table-modern .td-cat,
+  .table-modern .td-amount,
+  .table-modern .td-date,
+  .table-modern .td-actions {
+    vertical-align: middle !important;
+  }
 }
 
-#categoryLegend .legend-item:focus,
-#categoryLegend .legend-item:hover {
-  outline: none;
-  background: rgba(255,255,255,0.03);
+/* Disable expensive animations and transforms on mobile */
+@media (max-width: 768px) {
+
+  /* ===================================
+     MOBILE LAYOUT & SPACING FIXES
+     =================================== */
+
+  /* Container padding - SAFE ZONES: prevent content touching edges */
+  .container {
+    padding: 16px 20px !important;     max-width: 100% !important;
+  }
+
+  /* Dashboard header - SAFE ZONES */
+  .dashboard-header {
+    position: relative !important;
+    padding: 20px 0 !important;
+    margin-bottom: 16px !important;
+  }
+
+  .dashboard-header-content {
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+    max-width: 100% !important;
+  }
+
+  /* Dashboard controls - КРИТИЧНО: кнопки ГОРИЗОНТАЛЬНО */
+  .dashboard-controls {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    grid-template-rows: auto auto !important;
+    gap: 10px !important;
+    width: 100%;
+    margin-top: 16px !important;
+  }
+
+  .dashboard-controls .period-selector {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    margin-bottom: 0 !important;
+  }
+
+  .dashboard-controls .btn-modern {
+    min-height: 44px !important;
+    justify-content: center;
+    width: 100% !important;
+    display: inline-flex !important;
+  }
+
+  /* КРИТИЧНО: ADD зліва */
+  .dashboard-controls button.btn-modern:nth-of-type(2),
+  .dashboard-controls .btn-success-modern,
+  #add-transaction-button {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+  }
+
+  /* КРИТИЧНО: SYNC справа */
+  .dashboard-controls button.btn-modern:nth-of-type(3),
+  .dashboard-controls .btn-primary-modern,
+  #sync-button {
+    grid-column: 2 !important;
+    grid-row: 2 !important;
+  }
+
+  /* Make header flex column on mobile */
+  .dashboard-header-content > .d-flex {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+
+  /* Dashboard title - smaller */
+  .dashboard-title {
+    font-size: 1.5rem !important;
+    margin-bottom: 8px !important;   }
+
+  .dashboard-title i {
+    font-size: 1.5rem !important;
+  }
+
+  /* ===================================
+     MOBILE PERIOD BUTTONS
+     =================================== */
+
+  .period-btn {
+    flex: 1 !important;
+    padding: 8px 6px !important;     font-size: 13px !important;
+    min-height: 36px !important;     white-space: nowrap !important;
+  }
+
+
+  .btn-modern span {
+    display: inline !important;
+  }
+
+  .btn-modern i {
+    font-size: 16px !important;
+    margin-right: 4px !important;
+  }
+
+  .btn-primary-modern,
+  .btn-success-modern {
+    min-height: 36px !important;
+  }
+
+  /* ===================================
+     VERTICAL STACKING - CONVERT FLEX/GRID
+     =================================== */
+
+  /* Stats grid - BENTO BOX: 2 columns with Balance spanning full width */
+  .stats-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important; /* 2 equal columns */
+    gap: 12px !important;
+    margin-bottom: 16px !important;
+  }
+
+  /* Charts grid - convert to vertical stack */
+  .charts-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    margin-bottom: 16px !important;
+  }
+
+  /* ===================================
+     CARDS - BENTO BOX STYLE
+     =================================== */
+
+  /* Stat cards - Compact & Modern */
+  .stat-card {
+    width: 100% !important;
+    padding: 16px !important;
+    margin: 0 !important; /* Remove margin-bottom, use grid gap */
+    min-height: 110px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    border-radius: 16px !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+
+  /* Balance Card - Full Width */
+  .stat-card.balance-card,
+  .stat-card:nth-child(3) {
+    grid-column: span 2 !important; /* Takes full row */
+  }
+
+  /* Income Card - Green Gradient */
+  .stat-card.income-card,
+  .stat-card:nth-child(1) {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(20, 20, 20, 1) 100%) !important;
+    border: 1px solid rgba(16, 185, 129, 0.3) !important;
+  }
+
+  /* Expense Card - Red Gradient */
+  .stat-card.expense-card,
+  .stat-card:nth-child(2) {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(20, 20, 20, 1) 100%) !important;
+    border: 1px solid rgba(239, 68, 68, 0.3) !important;
+  }
+
+  /* Balance Card - Blue Gradient */
+  .stat-card.balance-card {
+    background: linear-gradient(135deg, rgba(58, 160, 255, 0.15) 0%, rgba(20, 20, 20, 1) 100%) !important;
+    border: 1px solid rgba(58, 160, 255, 0.3) !important;
+  }
+
+  /* Card Icon - Neon Style (White on Colored Circle) */
+  .stat-card-icon {
+    position: absolute !important;
+    top: 12px !important;
+    right: 12px !important;
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    opacity: 1 !important; /* Full opacity for neon effect */
+  }
+
+  .stat-card-icon i {
+    font-size: 22px !important;
+    color: #ffffff !important; /* White icon */
+    filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5)) !important; /* Small shadow for contrast */
+  }
+
+  /* Income Card Icon - Green Neon */
+  .stat-card.income-card .stat-card-icon {
+    background: rgba(16, 185, 129, 0.2) !important; /* Semi-transparent green bg */
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.2) !important; /* Green glow */
+  }
+
+  .stat-card.income-card .stat-card-icon i {
+    color: #ffffff !important;
+    filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5)) !important;
+  }
+
+  /* Expense Card Icon - Red Neon */
+  .stat-card.expense-card .stat-card-icon {
+    background: rgba(239, 68, 68, 0.2) !important; /* Semi-transparent red bg */
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.2) !important; /* Red glow */
+  }
+
+  .stat-card.expense-card .stat-card-icon i {
+    color: #ffffff !important;
+    filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5)) !important;
+  }
+
+  /* Balance Card Icon - Blue Neon */
+  .stat-card.balance-card .stat-card-icon {
+    background: rgba(58, 160, 255, 0.2) !important; /* Semi-transparent blue bg */
+    box-shadow: 0 0 15px rgba(58, 160, 255, 0.2) !important; /* Blue glow */
+  }
+
+  .stat-card.balance-card .stat-card-icon i {
+    color: #ffffff !important;
+    filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5)) !important;
+  }
+
+  /* Card Label - Compact & Uppercase */
+  .stat-card-label {
+    font-size: 11px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    opacity: 0.7 !important;
+    font-weight: 600 !important;
+    margin-bottom: 8px !important;
+  }
+
+  /* Card Value - Big & Bold */
+  .stat-card-value {
+    font-size: 24px !important;
+    font-weight: 700 !important;
+    margin: 0 !important;
+    line-height: 1.2 !important;
+  }
+
+  /* Trend Indicator - Transparent & Floating */
+  .stat-card-trend,
+  .stat-card .badge,
+  .stat-card .status-pill {
+    background: transparent !important; /* Remove dark muddy box */
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin-top: 5px !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+  }
+
+  /* Positive Trend - Green with Glow */
+  .stat-card-trend.positive {
+    color: #2ecc71 !important;
+    text-shadow: 0 0 10px rgba(46, 204, 113, 0.3) !important;
+  }
+
+  /* Negative Trend - Red with Glow */
+  .stat-card-trend.negative {
+    color: #e74c3c !important;
+    text-shadow: 0 0 10px rgba(231, 76, 60, 0.3) !important;
+  }
+
+  /* Critical Status - Bright Red */
+  .stat-card-trend.critical {
+    color: #ff4d4d !important;
+    text-shadow: 0 0 10px rgba(255, 77, 77, 0.3) !important;
+  }
+
+  /* Neutral Trend - Gray */
+  .stat-card-trend.neutral {
+    color: #95a5a6 !important;
+    opacity: 0.8 !important;
+  }
+
+  /* Trend Icon */
+  .stat-card-trend i,
+  .stat-card-trend .bi {
+    font-size: 13px !important;
+  }
+
+  /* Chart containers - SHRINK-WRAP to content */
+  .chart-container {
+    width: 100% !important;
+    padding: 16px 16px 16px 16px !important; /* КРИТИЧНО: однаковий padding з усіх сторін */
+    margin-bottom: 12px !important;
+    height: auto !important; /* Adapt to content */
+    min-height: 0 !important; /* Override any old fixed heights */
+    max-height: none !important; /* Remove max-height constraint */
+    overflow: visible !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important; /* Stretch children to full width */
+  }
+
+  /* Chart wrapper inside container - DON'T grow to fill space */
+  .chart-container > div[style*="height"],
+  .chart-container > div:not(#categoryLegend):not(.chart-title) {
+    flex: 0 0 auto !important; /* Don't grow */
+    height: auto !important;
+    max-height: 280px !important; /* Limit chart canvas height */
+    width: 100% !important;
+    margin-bottom: 8px !important; /* Small gap between chart and legend */
+  }
+
+  /* Balance line chart specific */
+  #balanceLineChart {
+    max-height: 250px !important;     width: 100% !important;   }
+
+  /* Category donut chart specific - MOBILE FIXED SIZE (not all canvas!) */
+  #categoryDonutChart {
+    max-width: 240px !important;
+    width: 240px !important;
+    max-height: 240px !important;
+    height: 240px !important;
+  }
+
+  /* Balance chart should remain responsive */
+  #balanceLineChart {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+  }
+
+  /* Category Legend - FIT CONTENT (No excessive white space) */
+  #categoryLegend {
+    height: auto !important; /* Adapt to content */
+    max-height: 250px !important; /* Keep scroll if list is huge, but don't force height */
+    overflow-y: auto !important;
+    margin-bottom: 0 !important; /* Remove bottom margin */
+    margin-top: 12px !important; /* Gap from chart */
+    padding-bottom: 0 !important; /* No extra padding */
+    flex: 0 0 auto !important; /* Don't grow in flex container */
+  }
+
+  /* Chart header - compact */
+  .chart-header {
+    margin-bottom: 12px !important;
+    margin-top: 0 !important;
+    flex: 0 0 auto !important;
+  }
+
+  /* Donut wrapper - compact */
+  .donut-wrap {
+    flex: 0 0 auto !important;
+    margin-bottom: 0 !important;
+  }
+
+  .chart-title {
+    font-size: 1.125rem !important;
+    margin-bottom: 0 !important;
+    margin-top: 0 !important;
+    flex: 0 0 auto !important; /* Don't grow */
+  }
+
+  /* ===================================
+     DELETE MODAL - MOBILE SPACING
+     =================================== */
+
+  /* Transactions container - SAFE ZONES */
+  .transactions-container {
+    width: 100% !important;
+    padding: 16px 20px !important;
+    margin-bottom: 16px;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .transactions-title {
+    font-size: 1.25rem !important;
+  }
+
+  /* Action buttons in table */
+  .action-btn {
+    min-height: 40px !important;
+    padding: 8px 12px !important;
+    font-size: 14px !important;
+  }
+
+  .action-btn-group {
+    gap: 6px !important;
+    flex-wrap: wrap !important;
+  }
+
+  /* ===================================
+     INPUTS & FORMS - TOUCH-FRIENDLY
+     =================================== */
+
+  .form-control,
+  .form-select,
+  textarea {
+    min-height: 44px !important;
+    padding: 12px 16px !important;
+    font-size: 16px !important; /* Prevents iOS zoom */
+  }
+
+  /* Modal inputs */
+  .modal .form-control,
+  .modal .form-select,
+  .modal textarea {
+    min-height: 44px !important;
+    padding: 12px 16px !important;
+    font-size: 16px !important;
+  }
+
+  /* ===================================
+     FONTS - READABLE SIZES
+     =================================== */
+
+  body {
+    font-size: 16px !important;
+  }
+
+  .small,
+  small {
+    font-size: 14px !important;
+  }
+
+  .text-muted {
+    font-size: 14px !important;
+  }
+
+  /* Table fonts */
+  .table-modern {
+    font-size: 14px !important;
+  }
+
+  .table-modern thead th {
+    font-size: 12px !important;
+  }
+
+  /* Category badge */
+  .category-badge {
+    font-size: 14px !important;
+    padding: 6px 12px !important;
+  }
+
+  /* ===================================
+     TABLE - MOBILE COMPACT CARD STYLE (Revolut/Monobank)
+     =================================== */
+
+  /* Hide table header on mobile */
+  .table-modern thead {
+    display: none !important;
+  }
+
+  /* Transform table to card list */
+  .table-modern {
+    display: block !important;
+    border-spacing: 0 !important;
+  }
+
+  .table-modern tbody {
+    display: block !important;
+  }
+
+  /* Transaction row - COMPACT CARD */
+  .table-modern tbody tr {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0 !important;
+    padding: 12px 0 !important;     min-height: auto !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    margin-bottom: 0 !important;
+  }
+
+  .table-modern tbody tr:last-child {
+    border-bottom: none !important;
+  }
+
+  .table-modern tbody tr:hover {
+    background: rgba(58, 160, 255, 0.03) !important;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Hide row number column */
+  .table-modern .td-num {
+    display: none !important;
+  }
+
+  /* LEFT SIDE: Category Icon + Title/Date */
+  .table-modern .td-desc {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    padding: 0 !important;
+    margin-left: 0 !important;
+    white-space: normal !important;
+  }
+
+  .table-modern .td-desc > div:first-child {
+    font-weight: 600 !important;
+    font-size: 15px !important;
+    color: var(--fm-text) !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    max-width: 100% !important;
+  }
+
+  .table-modern .td-desc .small {
+    font-size: 12px !important;
+    color: var(--fm-muted) !important;
+    margin-top: 2px !important;
+  }
+
+  /* Category - SHOW ICON ONLY (circle on left) */
+  /* Updated: 2026-01-23 v2 - Optimal spacing */
+  .table-modern .td-cat,
+  .table-modern tbody tr .td-cat,
+  .transactions-table .td-cat {
+    display: flex !important;     order: -1 !important;     flex: 0 0 auto !important;
+    margin-right: 4px !important;     padding: 0 !important;
+    width: 36px !important;
+    min-width: 36px !important;
+  }
+
+  /* Hide category text, show only icon badge */
+  .table-modern .td-cat .category-icon-badge,
+  .table-modern tbody tr .td-cat .category-icon-badge,
+  .transactions-table .td-cat .category-icon-badge {
+    width: 36px !important;     height: 36px !important;     border-radius: 50% !important; /* Circle */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 18px !important;     flex-shrink: 0 !important;
+    margin: 0 !important;
+  }
+
+  .table-modern .td-cat span,
+  .transactions-table .td-cat span {
+    display: none !important; /* Hide category name text */
+  }
+
+  /* Date - show below title */
+  .table-modern .td-date {
+    display: none !important;   }
+
+  /* RIGHT SIDE: Amount */
+  .table-modern .td-amount {
+    flex: 0 0 auto !important;
+    min-width: 80px !important;
+    max-width: 120px !important;
+    text-align: right !important;
+    padding: 0 12px !important;
+    font-size: 16px !important;
+    font-weight: 700 !important;
+  }
+
+  /* Actions - HIDE ON MOBILE (click row to edit) */
+  .table-modern .td-actions {
+    display: none !important;   }
+
+  /* Make entire row clickable */
+  .table-modern tbody tr {
+    cursor: pointer !important;
+    transition: background-color 0.2s ease !important;
+  }
+
+  .table-modern tbody tr:hover {
+    background: rgba(58, 160, 255, 0.05) !important; /* Slightly stronger hover */
+  }
+
+  .table-modern tbody tr:active {
+    background: rgba(58, 160, 255, 0.08) !important; /* Active state */
+  }
+
+  /* ===================================
+     INPUTS & FORMS - TOUCH-FRIENDLY
+     =================================== */
+    color: #ef4444 !important;
+  }
+
+  /* Hide text, show icon only */
+  .action-btn i {
+    margin: 0 !important;
+    font-size: 18px !important;
+  }
+
+  /* Hide button text on mobile */
+  .action-btn .btn-text {
+    display: none !important;
+  }
+
+  /* Add category icon to description area */
+  .table-modern .td-desc::before {
+    content: '';
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    margin-right: 12px;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+
+  /* ===================================
+     PREVENT HORIZONTAL OVERFLOW
+     =================================== */
+
+  body,
+  html {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+  }
+
+  .dashboard-container {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+  }
+
+  /* Ensure tables don't cause horizontal scroll */
+  .table-modern {
+    width: 100% !important;
+    overflow-x: hidden !important;
+  }
+
+  /* ===================================
+     CRITICAL FIX 3: DELETE MODAL FIXES
+     =================================== */
+
+  /* Delete confirmation modal - TWO-ZONE LAYOUT (Grey Body + Black Footer) */
+  .modal-delete-transaction .modal-dialog,
+  #deleteBudgetModal .modal-dialog {
+    max-width: 320px !important;
+    width: 80vw !important;
+    margin: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    min-height: calc(100vh - 3.5rem) !important;
+  }
+
+  .modal-delete-transaction .modal-content,
+  #deleteBudgetModal .modal-content {
+    border: none !important;
+    border-radius: 20px !important;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5) !important;
+    padding: 0 !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+
+  /* Custom close button */
+  .modal-delete-transaction .btn-close-custom,
+  #deleteBudgetModal .btn-close-custom {
+    position: absolute !important;
+    top: 14px !important;
+    right: 14px !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: none !important;
+    border-radius: 50% !important;
+    width: 32px !important;
+    height: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #fff !important;
+    font-size: 16px !important;
+    cursor: pointer !important;
+    z-index: 10 !important;
+    padding: 0 !important;
+  }
+
+  .modal-delete-transaction .btn-close-custom:hover,
+  #deleteBudgetModal .btn-close-custom:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+  }
+
+  /* ZONE 1: Modal body - LIGHTER DARK GREY (top/middle zone) */
+  .modal-delete-transaction .modal-body,
+  #deleteBudgetModal .modal-body {
+    background-color: #1a1d21 !important;
+    padding: 40px 24px 30px 24px !important;
+    text-align: center !important;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  /* Danger icon */
+  .modal-delete-transaction .modal-icon-danger,
+  #deleteBudgetModal .modal-icon-danger {
+    width: 56px !important;
+    height: 56px !important;
+    margin: 0 auto 14px !important;
+    background: rgba(239, 68, 68, 0.15) !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .modal-delete-transaction .modal-icon-danger i,
+  #deleteBudgetModal .modal-icon-danger i {
+    font-size: 28px !important;
+    color: #ef4444 !important;
+  }
+
+  /* Modal title */
+  .modal-delete-transaction .modal-title,
+  #deleteBudgetModal .modal-title {
+    font-size: 19px !important;
+    font-weight: 600 !important;
+    color: #fff !important;
+    margin-bottom: 10px !important;
+  }
+
+  /* Modal text */
+  .modal-delete-transaction .modal-body p,
+  #deleteBudgetModal .modal-body p {
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    margin-bottom: 0 !important;
+  }
+
+  /* ZONE 2: Modal footer - DEEP BLACK (bottom zone for button) */
+  .modal-delete-transaction .modal-footer-delete,
+  #deleteBudgetModal .modal-footer-delete,
+  #deleteBudgetModal .modal-footer {
+    background-color: #080a0c !important;
+    border-top: none !important;
+    padding: 20px 24px !important;
+    margin-top: 0 !important;
+    border-bottom-left-radius: 20px !important;
+    border-bottom-right-radius: 20px !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+  }
+
+  /* Delete button - COMPLETELY INSIDE BLACK ZONE */
+  .modal-delete-transaction .btn-delete-confirm,
+  #deleteBudgetModal .btn-delete-confirm,
+  #deleteBudgetModal #confirmDeleteBtn,
+  #deleteBudgetModal .btn-danger {
+    width: 100% !important;
+    padding: 13px !important;
+    background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 12px !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    margin: 0 !important;
+  }
+
+  .modal-delete-transaction .btn-delete-confirm:hover,
+  #deleteBudgetModal .btn-delete-confirm:hover,
+  #deleteBudgetModal #confirmDeleteBtn:hover,
+  #deleteBudgetModal .btn-danger:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4) !important;
+  }
+
+  .modal-delete-transaction .btn-delete-confirm:active,
+  #deleteBudgetModal .btn-delete-confirm:active,
+  #deleteBudgetModal #confirmDeleteBtn:active,
+  #deleteBudgetModal .btn-danger:active {
+    transform: translateY(0) !important;
+  }
+
+  /* Apply similar fixes to all other modals */
+  .modal-add-transaction .modal-dialog,
+  .modal-edit-transaction .modal-dialog {
+    max-width: 95vw !important;
+    width: 95vw !important;
+    max-height: 90vh !important;
+    margin: 5vh auto !important;
+  }
+
+  .modal-add-transaction .modal-content,
+  .modal-edit-transaction .modal-content {
+    max-height: 90vh !important;
+    overflow: hidden !important;     display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .modal-add-transaction .modal-body,
+  .modal-edit-transaction .modal-body {
+    overflow-y: auto !important;
+    flex: 1 1 auto !important;
+    max-height: calc(90vh - 140px) !important; /* Ще більше простору для Note */
+    padding-bottom: 20px !important; /* Більший відступ знизу */
+    -webkit-overflow-scrolling: touch !important; /* Плавний скрол на iOS */
+  }
+
+  /* Note field має бути повністю видимим */
+  .modal-body textarea,
+  .modal-body #edit_note,
+  .modal-body #tx_note {
+    margin-bottom: 16px !important; /* Відступ знизу для Note */
+  }
+
+  .modal-add-transaction .modal-footer,
+  .modal-edit-transaction .modal-footer,
+  #editTransactionModal .modal-footer,
+  #addTransactionModal .modal-footer {
+    flex-shrink: 0 !important;
+    padding-bottom: 24px !important;
+    position: sticky !important;
+    bottom: 0 !important;
+    background: #1a1d29 !important;
+    z-index: 10 !important;
+
+    /* КРИТИЧНО: Кнопки в рядок */
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    gap: 12px !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+  }
+
+  /* Delete кнопка */
+  .modal-edit-transaction .modal-footer #deleteTransactionBtn,
+  #editTransactionModal .modal-footer #deleteTransactionBtn,
+  .modal-footer #deleteTransactionBtn {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    order: 1 !important;
+  }
+
+  /* Close кнопка прихована */
+  .modal-footer .btn-secondary,
+  .modal-footer #editModalCloseFooterBtn,
+  .modal-footer #addModalCloseFooterBtn,
+  .modal-footer button[data-bs-dismiss="modal"] {
+    display: none !important;
+  }
+
+  /* Save кнопка */
+  .modal-edit-transaction .modal-footer button[type="submit"],
+  .modal-add-transaction .modal-footer button[type="submit"],
+  #editTransactionModal .modal-footer button[type="submit"],
+  #addTransactionModal .modal-footer button[type="submit"] {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    width: auto !important;
+    order: 2 !important;
+  }
+
+  /* Всі кнопки в футері не мають бути в стовпець */
+  .modal-footer button {
+    margin: 0 !important;
+  }
+
+  /* Radio buttons КРУГЛІ */
+  .modal .form-check-input[type="radio"] {
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px !important;
+    min-height: 20px !important;
+    border-radius: 50% !important; /* Круглі! */
+    flex-shrink: 0 !important;
+  }
+
+  /* Expense/Income buttons не витягнуті */
+  .modal-body .form-check {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+
+  /* КРИТИЧНО: Форсуємо горизонтальний layout для footer */
+  .modal-footer,
+  div.modal-footer {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+  }
+
+  /* Всі прямі діти footer в рядок */
+  .modal-footer > *,
+  div.modal-footer > * {
+    display: inline-flex !important;
+  }
+
+
+/* КРИТИЧНО: кнопки ГОРИЗОНТАЛЬНО на малих екранах */
+@media (max-width: 480px) {
+  .dashboard-controls {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    grid-template-rows: auto auto !important;
+    gap: 8px !important;
+    width: 100%;
+  }
+
+  .dashboard-controls .period-selector {
+    grid-column: 1 / -1 !important;
+  }
+
+  .dashboard-controls .btn-modern {
+    width: 100% !important;
+    justify-content: center;
+  }
+
+  .dashboard-controls button.btn-modern:nth-of-type(2),
+  #add-transaction-button {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+  }
+
+  .dashboard-controls button.btn-modern:nth-of-type(3),
+  #sync-button {
+    grid-column: 2 !important;
+    grid-row: 2 !important;
+  }
+
+  .period-selector {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .period-btn {
+    flex: 1;
+    text-align: center;
+  }
+
+  /* Make table horizontally scrollable on very small screens */
+  .transactions-container {
+    padding: 12px !important;
+  }
+
+  .table-modern .td-desc {
+    max-width: 120px;
+  }
+
+  .table-modern .td-cat {
+    min-width: 100px;
+  }
 }
 
-#categoryLegend .legend-color {
-  width: 14px;
-  height: 14px;
-  min-width: 14px;
-  border-radius: 3px;
-  display: inline-block;
-  box-shadow: 0 1px 0 rgba(0,0,0,0.25) inset;
-  border: 1px solid rgba(255,255,255,0.06);
+/* ===================================
+   REDUCED MOTION SUPPORT
+   =================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .dashboard-bg-particles,
+  .particle {
+    display: none !important;
+  }
 }
 
-#categoryLegend .legend-item span {
-  display: inline-block;
-  vertical-align: middle;
+/* ===================================
+   HARDWARE ACCELERATION
+   =================================== */
+
+/* Enable GPU acceleration for scrollable areas */
+.transactions-container,
+#categoryLegend,
+.modal-body {
+  -webkit-overflow-scrolling: touch;
+  transform: translateZ(0);
 }
 
-#categoryLegend .legend-item > span:nth-child(2) {
-  flex: 1 1 auto;
+/* Optimize will-change for animated elements (desktop only) */
+@media (min-width: 769px) {
+  .stat-card {
+    will-change: transform, opacity;
+  }
+
+  .table-modern tbody tr {
+    will-change: background-color;
+  }
+
+  .period-btn.active {
+    will-change: background-color;
+  }
+
+  .toast-container .toast {
+    will-change: transform, opacity;
+  }
 }
 
-#categoryLegend .legend-item > span:last-child {
-  margin-left: 8px;
-  color: rgba(255,255,255,0.72);
-  font-weight: 600;
+/* ===================================
+   MOBILE BOTTOM NAVIGATION BAR
+   =================================== */
+
+.mobile-bottom-nav {
+  display: none; /* Hidden on desktop */
+}
+
+@media (max-width: 768px) {
+  .mobile-bottom-nav {
+    display: flex !important;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: linear-gradient(180deg, rgba(15, 19, 22, 0.98), rgba(11, 15, 18, 0.98));
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    padding: 0;
+    justify-content: space-around;
+    align-items: center;
+  }
+
+  .mobile-nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 8px 4px;
+    transition: all 0.2s ease;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    min-height: 60px;
+    gap: 4px;
+  }
+
+    #mobile-logout-button {
+    color: #ff4d4d !important;
+  }
+
+  #mobile-logout-button i {
+    color: #ff4d4d !important;
+  }
+
+  #mobile-logout-button:active {
+    background: rgba(255, 77, 77, 0.15) !important;
+  }
+
+  .mobile-nav-item i {
+    font-size: 20px;
+    margin-bottom: 2px;
+  }
+
+  .mobile-nav-item.active {
+    color: #3aa0ff !important;
+  }
+
+  .mobile-nav-item.active i {
+    color: #3aa0ff !important;
+  }
+
+  .mobile-nav-item:active {
+    background: rgba(58, 160, 255, 0.1);
+  }
+
+  /* Add bottom padding to body to prevent content being hidden by nav */
+  body {
+    padding-bottom: 80px !important;
+  }
+
+  .dashboard-container {
+    padding-bottom: 80px !important;
+  }
+
+  /* Profile dropdown in mobile nav */
+  .mobile-nav-dropdown {
+    position: relative;
+  }
+
+  .mobile-nav-dropdown .dropdown-menu {
+    bottom: 60px !important;
+    top: auto !important;
+    right: 0;
+    left: auto;
+    transform: none !important;
+    min-width: 200px;
+  }
+}
+/* СЬ ТТ: нопки ADD і SYNC ТЬ! */
+@media (max-width: 768px) {
+  div.dashboard-controls {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    grid-template-rows: auto auto !important;
+  }
+  div.dashboard-controls > button#add-transaction-button {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+  }
+  div.dashboard-controls > button#sync-button {
+    grid-column: 2 !important;
+    grid-row: 2 !important;
+  }
+  div.dashboard-controls > .period-selector {
+    grid-column: 1 / -1 !important;
+    grid-row: 1 !important;
+  }
+}
+/* Т Я: СЬ ТТ - идалення зайвого простору в chart-container */
+@media (max-width: 768px) {
+  /* С перезаписування padding */
+  body .chart-container,
+  .dashboard-container .chart-container,
+  div.chart-container {
+    padding: 16px !important;
+    min-height: auto !important;
+    height: auto !important;
+  }
+  /* егенда без зайвих відступів */
+  body #categoryLegend,
+  .chart-container #categoryLegend,
+  div#categoryLegend {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+    height: auto !important;
+  }
+  /* Chart header компактний */
+  .chart-container .chart-header,
+  body .chart-header {
+    margin-bottom: 12px !important;
+    margin-top: 0 !important;
+  }
+  /* Donut wrapper компактний */
+  .chart-container .donut-wrap,
+  body .donut-wrap {
+    margin-bottom: 0 !important;
+    margin-top: 0 !important;
+  }
+}
+
+/* ===================================
+   TOGGLE SWITCH STYLES (Recurring Budget)
+   =================================== */
+
+/* Force specific styling for the toggle switch - MULTIPLE SELECTORS for higher specificity */
+.modal-body .form-check-input[type="checkbox"],
+.modal-body .form-switch .form-check-input[type="checkbox"],
+.form-switch .form-check-input[type="checkbox"],
+.form-check .form-check-input[type="checkbox"],
+#isRecurring,
+input#isRecurring[type="checkbox"] {
+    appearance: none !important; /* Remove browser default */
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    width: 44px !important;
+    height: 24px !important;
+    min-width: 44px !important;
+    min-height: 24px !important;
+    background-color: #2a2a2a !important; /* Dark Grey Track (OFF) */
+    background-image: none !important; /* Remove Bootstrap default image */
+    border-radius: 20px !important;
+    position: relative !important;
+    cursor: pointer !important;
+    outline: none !important;
+    border: 1px solid #444 !important;
+    transition: background-color 0.3s ease !important;
+    margin-top: 0 !important;
+    margin-left: 0 !important;
+    flex-shrink: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* The "Knob" (Circle) - Created via ::before */
+.modal-body .form-check-input[type="checkbox"]::before,
+.modal-body .form-switch .form-check-input[type="checkbox"]::before,
+.form-switch .form-check-input[type="checkbox"]::before,
+.form-check .form-check-input[type="checkbox"]::before,
+#isRecurring::before,
+input#isRecurring[type="checkbox"]::before {
+    content: '' !important;
+    display: block !important;
+    position: absolute !important;
+    top: 2px !important;
+    left: 2px !important;
+    width: 18px !important;
+    height: 18px !important;
+    background-color: #ffffff !important; /* White Knob */
+    border-radius: 50% !important;
+    transition: transform 0.3s ease !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3) !important;
+}
+
+/* CHECKED State (ON) */
+.modal-body .form-check-input[type="checkbox"]:checked,
+.modal-body .form-switch .form-check-input[type="checkbox"]:checked,
+.form-switch .form-check-input[type="checkbox"]:checked,
+.form-check .form-check-input[type="checkbox"]:checked,
+#isRecurring:checked,
+input#isRecurring[type="checkbox"]:checked {
+    background-color: #10b981 !important; /* Green Track (ON) */
+    background-image: none !important;
+    border-color: #10b981 !important;
+}
+
+/* Move the Knob when checked */
+.modal-body .form-check-input[type="checkbox"]:checked::before,
+.modal-body .form-switch .form-check-input[type="checkbox"]:checked::before,
+.form-switch .form-check-input[type="checkbox"]:checked::before,
+.form-check .form-check-input[type="checkbox"]:checked::before,
+#isRecurring:checked::before,
+input#isRecurring[type="checkbox"]:checked::before {
+    transform: translateX(20px) !important; /* Slide right */
+}
+
+/* Fix alignment with label - FORCE HORIZONTAL - OVERRIDE main.css */
+.modal-body .form-check,
+.modal-body .form-check.form-switch,
+.modal-body .form-switch,
+.form-switch,
+.form-check.form-switch,
+div.form-check.form-switch,
+div.form-switch {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important; /* Center for better text alignment */
+    gap: 12px !important;
+    padding-left: 0 !important; /* Remove Bootstrap default padding */
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    flex-wrap: wrap !important; /* Allow form-text to wrap to next line */
+}
+
+/* Ensure form-text doesn't break layout */
+.modal-body .form-check .form-text,
+.modal-body .form-switch .form-text,
+.form-switch .form-text,
+.form-check .form-text,
+div.form-check .form-text {
+    flex-basis: 100% !important;
+    width: 100% !important;
+    margin-top: 8px !important;
+    margin-left: 0 !important; /* Align to left */
+    padding-left: 0 !important;
+    order: 3 !important; /* Ensure it comes after toggle and label */
+}
+
+/* Wrapper to handle label + description properly */
+.modal-body .form-check-label,
+.modal-body .form-switch .form-check-label,
+.form-switch .form-check-label,
+.form-check .form-check-label,
+div.form-check label.form-check-label {
+    display: flex !important;
+    align-items: center !important;
+    margin-bottom: 0 !important;
+    margin-top: 0 !important; /* Remove vertical offset */
+    margin-left: 0 !important;
+    flex: 1 1 auto !important; /* Allow to grow and shrink */
+    order: 2 !important;
+    min-width: 0 !important; /* Allow shrinking */
+}
+
+/* Ensure input comes first */
+.modal-body .form-check-input,
+.modal-body .form-switch .form-check-input,
+.form-switch .form-check-input,
+.form-check .form-check-input,
+#isRecurring {
+    order: 1 !important;
+    margin: 0 !important;
+    flex-shrink: 0 !important; /* Never shrink */
+}
+
+/* Hover effect for better UX */
+.modal-body .form-check-input[type="checkbox"]:hover,
+.form-switch .form-check-input[type="checkbox"]:hover,
+#isRecurring:hover {
+    border-color: #666 !important;
+}
+
+.modal-body .form-check-input[type="checkbox"]:checked:hover,
+.form-switch .form-check-input[type="checkbox"]:checked:hover,
+#isRecurring:checked:hover {
+    background-color: #0ea371 !important;
+    border-color: #0ea371 !important;
+}
+
+/* Focus state for accessibility */
+.modal-body .form-check-input[type="checkbox"]:focus,
+.form-switch .form-check-input[type="checkbox"]:focus,
+#isRecurring:focus {
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2) !important;
+}
+
+/* Ensure label text is properly styled */
+.modal-body .form-check-label,
+.modal-body .form-switch .form-check-label,
+.form-switch .form-check-label,
+.form-check .form-check-label,
+label[for="isRecurring"] {
+    cursor: pointer !important;
+    user-select: none !important;
+    color: #e0e0e0 !important;
+    white-space: normal !important; /* Allow text wrapping */
+    flex-shrink: 1 !important; /* Allow label to shrink if needed */
+    flex-grow: 0 !important; /* Don't grow to fill space */
+    max-width: calc(100% - 56px) !important; /* Leave space for toggle */
+}
+
+/* ===================================
+   MOBILE STYLES FOR TOGGLE SWITCH
+   =================================== */
+@media (max-width: 768px) {
+  /* Збільшуємо розмір toggle для зручності на мобільних */
+  .modal-body .form-check-input[type="checkbox"],
+  .modal-body .form-switch .form-check-input[type="checkbox"],
+  .form-switch .form-check-input[type="checkbox"],
+  .form-check .form-check-input[type="checkbox"],
+  #isRecurring,
+  input#isRecurring[type="checkbox"] {
+    width: 50px !important;
+    height: 28px !important;
+    min-width: 50px !important;
+    min-height: 28px !important;
+  }
+
+  /* Збільшуємо knob для кращої видимості */
+  .modal-body .form-check-input[type="checkbox"]::before,
+  .modal-body .form-switch .form-check-input[type="checkbox"]::before,
+  .form-switch .form-check-input[type="checkbox"]::before,
+  .form-check .form-check-input[type="checkbox"]::before,
+  #isRecurring::before,
+  input#isRecurring[type="checkbox"]::before {
+    width: 22px !important;
+    height: 22px !important;
+    top: 2px !important;
+    left: 2px !important;
+  }
+
+  /* Коректуємо зсув для більшого toggle */
+  .modal-body .form-check-input[type="checkbox"]:checked::before,
+  .modal-body .form-switch .form-check-input[type="checkbox"]:checked::before,
+  .form-switch .form-check-input[type="checkbox"]:checked::before,
+  .form-check .form-check-input[type="checkbox"]:checked::before,
+  #isRecurring:checked::before,
+  input#isRecurring[type="checkbox"]:checked::before {
+    transform: translateX(22px) !important;
+  }
+
+  /* Збільшуємо gap для кращого spacing - OVERRIDE main.css */
+  .modal-body .form-check,
+  .modal-body .form-check.form-switch,
+  .modal-body .form-switch,
+  .form-switch,
+  .form-check.form-switch,
+  div.form-check.form-switch,
+  div.form-switch {
+    gap: 16px !important;
+    margin-bottom: 16px !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important; /* Center for better alignment */
+    flex-wrap: wrap !important; /* Allow form-text to wrap */
+    padding: 0 !important;
+  }
+
+  /* Збільшуємо текст label для кращої читабельності */
+  .modal-body .form-check-label,
+  .modal-body .form-switch .form-check-label,
+  .form-switch .form-check-label,
+  .form-check .form-check-label,
+  label[for="isRecurring"] {
+    font-size: 15px !important;
+    line-height: 1.4 !important;
+    white-space: normal !important; /* Allow wrapping on mobile if needed */
+    flex: 1 1 auto !important; /* Allow to grow and shrink */
+    margin-top: 0 !important; /* Remove offset */
+    margin-left: 0 !important;
+    min-width: 0 !important; /* Allow shrinking */
+  }
+
+  /* form-text на мобільних */
+  .modal-body .form-check .form-text,
+  .modal-body .form-switch .form-text,
+  .form-switch .form-text,
+  .form-check .form-text,
+  div.form-check .form-text {
+    margin-left: 0 !important; /* Align to left */
+    padding-left: 0 !important;
+    font-size: 11px !important;
+    width: 100% !important;
+  }
+
+  /* Збільшуємо область tap для зручності */
+  .modal-body .form-check-input[type="checkbox"],
+  .form-switch .form-check-input[type="checkbox"],
+  #isRecurring {
+    -webkit-tap-highlight-color: transparent !important;
+  }
+
+  /* Focus state трохи більший на мобільних */
+  .modal-body .form-check-input[type="checkbox"]:focus,
+  .form-switch .form-check-input[type="checkbox"]:focus,
+  #isRecurring:focus {
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.25) !important;
+  }
+}
+
+/* ===================================
+   BUDGET PAGE HEADER POSITIONING
+   =================================== */
+
+/* Remove default header padding/margin for budget page */
+.container-fluid > .dashboard-header {
+  margin-top: 0 !important;
+  padding-top: 30px !important; /* Desktop - very close to top */
+}
+
+/* Desktop version - header right under app-header */
+@media (min-width: 769px) {
+  .container-fluid > .dashboard-header {
+    padding-top: 30px !important;
+  }
+}
+
+/* Mobile version - header right under app-header */
+@media (max-width: 768px) {
+  .container-fluid > .dashboard-header {
+    padding-top: 45px !important;
+    margin-bottom: 1rem !important;
+  }
+
+  /* Ensure main container has no top margin */
+  .container-fluid.px-4,
+  .container-fluid {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+}
+
+/* ===================================
+   CRITICAL FIX: Force vertical centering for transaction names
+   Added: 2026-01-24
+   =================================== */
+@media (min-width: 769px) {
+  /* Maximum specificity to override any other styles */
+  html body .table-modern tbody tr .td-desc {
+    position: relative !important;
+    height: 64px !important;
+    padding: 0 1rem !important;
+    vertical-align: middle !important;
+  }
+  html body .table-modern tbody tr .td-desc-wrapper {
+    position: absolute !important;
+    top: 50% !important;
+    left: 1rem !important;
+    right: 1rem !important;
+    transform: translateY(-50%) !important;
+    -webkit-transform: translateY(-50%) !important;
+    -moz-transform: translateY(-50%) !important;
+    -ms-transform: translateY(-50%) !important;
+  }
+  html body .table-modern tbody tr .td-desc-wrapper > div {
+    margin: 0 !important;
+    line-height: 1.3 !important;
+  }
+  html body .table-modern tbody tr .td-desc-wrapper > div:first-child {
+    margin-bottom: 2px !important;
+  }
 }
