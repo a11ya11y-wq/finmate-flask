@@ -1,6 +1,93 @@
-// Toast notification system
-export function showToast(message, type = 'info', duration = 3000) {
-  // Create container if it doesn't exist
+// Toast notification system - Template-based, matches toast.css
+const TOAST_DURATION = {
+  SUCCESS: 3000,
+  ERROR: 4000,
+  WARNING: 3500,
+  INFO: 3000
+}
+
+const TOAST_CONFIG = {
+  success: {
+    icon: 'bi-check-circle-fill',
+    class: 'toast-success'
+  },
+  error: {
+    icon: 'bi-x-circle-fill',
+    class: 'toast-error'
+  },
+  warning: {
+    icon: 'bi-exclamation-triangle-fill',
+    class: 'toast-warning'
+  },
+  info: {
+    icon: 'bi-info-circle-fill',
+    class: 'toast-info'
+  }
+}
+
+/**
+ * Show a toast notification
+ * @param {string} message - Toast message
+ * @param {string} type - Toast type: 'success', 'error', 'warning', 'info'
+ * @param {number} duration - Duration in milliseconds (default: based on type)
+ */
+export function showToast(message, type = 'info', duration = null) {
+  // Validate type
+  if (!TOAST_CONFIG[type]) {
+    console.warn(`[Toast] Invalid type "${type}", using "info"`)
+    type = 'info'
+  }
+
+  // Use type-specific duration if not provided
+  if (!duration) {
+    duration = TOAST_DURATION[type.toUpperCase()] || TOAST_DURATION.INFO
+  }
+
+  // Get or create container
+  const container = getOrCreateContainer()
+
+  // Create toast element
+  const toast = createToastElement(message, type)
+  container.appendChild(toast)
+
+  // Setup close handler
+  setupCloseHandler(toast)
+
+  // Trigger show animation
+  requestAnimationFrame(() => {
+    toast.classList.add('toast-visible')
+  })
+
+  // Auto-hide
+  toast._hideTimeout = setTimeout(() => {
+    hideToast(toast)
+  }, duration)
+}
+
+/**
+ * Convenience methods for different toast types
+ */
+export function showSuccess(message, duration = TOAST_DURATION.SUCCESS) {
+  showToast(message, 'success', duration)
+}
+
+export function showError(message, duration = TOAST_DURATION.ERROR) {
+  showToast(message, 'error', duration)
+}
+
+export function showWarning(message, duration = TOAST_DURATION.WARNING) {
+  showToast(message, 'warning', duration)
+}
+
+export function showInfo(message, duration = TOAST_DURATION.INFO) {
+  showToast(message, 'info', duration)
+}
+
+// ========================================
+// INTERNAL HELPERS (Template-based)
+// ========================================
+
+function getOrCreateContainer() {
   let container = document.getElementById('toast-container')
   if (!container) {
     container = document.createElement('div')
@@ -8,83 +95,85 @@ export function showToast(message, type = 'info', duration = 3000) {
     container.className = 'toast-container'
     document.body.appendChild(container)
   }
+  return container
+}
 
-  // Create toast element
+function createToastElement(message, type) {
+  const config = TOAST_CONFIG[type]
+
   const toast = document.createElement('div')
-  toast.className = `toast toast-${type}`
+  toast.className = `toast ${config.class}`
 
-  // Modern Bootstrap Icons
-  const icons = {
-    success: '<i class="bi bi-check-circle-fill"></i>',
-    error: '<i class="bi bi-x-circle-fill"></i>',
-    warning: '<i class="bi bi-exclamation-triangle-fill"></i>',
-    info: '<i class="bi bi-info-circle-fill"></i>'
-  }
+  // Create icon element
+  const iconSpan = document.createElement('span')
+  iconSpan.className = 'toast-icon'
+  const icon = document.createElement('i')
+  icon.className = `bi ${config.icon}`
+  iconSpan.appendChild(icon)
 
-  toast.innerHTML = `
-    <span class="toast-icon">${icons[type] || icons.info}</span>
-    <span class="toast-message">${message}</span>
-    <button class="toast-close" aria-label="Close">
-      <i class="bi bi-x"></i>
-    </button>
-  `
+  // Create message element
+  const messageSpan = document.createElement('span')
+  messageSpan.className = 'toast-message'
+  messageSpan.textContent = message
 
-  container.appendChild(toast)
+  // Create close button
+  const closeBtn = document.createElement('button')
+  closeBtn.className = 'toast-close'
+  closeBtn.setAttribute('aria-label', 'Close')
+  const closeIcon = document.createElement('i')
+  closeIcon.className = 'bi bi-x'
+  closeBtn.appendChild(closeIcon)
 
-  // Close button handler
+  // Append all elements
+  toast.appendChild(iconSpan)
+  toast.appendChild(messageSpan)
+  toast.appendChild(closeBtn)
+
+  return toast
+}
+
+function setupCloseHandler(toast) {
   const closeBtn = toast.querySelector('.toast-close')
   if (closeBtn) {
     closeBtn.addEventListener('click', () => {
-      toast.classList.remove('toast-visible')
-      toast.classList.add('toast-hiding')
-      setTimeout(() => {
-        if (toast.parentElement) {
-          toast.remove()
-        }
-      }, 300)
+      // Clear auto-hide timeout
+      if (toast._hideTimeout) {
+        clearTimeout(toast._hideTimeout)
+      }
+      hideToast(toast)
     })
   }
+}
 
-  // Trigger animation
+function hideToast(toast) {
+  toast.classList.remove('toast-visible')
+  toast.classList.add('toast-hiding')
+
   setTimeout(() => {
-    toast.classList.add('toast-visible')
-  }, 10)
-
-  // Auto-hide
-  setTimeout(() => {
-    toast.classList.remove('toast-visible')
-    toast.classList.add('toast-hiding')
-    setTimeout(() => {
-      if (toast.parentElement) {
-        toast.remove()
-      }
-    }, 300)
-  }, duration)
+    if (toast.parentElement) {
+      toast.remove()
+    }
+  }, 300) // Match CSS transition duration
 }
 
-export function showSuccess(message, duration = 3000) {
-  showToast(message, 'success', duration)
-}
+// ========================================
+// DEBUG UTILITIES (exposed globally)
+// ========================================
 
-export function showError(message, duration = 4000) {
-  showToast(message, 'error', duration)
-}
-
-export function showWarning(message, duration = 3500) {
-  showToast(message, 'warning', duration)
-}
-
-export function showInfo(message, duration = 3000) {
-  showToast(message, 'info', duration)
-}
-
-// Expose globally for debugging
 if (typeof window !== 'undefined') {
   window.testToast = {
-    success: (msg = 'Test Success!') => showSuccess(msg),
-    error: (msg = 'Test Error!') => showError(msg),
-    warning: (msg = 'Test Warning!') => showWarning(msg),
-    info: (msg = 'Test Info!') => showInfo(msg)
+    success: (msg = 'Test Success! ✅') => showSuccess(msg),
+    error: (msg = 'Test Error! ❌') => showError(msg),
+    warning: (msg = 'Test Warning! ⚠️') => showWarning(msg),
+    info: (msg = 'Test Info! ℹ️') => showInfo(msg),
+    all: () => {
+      showSuccess('Success notification')
+      setTimeout(() => showError('Error notification'), 200)
+      setTimeout(() => showWarning('Warning notification'), 400)
+      setTimeout(() => showInfo('Info notification'), 600)
+    }
   }
+
+  console.info('[Toast] Debug utilities available: window.testToast')
 }
 

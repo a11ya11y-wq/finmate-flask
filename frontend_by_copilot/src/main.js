@@ -4,27 +4,33 @@ import 'bootstrap-icons/font/bootstrap-icons.css'
 import * as bootstrap from 'bootstrap'
 
 import './styles/main.css'
-import './styles/custom.css'
 import './styles/toast.css'
 import './styles/settings.css'
 import './styles/dashboard.css'
-import './styles/dashboard-buttons-fix.css'
-import './styles/chart-fix-override.css'
-import './styles/mobile-performance.css'  // ✅ MOBILE: Must be after dashboard.css to override
-import './styles/vertical-center-fix.css'  // ✅ CRITICAL: Must be last to override all other styles
 
 import { showSuccess, showError, showWarning, showInfo } from './utils/toast.js'
-import { openModal, closeModal, closeAllModals } from './utils/simpleModal.js'
+import { openModal, closeModal, closeAllModals, createDynamicModal } from './utils/simpleModal.js'
+import { confirmDelete, confirmAction, showConfirmDialog } from './utils/confirmDialog.js'
 
 if(typeof window !== 'undefined') {
   window.bootstrap = bootstrap
+
+  // Toast utilities
   window.showSuccess = showSuccess
   window.showError = showError
   window.showWarning = showWarning
   window.showInfo = showInfo
+
+  // Modal utilities
   window.openModal = openModal
   window.closeModal = closeModal
   window.closeAllModals = closeAllModals
+  window.createDynamicModal = createDynamicModal
+
+  // Confirm dialog utilities
+  window.confirmDelete = confirmDelete
+  window.confirmAction = confirmAction
+  window.showConfirmDialog = showConfirmDialog
 }
 
 import Chart from 'chart.js/auto'

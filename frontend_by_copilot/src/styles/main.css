@@ -1,7 +1,304 @@
-/* Minimal styles adapted from original project */
-:root{--bg:#0d1117;--muted:#9ca3af}
-html,body{height:100%;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
-body{background:var(--bg);color:#fff;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;margin:0}
+
+
+/* ===================================
+   CONSOLIDATED GLOBAL STYLES
+   Merged from: custom.css, mobile-performance.css
+   =================================== */
+
+/* --- CSS VARIABLES (from custom.css) --- */
+:root{
+  /* Old variables (kept for compatibility) */
+  --bg:#0d1117;
+  --muted:#9ca3af;
+
+  /* New variables (from custom.css) */
+  --fm-bg:#0b0f12;
+  --fm-surface:linear-gradient(180deg,#0f1417 0%, #0b0f12 100%);
+  --fm-card:#0f1316;
+  --fm-accent:#3aa0ff;
+  --fm-accent-2:#6ad0ff;
+  --fm-text:#e9eef2;
+  --fm-muted:#9aa1a6;
+  --fm-muted-2:rgba(154,161,166,0.18);
+  --fm-glass: rgba(255,255,255,0.03);
+  --fm-radius:12px;
+}
+
+/* --- BASE STYLES --- */
+html,body{
+  height:100%;
+  margin:0;
+  padding:0;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  background:radial-gradient(1000px 500px at 10% 10%, rgba(58,160,255,0.03), transparent), var(--fm-bg);
+  color:var(--fm-text);
+  font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial;
+  overflow-x:hidden;
+}
+
+/* --- CONTAINERS --- */
+.container{
+  max-width:1200px;
+  margin:0 auto;
+  padding:28px;
+  overflow:visible !important;
+}
+
+/* Logo styles */
+.logo{
+  filter:drop-shadow(0 1px 2px rgba(0,0,0,0.6));
+}
+.header__img{
+  height:56px;
+  width:auto;
+}
+
+/* --- HEADERS (from custom.css) --- */
+header, .header, .app-header {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 20px 0 !important;
+  margin: 0 0 1.5rem 0 !important;
+  box-sizing: border-box !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-bottom: none !important;
+}
+
+.dashboard-header {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 1.5rem 0 !important;
+  margin: 0 0 2rem 0 !important;
+  box-sizing: border-box !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  overflow: visible !important;
+}
+
+.dashboard-header .d-flex {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.dashboard-header-controls,
+.d-flex.justify-content-between.align-items-center.mb-4 {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 0 !important;
+  margin: 0 0 1.5rem 0 !important;
+  box-sizing: border-box !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  overflow: visible !important;
+}
+
+.container > .d-flex,
+.container > .dashboard-header {
+  width: 100% !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* --- CARDS (from custom.css) --- */
+.card{
+  background:var(--fm-card);
+  border-radius:var(--fm-radius);
+  padding:14px;
+  box-shadow:0 6px 18px rgba(2,6,10,0.6);
+  border:1px solid rgba(255,255,255,0.02);
+  transition:transform .15s ease, box-shadow .15s ease;
+}
+.card:hover{
+  transform:translateY(-4px);
+  box-shadow:0 10px 28px rgba(2,6,10,0.75);
+}
+.card .card-body{padding:10px}
+.card .label{
+  font-size:12px;
+  color:var(--fm-muted);
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+}
+.card .value{
+  font-size:1.6rem;
+  font-weight:700;
+  margin-top:6px;
+}
+
+/* Card color fixes */
+.card.bg-success-subtle .text-success,
+.card.bg-danger-subtle .text-danger,
+.card.bg-primary-subtle .text-primary,
+#current-balance {
+  color: var(--fm-text) !important;
+}
+.card.bg-primary-subtle .text-primary {
+  color: var(--fm-accent) !important;
+}
+
+/* Specific budget labels */
+#budgetLimitText,
+.budget .limit-text,
+.budget-card .limit-text {
+  color: rgba(255,255,255,0.64) !important;
+}
+
+/* Typography */
+h1,h2,h3,h4,h5{color:inherit;margin-top:0}
+
+.text-muted, .muted {
+  color: var(--fm-muted) !important;
+}
+
+.small{font-size:0.85rem}
+
+/* Spinner animation */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+/* --- FORM CONTROLS --- */
+.form-control, textarea{
+  background:transparent;
+  border-radius:8px;
+  border:1px solid rgba(255,255,255,0.06);
+  padding:10px;
+  color:inherit;
+}
+
+/* Form select - темна тема з правильним фоном (from custom.css) */
+.form-select {
+  background-color: var(--fm-card) !important;
+  color: var(--fm-text) !important;
+  border-color: var(--fm-muted-2) !important;
+  opacity: 1 !important;
+  font-weight: 500 !important;
+}
+
+.form-select:focus {
+  border-color: rgba(58, 160, 255, 0.6) !important;
+  box-shadow: 0 0 0 0.2rem rgba(58, 160, 255, 0.25) !important;
+  outline: none !important;
+}
+
+.form-select:hover {
+  border-color: rgba(58, 160, 255, 0.4) !important;
+}
+
+.form-select option{
+  background-color: var(--fm-card) !important;
+  color: var(--fm-text) !important;
+}
+
+/* Period select - special styling (from custom.css) */
+#time-period-select {
+  background-color: rgba(58, 160, 255, 0.08) !important;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='rgba(58, 160, 255, 0.8)' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+  border: 1px solid rgba(58, 160, 255, 0.3) !important;
+  color: rgba(58, 160, 255, 0.95) !important;
+  font-weight: 600 !important;
+  padding: 0.5rem 2.5rem 0.5rem 0.75rem !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
+}
+
+/* Auth form */
+.auth-form-container{
+  max-width:420px;
+  margin:5vh auto;
+  padding:2rem;
+  background:rgba(255,255,255,0.04);
+  border-radius:8px;
+}
+
+/* Quick form (from custom.css) */
+.quick-card{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.quick-card .form-control,.quick-card .form-select{
+  background:transparent;
+  border:1px solid var(--fm-muted-2);
+  color:var(--fm-text);
+  padding:10px;
+  border-radius:8px;
+}
+
+/* --- TABLES (from custom.css) --- */
+.table{
+  width:100%;
+  border-collapse:separate;
+  border-spacing:0 8px;
+  font-size:14px;
+}
+
+.table thead th, .table tbody td, .transactions-table thead th, .transactions-table tbody td {
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+  transform: none !important;
+  white-space: nowrap;
+  padding: 12px 14px;
+  border: none;
+  color: var(--fm-text);
+}
+
+.table thead th{
+  color:var(--fm-muted);
+  font-size:12px;
+  text-transform:uppercase;
+  white-space:nowrap;
+}
+
+.table tbody tr{
+  background:linear-gradient(180deg, rgba(255,255,255,0.008), rgba(255,255,255,0.006));
+  border-radius:8px;
+}
+
+.table tbody tr:hover{
+  background:linear-gradient(90deg, rgba(58,160,255,0.02), transparent);
+}
+
+/* Table buttons inline and compact */
+.table td .btn{
+  display:inline-flex;
+  padding:4px 6px;
+  font-size:0.85rem;
+}
+
+/* --- MODALS (from custom.css) --- */
+.modal .modal-content{
+  background: linear-gradient(180deg, rgba(15,19,22,0.98), rgba(11,15,18,0.98));
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,0.03);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+.modal .modal-header{border-bottom:1px solid rgba(255,255,255,0.04)}
+.modal .modal-footer{border-top:1px solid rgba(255,255,255,0.04)}
+
+/* Backdrop: робимо затемнення більш помітним */
+.modal-backdrop{ background-color: rgba(2,6,10,0.65) !important; }
+.modal-backdrop.fade{ opacity:1 !important; }
+.modal-backdrop.show{ opacity:1 !important; }
+
+/* --- DASHBOARD SPECIFIC STYLES --- */
 
 /* Dashboard body - НЕ overflow-x hidden на desktop! */
 body.dashboard-container {
@@ -127,6 +424,112 @@ h1,h2,h3,h4,h5{color:inherit;margin-top:0}
 
 /* reduce default bootstrap card paddings to match design */
 .card{padding:10px}
+
+/* ===================================
+   MOBILE PERFORMANCE OPTIMIZATIONS
+   Imported from: mobile-performance.css
+   =================================== */
+
+@media (max-width: 768px) {
+  /* Disable heavy backdrop filters on mobile (major performance improvement) */
+  .dashboard-header,
+  .stat-card,
+  .chart-container,
+  .transactions-container,
+  .settings-card,
+  .toast-container .toast,
+  .toast-container .toast-close,
+  .modal .modal-content {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .dashboard-header {
+    background: rgba(15, 19, 22, 0.98) !important;
+  }
+
+  .stat-card,
+  .chart-container {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04)) !important;
+  }
+
+  .transactions-container {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.03)) !important;
+  }
+
+  .toast-container .toast {
+    background: rgba(15, 20, 25, 0.95) !important;
+  }
+
+  /* Simplify box-shadows on mobile (reduce repaints) */
+  .toast-container .toast {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  .card {
+    box-shadow: 0 4px 12px rgba(2, 6, 10, 0.4) !important;
+  }
+
+  /* Disable shadow animations on hover (performance killer) */
+  .card:hover,
+  .stat-card:hover,
+  .chart-container:hover {
+    box-shadow: 0 4px 12px rgba(2, 6, 10, 0.4) !important;
+    transform: none !important;
+  }
+
+  .period-btn.active,
+  .period-btn.active:hover {
+    box-shadow: 0 2px 4px rgba(58, 160, 255, 0.2) !important;
+  }
+
+  /* Disable expensive transform animations */
+  .stat-card:hover,
+  .table-modern tbody tr:hover,
+  .action-btn:hover,
+  .toast-container .toast-close:hover {
+    transform: none !important;
+  }
+
+  /* Keep only cheap color changes */
+  .table-modern tbody tr:hover {
+    background: linear-gradient(135deg, rgba(58, 160, 255, 0.08), rgba(58, 160, 255, 0.03)) !important;
+  }
+
+  /* Disable background particle animations (CPU intensive) */
+  .dashboard-bg-particles,
+  .particle {
+    display: none !important;
+  }
+
+  /* Remove will-change hints on mobile */
+  .stat-card,
+  .table-modern tbody tr,
+  .period-btn.active,
+  .toast-container .toast {
+    will-change: auto !important;
+  }
+}
+
+/* Reduced motion support (accessibility) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .dashboard-bg-particles,
+  .particle {
+    display: none !important;
+  }
+}
+
+/* ===================================
+   MOBILE RESPONSIVE STYLES
+   =================================== */
 
 /* small responsive helpers */
 @media(max-width:768px){
@@ -271,12 +674,12 @@ h1,h2,h3,h4,h5{color:inherit;margin-top:0}
   /* Ensure modal doesn't get cut off by keyboard */
   .modal {
     padding: 0 !important; /* Reset padding for full screen */
-    z-index: 10100 !important; /* ✅ Increased from 10000 to be above bottom nav (9999) */
+    z-index: 10500 !important; /* ✅ Increased for better visibility on mobile */
   }
 
   /* Modal backdrop should cover bottom nav */
   .modal-backdrop {
-    z-index: 10050 !important; /* ✅ Increased from 9998 to be above bottom nav (9999) */
+    z-index: 10450 !important; /* ✅ Increased to match modal z-index */
   }
 
 
@@ -481,7 +884,205 @@ h1,h2,h3,h4,h5{color:inherit;margin-top:0}
   .app-header {
     display: none !important;
   }
+
+  /* ===================================
+     IMPORTED FROM CUSTOM.CSS - MOBILE MODAL ENHANCEMENTS
+     =================================== */
+
+  /* Buttons touch-friendly */
+  .btn {
+    min-height: 44px !important;
+    padding: 12px 20px !important;
+    font-size: 16px !important;
+  }
+
+  .btn-sm {
+    min-height: 40px !important;
+    padding: 10px 16px !important;
+    font-size: 14px !important;
+  }
+
+  /* Prevent body scroll when modal is open */
+  body.modal-open {
+    overflow: hidden !important;
+  }
+
+  /* Compact modal body with scroll */
+  .modal-body {
+    flex: 1 1 auto !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    max-height: calc(100vh - 250px) !important;
+    padding: 8px 20px 24px 20px !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .modal-body > *:last-child {
+    margin-bottom: 12px !important;
+  }
+
+  /* Compact textarea for Note field */
+  .modal-body textarea {
+    min-height: 48px !important;
+    max-height: 80px !important;
+    resize: none !important;
+    padding: 10px 12px !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+    overflow-y: auto !important;
+  }
+
+  /* Compact form field spacing */
+  .modal .mb-3,
+  .modal .form-group {
+    margin-bottom: 8px !important;
+  }
+
+  .modal .form-label {
+    margin-bottom: 4px !important;
+    font-size: 13px !important;
+  }
+
+  /* Compact input fields */
+  .modal-body input.form-control,
+  .modal-body select.form-control,
+  .modal-body .form-select {
+    min-height: 42px !important;
+    padding: 8px 12px !important;
+  }
+
+  /* Stacked modal buttons */
+  .modal-footer {
+    height: auto !important;
+    min-height: 0 !important;
+    flex-grow: 0 !important;
+    flex-shrink: 0 !important;
+    padding: 16px 20px !important;
+    background-color: #121212 !important;
+    border-top: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+  }
+
+  /* Primary action button - full width */
+  .modal-footer .btn-primary,
+  .modal-footer .btn-success,
+  .modal-footer .btn-submit,
+  .modal-footer button[type="submit"],
+  .modal-footer .btn-modern {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 46px !important;
+    margin: 0 !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    order: 1;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  /* Modern button gradients */
+  .modal-footer .btn-primary-modern {
+    background: linear-gradient(135deg, #3aa0ff, #2563eb) !important;
+    color: white !important;
+  }
+
+  .modal-footer .btn-success-modern {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    color: white !important;
+  }
+
+  /* Hide secondary buttons - X button in header is enough */
+  .modal-footer .btn-secondary,
+  .modal-footer button[data-bs-dismiss="modal"],
+  .modal-footer #addModalCloseFooterBtn,
+  .modal-footer #editModalCloseFooterBtn {
+    display: none !important;
+  }
+
+  /* Donut chart - prevent bottom clipping */
+  .chart-container:has(#categoryDonutChart),
+  .chart-container:first-child {
+    min-height: 550px !important;
+    height: auto !important;
+    padding-bottom: 80px !important;
+  }
+
+  #categoryLegend {
+    max-height: 300px !important;
+    overflow-y: auto !important;
+    margin-top: 20px !important;
+    padding-right: 8px !important;
+  }
+
+  /* Radio buttons - 2 column grid layout */
+  .modal-body > .mb-3:has(.form-check-input[type="radio"]),
+  .modal-body > div:has(.form-check-input[type="radio"]),
+  .modal form > .mb-3:has(.form-check-input[type="radio"]) {
+    display: flex !important;
+    flex-direction: column !important;
+    margin-bottom: 20px !important;
+  }
+
+  .modal-body .mb-3:has(.form-check) > label.form-label {
+    display: block !important;
+    margin-bottom: 12px !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    grid-column: 1 / -1 !important;
+  }
+
+  .radio-group,
+  .form-check-inline,
+  .modal-body > .mb-3:has(.form-check-input[type="radio"]) {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+    width: 100% !important;
+  }
+
+  .modal .form-check:has(input[type="radio"]) {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 10px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 12px 16px !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 10px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    margin: 0 !important;
+  }
+
+  .modal .form-check:has(input[type="radio"]:checked) {
+    background: rgba(58, 160, 255, 0.15) !important;
+    border-color: rgba(58, 160, 255, 0.4) !important;
+  }
+
+  .modal .form-check-input[type="radio"] {
+    width: 20px !important;
+    height: 20px !important;
+    margin: 0 !important;
+    flex-shrink: 0 !important;
+  }
+
+  .modal .form-check-label {
+    margin: 0 !important;
+    flex: 1 !important;
+    font-size: 15px !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+  }
 }
+
 
 /* ✅ Modal styles - темна тема з правильним z-index */
 .modal {
@@ -543,9 +1144,12 @@ h1,h2,h3,h4,h5{color:inherit;margin-top:0}
 
 .modal-header .btn-close {
   margin: 0 !important;
-  padding: 0.5rem !important;
+  padding: 0 !important;
   position: relative !important;
   z-index: 10 !important;
+  width: 32px !important;
+  height: 32px !important;
+  flex-shrink: 0 !important;
 }
 
 .modal-title {
@@ -670,24 +1274,43 @@ h1,h2,h3,h4,h5{color:inherit;margin-top:0}
 
 /* Кнопка закриття (×) */
 .modal .btn-close {
-  background: transparent url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%239aa1a6'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414z'/%3e%3c/svg%3e") center/1em auto no-repeat !important;
-  opacity: 0.9 !important;
-  width: 1.2em !important;
-  height: 1.2em !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+  width: 32px !important;
+  height: 32px !important;
   padding: 0 !important;
-  border: none !important;
+  opacity: 1 !important;
+  border: 2px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 6px !important;
+  transition: all 0.3s ease !important;
+  position: relative !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4) !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
   pointer-events: auto !important;
-  transition: opacity 0.2s ease, transform 0.2s ease !important;
+}
+
+.modal .btn-close::before {
+  content: "✕" !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-size: 20px !important;
+  font-weight: 300 !important;
+  line-height: 1 !important;
+  display: block !important;
+  position: static !important;
 }
 
 .modal .btn-close:hover {
   opacity: 1 !important;
-  transform: scale(1.1) !important;
+  transform: scale(1.05) !important;
+  background: rgba(255, 255, 255, 0.25) !important;
 }
 
 .modal .btn-close:focus {
   opacity: 1 !important;
-  box-shadow: none !important;
+  box-shadow: 0 0 0 4px rgba(58, 160, 255, 0.3) !important;
   outline: none !important;
 }
 
@@ -1184,6 +1807,58 @@ label,
    🔥 MOBILE FIXES FOR MODALS - VERTICAL SCROLL
    ==================================================== */
 @media (max-width: 768px) {
+  /* 🔥 FIX: Кнопка закриття (хрестик) на мобільних */
+  .modal-header .btn-close,
+  .modal .btn-close,
+  .btn-close,
+  button.btn-close {
+    background: rgba(255, 255, 255, 0.15) !important;
+    background-image: none !important;
+    background-size: 0 !important;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    max-width: 32px !important;
+    min-height: 32px !important;
+    max-height: 32px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    flex-shrink: 0 !important;
+    flex-grow: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+    border-radius: 6px !important;
+    opacity: 1 !important;
+    position: relative !important;
+    z-index: 1000 !important;
+    filter: none !important;
+  }
+
+  .modal-header .btn-close::before,
+  .modal .btn-close::before,
+  .btn-close::before,
+  button.btn-close::before {
+    content: "✕" !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-size: 18px !important;
+    font-weight: 400 !important;
+    line-height: 1 !important;
+    display: block !important;
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+  }
+
+  .modal-header .btn-close::after,
+  .modal .btn-close::after,
+  .btn-close::after,
+  button.btn-close::after {
+    content: none !important;
+    display: none !important;
+  }
+
   /* 🔥 КРИТИЧНО: Вимикаємо скрол на body коли відкрите модальне вікно */
   body.modal-open {
     overflow: hidden !important;
@@ -1201,8 +1876,9 @@ label,
 
   /* Модальне вікно займає більше місця на мобільних */
   .modal-dialog {
-    margin: 0.5rem !important;
-    max-width: calc(100% - 1rem) !important;
+    margin: 0.25rem auto !important; /* ✅ Зменшено для підняття вище */
+    margin-top: 0.5rem !important; /* ✅ Невелик��й відступ зверху */
+    max-width: calc(100% - 0.5rem) !important; /* ✅ Збільшено ширину */
     overflow: hidden !important;
   }
 
@@ -1212,7 +1888,7 @@ label,
   .modal-edit-transaction .modal-content,
   #addTransactionModal .modal-content,
   #editTransactionModal .modal-content {
-    max-height: 75vh !important;
+    max-height: 85vh !important; /* ✅ Збільшено з 75vh */
     display: flex !important;
     flex-direction: column !important;
     overflow: hidden !important;
@@ -1233,7 +1909,7 @@ label,
     overflow-y: auto !important;
     overflow-x: hidden !important;
     flex: 1 1 auto !important;
-    max-height: calc(75vh - 120px) !important;
+    max-height: calc(85vh - 120px) !important; /* ✅ Оновлено відповідно до нової висоти */
     padding: 14px !important;
     -webkit-overflow-scrolling: touch !important; /* Smooth scroll iOS */
   }
@@ -1263,3 +1939,114 @@ label,
 
 /* End of mobile modal fixes */
 
+/* =================================================================
+   🚀 FINAL FIX V3: THE GHOST METHOD (Absolute Geometry)
+   Paste at the VERY END of main.css (Replace previous fix)
+   ================================================================= */
+
+@media (max-width: 768px) {
+
+  /* 1. Налаштування контейнера */
+  .modal .form-check,
+  #addTransactionModal .form-check,
+  #editTransactionModal .form-check {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    min-height: 44px !important;
+    width: 100% !important;
+    padding: 6px 0 !important;
+    position: relative !important; /* Важливо для позиціонування */
+  }
+
+  /* 2. INPUT стає "Привидом" (невидима зона кліку) */
+  .modal .form-check-input,
+  .modal .form-check-input[type="radio"],
+  #addTransactionModal .form-check-input[type="radio"],
+  #editTransactionModal .form-check-input[type="radio"] {
+    /* Займаємо місце в потоці */
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px !important;
+    flex: 0 0 24px !important;
+
+    /* Робимо його "базою" для малювання */
+    position: relative !important;
+
+    /* Прибираємо стандартний вигляд повністю */
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    border: none !important;        /* Прибираємо границі самого інпуту */
+    background: transparent !important; /* Прибираємо фон */
+    outline: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+  }
+
+  /* 3. МАЛЮЄМО РАМКУ (КРУГ) через ::after
+     Це гарантує ідеальне коло, бо position: absolute ігнорує сплющування */
+  .modal .form-check-input[type="radio"]::after {
+    content: "" !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important; /* Центрування */
+
+    /* Жорсткі розміри ВІЗУАЛЬНОГО кола */
+    width: 22px !important;
+    height: 22px !important;
+
+    border-radius: 50% !important;
+    border: 2px solid rgba(255, 255, 255, 0.4) !important;
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    box-sizing: border-box !important;
+    pointer-events: none !important; /* Пропускаємо кліки на інпут під ним */
+  }
+
+  /* 4. МАЛЮЄМО КРАПКУ (CHECKMARK) через ::before */
+  .modal .form-check-input[type="radio"]::before {
+    content: "" !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) scale(0) !important;
+
+    width: 10px !important;
+    height: 10px !important;
+
+    border-radius: 50% !important;
+    background-color: #fff !important;
+    z-index: 2 !important;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    pointer-events: none !important;
+  }
+
+  /* --- СТАНИ (Впливають на псевдо-елементи) --- */
+
+  /* Активний стан: показуємо крапку */
+  .modal .form-check-input[type="radio"]:checked::before {
+    transform: translate(-50%, -50%) scale(1) !important;
+  }
+
+  /* Активний колір рамки/фону (General - Blue) */
+  .modal .form-check-input[type="radio"]:checked::after {
+    background-color: #3aa0ff !important;
+    border-color: #3aa0ff !important;
+  }
+
+  /* Активний колір (Add Transaction - Green) */
+  #addTransactionModal .form-check-input[type="radio"]:checked::after {
+    background-color: #10b981 !important;
+    border-color: #10b981 !important;
+  }
+
+  /* Текст поруч */
+  .modal .form-check-label {
+    margin: 0 !important;
+    padding-left: 0 !important;
+    line-height: 1.3 !important;
+    font-size: 16px !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    flex: 1 !important;
+  }
+}

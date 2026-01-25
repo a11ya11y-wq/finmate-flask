@@ -2,13 +2,12 @@ import * as api from '../api/apiClient.js'
 import { getToken } from '../auth/auth.js'
 import { renderHeader } from '../components/layout.js'
 import { showSuccess, showError } from '../utils/toast.js'
-import { getProfile, clearProfileCache } from '../utils/profileCache.js'
+import { confirmDelete, showConfirmDialog } from '../utils/confirmDialog.js'
 
 // State
 let currentUser = null
 let selectedAvatar = null
 let categories = []
-const MAX_CATEGORIES = 50
 
 // Available avatars
 const AVAILABLE_AVATARS = [
@@ -43,10 +42,10 @@ async function init() {
     }
 }
 
-// Load user profile
+// Load user profile (simplified - no cache, fresh data every time)
 async function loadUserProfile() {
     try {
-        const data = await getProfile()
+        const data = await api.get('/profile/me')
         currentUser = data
 
         // Update UI
@@ -63,14 +62,13 @@ async function loadUserProfile() {
 
         // Update avatar
         let avatarPath = data.avatar || 'avatars/default/default.svg'
-        // Обробка різних форматів шляху
         if (avatarPath.includes('static/')) {
             avatarPath = avatarPath.replace('static/', '')
         }
         document.getElementById('userAvatar').src = `/${avatarPath}`
         selectedAvatar = avatarPath
 
-        // Update Monobank status (badge + text)
+        // Update Monobank status
         const badge = document.getElementById('monobankBadge')
         const statusText = document.getElementById('monobankStatusText')
 
@@ -102,7 +100,7 @@ async function loadUserProfile() {
 async function loadCategories() {
     try {
         const raw = await api.get('/categories/all/')
-        // Backend now returns { data: [...] } or legacy array
+        // Backend returns { data: [...] } or legacy array
         categories = Array.isArray(raw) ? raw : (raw && raw.data ? raw.data : [])
         renderCategories()
     } catch (error) {
@@ -111,80 +109,51 @@ async function loadCategories() {
     }
 }
 
-// Category icons mapping
-const CATEGORY_ICONS = {
-    'food': 'basket',
-    'transport': 'bus-front',
-    'shopping': 'bag-heart',
-    'utilities': 'lightning-charge',
-    'entertainment': 'film',
-    'health': 'heart-pulse',
-    'uncategorized': 'question-circle',
-    'default': 'tag'
-}
-
-// Get icon for category
-function getCategoryIcon(categoryName) {
-    const name = categoryName.toLowerCase()
-    for (const [key, icon] of Object.entries(CATEGORY_ICONS)) {
-        if (name.includes(key)) {
-            return { icon, class: key }
-        }
-    }
-    return { icon: CATEGORY_ICONS.default, class: 'default' }
-}
-
-// Simple HTML escaper used by templates
+// Simple HTML escaper
 function escapeHtml(s){
     if(s === null || s === undefined) return ''
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')
 }
 
-// Render Categories List on Main Page
+// Render Categories List
 function renderCategories() {
-    // Render Categories List directly on page (not in modal anymore)
     const container = document.getElementById('categoriesList')
-    if (container) {
-        if (!categories || categories.length === 0) {
-            container.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 40px 20px;">No categories yet. Add your first category above!</p>'
-        } else {
-            container.innerHTML = categories.map(cat => {
-                // Prefer icon from backend (may be 'bi-bag' etc.). If absent, fall back to name-based mapping.
-                const rawIcon = cat.icon ? String(cat.icon).trim() : null
-                const { icon: fallbackIcon } = getCategoryIcon(cat.name)
-                const iconClass = rawIcon ? rawIcon : `bi-${fallbackIcon}`
+    if (!container) return
 
-                // Backend uses mcc_code (singular)
-                const mccCode = cat.mcc_code || cat.mcc_codes || cat.mccCode || ''
-                const mccDisplay = mccCode && mccCode.trim()
-                    ? `<div class="category-mcc-modal">MCC: ${mccCode}</div>`
-                    : '<div class="category-mcc-modal" style="color: var(--text-secondary);">No MCC codes</div>'
-
-                return `
-                    <div class="category-item-modal">
-                        <div class="category-icon-modal">
-                            <i class="${escapeHtml(iconClass)}"></i>
-                        </div>
-                        <div class="category-info-modal">
-                            <div class="category-name-modal">${cat.name}</div>
-                            ${mccDisplay}
-                        </div>
-                        <div class="category-actions-modal">
-                            <button class="category-btn" onclick="window.editCategory(${cat.id})" title="Edit">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <button class="category-btn delete" onclick="window.deleteCategory(${cat.id})" title="Delete">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                `
-            }).join('')
-        }
+    if (!categories || categories.length === 0) {
+        container.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 40px 20px;">No categories yet. Add your first category above!</p>'
+        return
     }
-}
 
-// Note: updateCategoryProgress removed - replaced by individual progress bars in Spending Breakdown
+    container.innerHTML = categories.map(cat => {
+        // Backend provides icon (e.g., 'bi-bag-fill')
+        const iconClass = cat.icon ? String(cat.icon).trim() : 'bi-tag-fill'
+        const mccCode = cat.mcc_code || cat.mcc_codes || cat.mccCode || ''
+        const mccDisplay = mccCode && mccCode.trim()
+            ? `<div class="category-mcc-modal">MCC: ${mccCode}</div>`
+            : '<div class="category-mcc-modal" style="color: var(--text-secondary);">No MCC codes</div>'
+
+        return `
+            <div class="category-item-modal">
+                <div class="category-icon-modal">
+                    <i class="${escapeHtml(iconClass)}"></i>
+                </div>
+                <div class="category-info-modal">
+                    <div class="category-name-modal">${escapeHtml(cat.name)}</div>
+                    ${mccDisplay}
+                </div>
+                <div class="category-actions-modal">
+                    <button class="category-btn" onclick="window.editCategory(${cat.id})" title="Edit">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="category-btn delete" onclick="window.deleteCategory(${cat.id})" title="Delete">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `
+    }).join('')
+}
 
 // Render avatar gallery
 function renderAvatarGallery() {
@@ -253,29 +222,27 @@ async function updateProfile(e) {
     const newUsername = document.getElementById('newUsername').value.trim()
     const currency = document.getElementById('userCurrencySelect').value
 
-    // Basic validation to reduce backend spam
     if (!newUsername || newUsername.length < 3) {
         showError('Username must be at least 3 characters')
         return
     }
 
     try {
-        // Update profile (username + avatar + currency) in single request
         await api.put('/profile/me/', {
             username: newUsername,
             avatar: selectedAvatar,
             currency: currency
         })
 
-        // Очищаємо кеш профілю та завантажуємо свіжі дані
-        clearProfileCache()
-        await loadUserProfile() // Це оновить кеш новими даними
+        // Reload fresh profile data
+        await loadUserProfile()
 
         showSuccess('Profile updated successfully')
 
-        // Reload header to update avatar (візьме дані з вже оновленого кешу)
+        // Reload header to update avatar
         await renderHeader('header-container')
-        // Close modal with force cleanup
+
+        // Close modal
         forceCloseModal('editProfileModal')
     } catch (error) {
         console.error('[profile] Error updating profile:', error)
@@ -432,132 +399,12 @@ async function saveEditCategory() {
     }
 }
 
-// Show custom confirmation dialog (replaces browser confirm())
-function showConfirmDialog(title, message, confirmText = 'Confirm', type = 'danger') {
-    return new Promise((resolve) => {
-        // Create custom overlay (instead of Bootstrap backdrop)
-        const customOverlay = document.createElement('div')
-        customOverlay.id = 'customConfirmOverlay'
-        customOverlay.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1050;
-            opacity: 0;
-            transition: opacity 0.15s ease;
-        `
-
-        // Create modal HTML (z-index ВИЩИЙ за overlay - модалка світла!)
-        const modalHTML = `
-            <div class="modal" id="confirmDialog" tabindex="-1" style="display: block; z-index: 9999 !important; position: fixed;">
-                <div class="modal-dialog modal-dialog-centered modal-sm" style="position: relative; z-index: 10000 !important;">
-                    <div class="modal-content">
-                        <div class="modal-header ${type === 'danger' ? 'border-danger' : ''}">
-                            <h5 class="modal-title ${type === 'danger' ? 'text-danger' : ''}">
-                                <i class="bi bi-${type === 'danger' ? 'exclamation-triangle' : 'question-circle'}"></i>
-                                ${title}
-                            </h5>
-                            <button type="button" class="btn-close" id="confirmDialogClose" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <p style="color: var(--text-primary); margin: 0; font-size: 0.95rem; line-height: 1.6;">
-                                ${message}
-                            </p>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" id="confirmDialogCancel">Cancel</button>
-                            <button type="button" class="btn btn-${type}" id="confirmDialogBtn">
-                                <i class="bi bi-check-lg"></i> ${confirmText}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `
-
-        // Remove existing dialog if any
-        const existing = document.getElementById('confirmDialog')
-        if (existing) existing.remove()
-        const existingOverlay = document.getElementById('customConfirmOverlay')
-        if (existingOverlay) existingOverlay.remove()
-
-        // Append overlay and modal to body
-        document.body.appendChild(customOverlay)
-        document.body.insertAdjacentHTML('beforeend', modalHTML)
-
-        const modalEl = document.getElementById('confirmDialog')
-
-        // Force ЕКСТРЕМАЛЬНО високий z-index через JavaScript
-        // Overlay ЗА модалкою - не затемнює її!
-        customOverlay.style.zIndex = '1050'
-        modalEl.style.zIndex = '9999'
-        const dialogEl = modalEl.querySelector('.modal-dialog')
-        if (dialogEl) dialogEl.style.zIndex = '10000'
-
-        // Animate in
-        setTimeout(() => {
-            customOverlay.style.opacity = '1'
-            modalEl.classList.add('show')
-            // Force z-index ЗНОВУ після анімації
-            modalEl.style.zIndex = '9999'
-            if (dialogEl) dialogEl.style.zIndex = '10000'
-        }, 10)
-
-        // Close function
-        const closeDialog = (result) => {
-            customOverlay.style.opacity = '0'
-            modalEl.classList.remove('show')
-
-            setTimeout(() => {
-                customOverlay.remove()
-                modalEl.remove()
-                resolve(result)
-            }, 150)
-        }
-
-        // Handle confirm
-        document.getElementById('confirmDialogBtn').addEventListener('click', () => {
-            closeDialog(true)
-        })
-
-        // Handle cancel
-        document.getElementById('confirmDialogCancel').addEventListener('click', () => {
-            closeDialog(false)
-        })
-
-        // Handle X button
-        document.getElementById('confirmDialogClose').addEventListener('click', () => {
-            closeDialog(false)
-        })
-
-        // Handle overlay click (close on background click)
-        customOverlay.addEventListener('click', () => {
-            closeDialog(false)
-        })
-
-        // Prevent clicks inside modal from closing overlay
-        modalEl.addEventListener('click', (e) => {
-            e.stopPropagation()
-        })
-    })
-}
-
 // Delete category
 window.deleteCategory = async function(categoryId) {
-    // Create custom confirmation modal instead of browser alert
     const category = categories.find(c => c.id === categoryId)
     const categoryName = category ? category.name : 'this category'
 
-    const confirmed = await showConfirmDialog(
-        'Delete Category',
-        `Are you sure you want to delete "${categoryName}"? This action cannot be undone.`,
-        'Delete',
-        'danger'
-    )
-
+    const confirmed = await confirmDelete(`category "${categoryName}"`)
     if (!confirmed) return
 
     try {
@@ -601,22 +448,19 @@ async function saveMonobankToken(e) {
 
 // Delete Monobank token
 async function deleteMonobankToken() {
-    const confirmed = await showConfirmDialog(
-        'Delete Monobank Token',
-        'Are you sure you want to disconnect your Monobank account? You will need to re-enter your API token to reconnect.',
-        'Delete Token',
-        'danger'
-    )
+    const confirmed = await showConfirmDialog({
+        title: 'Delete Monobank Token',
+        message: 'Are you sure you want to disconnect your Monobank account? You will need to re-enter your API token to reconnect.',
+        confirmText: 'Delete Token',
+        type: 'danger'
+    })
 
     if (!confirmed) return
 
     try {
-        // New backend endpoint: DELETE /profile/monobank/
         await api.del('/profile/monobank/')
-
         showSuccess('Token deleted successfully')
         await loadUserProfile()
-        // Close modal with force cleanup
         forceCloseModal('monobankModal')
     } catch (error) {
         console.error('[profile] Error deleting token:', error)
@@ -626,21 +470,18 @@ async function deleteMonobankToken() {
 
 // Delete account
 async function deleteAccount() {
-    // Use custom confirmation dialog instead of modal with text input
-    const confirmed = await showConfirmDialog(
-        'Delete Account',
-        'Warning! This action is irreversible. All your data will be permanently deleted. Are you sure you want to delete your account?',
-        'Delete My Account',
-        'danger'
-    )
+    const confirmed = await showConfirmDialog({
+        title: 'Delete Account',
+        message: 'Warning! This action is irreversible. All your data will be permanently deleted. Are you sure you want to delete your account?',
+        confirmText: 'Delete My Account',
+        type: 'danger'
+    })
 
     if (!confirmed) return
 
     try {
         await api.del('/profile/me/')
         showSuccess('Account deleted')
-
-        // Use the proper logout function from API client
         await api.logout()
     } catch (error) {
         console.error('[profile] Error deleting account:', error)
@@ -704,19 +545,14 @@ function attachEventListeners() {
     }
 }
 
-// Global cleanup for all modals
-document.addEventListener('hidden.bs.modal', (e) => {
-    // Small delay to ensure Bootstrap cleanup is done
+// Global cleanup for Bootstrap modals
+document.addEventListener('hidden.bs.modal', () => {
     setTimeout(() => {
         // Remove any leftover backdrops
-        const backdrops = document.querySelectorAll('.modal-backdrop')
-        if (backdrops.length > 0) {
-            backdrops.forEach(b => b.remove())
-        }
+        document.querySelectorAll('.modal-backdrop').forEach(b => b.remove())
 
         // Clean body if no modals are shown
-        const openModals = document.querySelectorAll('.modal.show')
-        if (openModals.length === 0) {
+        if (document.querySelectorAll('.modal.show').length === 0) {
             document.body.classList.remove('modal-open')
             document.body.style.overflow = ''
             document.body.style.paddingRight = ''
@@ -724,82 +560,6 @@ document.addEventListener('hidden.bs.modal', (e) => {
     }, 100)
 })
 
-// Additional: АГРЕСИВНИЙ FIX для backdrop - постійний моніторинг
-document.addEventListener('show.bs.modal', (e) => {
-    const modal = e.target
-
-    // Функція для виправлення z-index
-    const fixZIndex = () => {
-        if (modal) {
-            modal.style.setProperty('z-index', '10060', 'important')
-
-            const modalDialog = modal.querySelector('.modal-dialog')
-            if (modalDialog) {
-                modalDialog.style.setProperty('z-index', '10061', 'important')
-            }
-
-            const modalContent = modal.querySelector('.modal-content')
-            if (modalContent) {
-                modalContent.style.setProperty('z-index', '10062', 'important')
-                modalContent.style.setProperty('pointer-events', 'auto', 'important')
-            }
-        }
-
-        // Fix ALL backdrops
-        const backdrops = document.querySelectorAll('.modal-backdrop')
-        backdrops.forEach((backdrop, index) => {
-            if (index === backdrops.length - 1) {
-                // Last backdrop - keep it but fix z-index
-                backdrop.style.setProperty('z-index', '10050', 'important')
-            } else {
-                // Remove old backdrops
-                backdrop.remove()
-            }
-        })
-    }
-
-    // Fix immediately
-    fixZIndex()
-
-    // Fix repeatedly during animation (Bootstrap can override)
-    const intervals = [10, 50, 100, 150, 200, 300, 500]
-    intervals.forEach(delay => {
-        setTimeout(fixZIndex, delay)
-    })
-})
-
-// Additional: Force fix z-index after modal is shown (after animation completes)
-document.addEventListener('shown.bs.modal', (e) => {
-    const modal = e.target
-
-    const fixZIndex = () => {
-        if (modal) {
-            modal.style.setProperty('z-index', '10060', 'important')
-
-            const modalDialog = modal.querySelector('.modal-dialog')
-            if (modalDialog) {
-                modalDialog.style.setProperty('z-index', '10061', 'important')
-            }
-
-            const modalContent = modal.querySelector('.modal-content')
-            if (modalContent) {
-                modalContent.style.setProperty('z-index', '10062', 'important')
-                modalContent.style.setProperty('pointer-events', 'auto', 'important')
-            }
-        }
-
-        const backdrops = document.querySelectorAll('.modal-backdrop')
-        backdrops.forEach(backdrop => {
-            backdrop.style.setProperty('z-index', '10050', 'important')
-        })
-    }
-
-    // Fix multiple times after modal is shown
-    fixZIndex()
-    setTimeout(fixZIndex, 50)
-    setTimeout(fixZIndex, 100)
-    setTimeout(fixZIndex, 200)
-})
 
 // Initialize on page load
 if (document.readyState === 'loading') {

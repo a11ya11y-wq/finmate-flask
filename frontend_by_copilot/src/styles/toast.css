@@ -147,15 +147,4 @@
   backdrop-filter: blur(8px);
 }
 
-/* Animation */
-@keyframes toast-slide-in {
-  from {
-    opacity: 0;
-    transform: translateX(400px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
 
