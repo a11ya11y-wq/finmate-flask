@@ -110,12 +110,25 @@
       .modal-footer {
         flex-direction: column !important;
         gap: 12px !important;
+        display: flex !important;
+        padding: 16px !important;
       }
 
       .modal-footer button,
-      .modal-footer .btn {
+      .modal-footer .btn,
+      .modal .modal-footer button,
+      .modal .modal-footer .btn,
+      #monobankModal .modal-footer button,
+      #monobankModal .modal-footer .btn,
+      #editProfileModal .modal-footer button,
+      #editProfileModal .modal-footer .btn,
+      #securityModal .modal-footer button,
+      #securityModal .modal-footer .btn {
         width: 100% !important;
         margin: 0 !important;
+        flex: 1 1 100% !important;
+        max-width: 100% !important;
+        display: block !important;
       }
     }
 
@@ -634,7 +647,6 @@
 
     .modal-footer > * {
       margin: 0 !important;
-    }
     }
 
     /* ✅ Fix: Nested modals (confirmation dialogs over main modals) */
@@ -1166,6 +1178,11 @@
       }
 
       /* 📱 Мобільні стилі для модальних вікон */
+      .modal-dialog {
+        margin: 0.5rem;
+        max-width: calc(100% - 1rem);
+      }
+
       .modal-header {
         padding: 16px 16px;
       }
@@ -1175,7 +1192,23 @@
       }
 
       .modal-footer {
-        padding: 16px;
+        padding: 16px !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+      }
+
+      .modal-footer button,
+      .modal-footer .btn,
+      .modal .modal-footer button,
+      .modal .modal-footer .btn,
+      #monobankModal .modal-footer button,
+      #monobankModal .modal-footer .btn {
+        width: 100% !important;
+        margin: 0 !important;
+        flex: 1 1 100% !important;
+        max-width: 100% !important;
       }
 
       .modal-title {
@@ -1352,7 +1385,49 @@
       color: #f87171;
       transform: scale(1.05);
     }
-      color: #ef4444;
+
+    /* 🔥 КРИТИЧНО: Перебиваємо всі Bootstrap стилі для modal-footer на мобільних */
+    @media (max-width: 768px) {
+      /* Форсуємо вертикальне розташування кнопок */
+      .modal-footer,
+      .modal .modal-footer,
+      div.modal .modal-footer {
+        flex-direction: column !important;
+        gap: 12px !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        align-items: stretch !important;
+      }
+
+      /* Всі кнопки на всю ширину */
+      .modal-footer > *,
+      .modal-footer button,
+      .modal-footer .btn,
+      .modal-footer a.btn,
+      .modal .modal-footer button,
+      .modal .modal-footer .btn,
+      .modal .modal-footer a.btn,
+      #monobankModal .modal-footer button,
+      #monobankModal .modal-footer .btn,
+      #editProfileModal .modal-footer button,
+      #editProfileModal .modal-footer .btn,
+      #securityModal .modal-footer button,
+      #securityModal .modal-footer .btn,
+      button[type="submit"],
+      button[type="button"],
+      .btn-success,
+      .btn-danger,
+      .btn-outline-danger,
+      .btn-primary,
+      .btn-secondary {
+        width: 100% !important;
+        max-width: 100% !important;
+        flex: 1 1 100% !important;
+        margin: 0 !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        display: block !important;
+      }
     }
   </style>
 </head>
