@@ -1,3 +1,5 @@
+import os
+
 from dotenv import load_dotenv
 from flask import Flask
 from flask_cors import CORS
@@ -30,7 +32,12 @@ def create_app(config_name='default'):
         "http://localhost:3000",
         "http://127.0.0.1:3000"
     ]
-    CORS(app, resources={r"/api/*": {"origins": r".*"}}, supports_credentials=True)
+
+    env_origins = os.environ.get("CORS_ORIGINS")
+    if env_origins:
+        allowed_origins.extend(env_origins.split(","))
+
+    CORS(app, resources={r"/api/*": {"origins": allowed_origins}}, supports_credentials=True)
 
     app.url_map.strict_slashes = False
 
