@@ -65,6 +65,10 @@ The authentication system goes beyond simple login:
 - **Refresh Token Rotation:** Every time a refresh token is used, a new pair (Access + Refresh) is issued, and the old refresh token is invalidated in the database.
 - **"Remember Me" Logic:** Dynamic expiration times for tokens based on user preference (1 day vs 30 days).
 
+### 4. Security & Data Protection
+Security is a top priority for financial applications. Beyond standard JWT authentication, FinMate implements:
+- **Fernet Encryption:** Monobank personal tokens are never stored in plain text. They are encrypted using the `cryptography` library before being saved to PostgreSQL and decrypted only in memory during Celery task execution. This protects user financial data in case of a database dump leak.
+
 ## 🛠 Tech Stack
 
 ### Backend
