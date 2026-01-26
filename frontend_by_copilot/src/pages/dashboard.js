@@ -414,13 +414,21 @@ function appendModalsToBody() {
               </div>
               <div class="mb-3">
                 <label class="form-label">Type</label>
-                <div class="form-check">
-                  <input class="form-check-input" type="radio" name="type" id="edit_expense" value="expense">
-                  <label class="form-check-label" for="edit_expense">Expense</label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input" type="radio" name="type" id="edit_income" value="income">
-                  <label class="form-check-label" for="edit_income">Income</label>
+                <div class="radio-buttons-wrapper">
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="type" id="edit_expense" value="expense">
+                    <label class="form-check-label" for="edit_expense">
+                      <span class="radio-icon"></span>
+                      Expense
+                    </label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="type" id="edit_income" value="income">
+                    <label class="form-check-label" for="edit_income">
+                      <span class="radio-icon"></span>
+                      Income
+                    </label>
+                  </div>
                 </div>
               </div>
               <div class="mb-3">
@@ -473,13 +481,21 @@ function appendModalsToBody() {
               </div>
               <div class="mb-3">
                 <label class="form-label">Type</label>
-                <div class="form-check">
-                  <input class="form-check-input" type="radio" name="add_type" id="add_expense" value="expense" checked>
-                  <label class="form-check-label" for="add_expense">Expense</label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input" type="radio" name="add_type" id="add_income" value="income">
-                  <label class="form-check-label" for="add_income">Income</label>
+                <div class="radio-buttons-wrapper">
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="add_type" id="add_expense" value="expense" checked>
+                    <label class="form-check-label" for="add_expense">
+                      <span class="radio-icon"></span>
+                      Expense
+                    </label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="add_type" id="add_income" value="income">
+                    <label class="form-check-label" for="add_income">
+                      <span class="radio-icon"></span>
+                      Income
+                    </label>
+                  </div>
                 </div>
               </div>
               <div class="mb-3">

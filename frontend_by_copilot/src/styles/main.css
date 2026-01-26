@@ -1018,69 +1018,6 @@ h1,h2,h3,h4,h5{color:inherit;margin-top:0}
     margin-top: 20px !important;
     padding-right: 8px !important;
   }
-
-  /* Radio buttons - 2 column grid layout */
-  .modal-body > .mb-3:has(.form-check-input[type="radio"]),
-  .modal-body > div:has(.form-check-input[type="radio"]),
-  .modal form > .mb-3:has(.form-check-input[type="radio"]) {
-    display: flex !important;
-    flex-direction: column !important;
-    margin-bottom: 20px !important;
-  }
-
-  .modal-body .mb-3:has(.form-check) > label.form-label {
-    display: block !important;
-    margin-bottom: 12px !important;
-    font-size: 15px !important;
-    font-weight: 600 !important;
-    grid-column: 1 / -1 !important;
-  }
-
-  .radio-group,
-  .form-check-inline,
-  .modal-body > .mb-3:has(.form-check-input[type="radio"]) {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
-    gap: 12px !important;
-    width: 100% !important;
-  }
-
-  .modal .form-check:has(input[type="radio"]) {
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 10px !important;
-    width: 100% !important;
-    min-width: 0 !important;
-    padding: 12px 16px !important;
-    background: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-radius: 10px !important;
-    cursor: pointer !important;
-    transition: all 0.2s ease !important;
-    margin: 0 !important;
-  }
-
-  .modal .form-check:has(input[type="radio"]:checked) {
-    background: rgba(58, 160, 255, 0.15) !important;
-    border-color: rgba(58, 160, 255, 0.4) !important;
-  }
-
-  .modal .form-check-input[type="radio"] {
-    width: 20px !important;
-    height: 20px !important;
-    margin: 0 !important;
-    flex-shrink: 0 !important;
-  }
-
-  .modal .form-check-label {
-    margin: 0 !important;
-    flex: 1 !important;
-    font-size: 15px !important;
-    font-weight: 500 !important;
-    cursor: pointer !important;
-  }
 }
 
 
@@ -1240,50 +1177,141 @@ h1,h2,h3,h4,h5{color:inherit;margin-top:0}
   color: rgba(255,255,255,0.6) !important;
 }
 
-/* Стилі для radio buttons */
-.modal .form-check-input {
-  background-color: #151820 !important;
-  border: 1px solid rgba(255,255,255,0.25) !important;
+/* ===================================
+   СТИЛІ ДЛЯ RADIO BUTTONS (TYPE SELECTOR)
+   =================================== */
+
+/* Контейнер для Type selector - вертикальний layout */
+.modal-body > .mb-3:has(.radio-buttons-wrapper) {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  margin-bottom: 20px !important;
 }
 
-.modal .form-check-input:checked {
+/* Label Type */
+.modal-body > .mb-3:has(.radio-buttons-wrapper) > .form-label {
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  margin-bottom: 0 !important;
+}
+
+/* Wrapper для radio buttons - grid 2 колонки */
+.radio-buttons-wrapper {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 12px !important;
+  width: 100% !important;
+}
+
+/* Стилі для кожного radio button як кнопка-картка */
+.radio-buttons-wrapper .form-check {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  padding: 14px 20px !important;
+  margin: 0 !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 2px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  position: relative !important;
+  min-height: 52px !important;
+}
+
+.radio-buttons-wrapper .form-check:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Стан checked - синій для Edit, зелений для Add */
+#editTransactionModal .radio-buttons-wrapper .form-check:has(input[type="radio"]:checked) {
+  background: rgba(58, 160, 255, 0.15) !important;
+  border-color: rgba(58, 160, 255, 0.5) !important;
+  box-shadow: 0 0 0 3px rgba(58, 160, 255, 0.1) !important;
+}
+
+#addTransactionModal .radio-buttons-wrapper .form-check:has(input[type="radio"]:checked) {
+  background: rgba(16, 185, 129, 0.15) !important;
+  border-color: rgba(16, 185, 129, 0.5) !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1) !important;
+}
+
+/* Ховаємо стандартний radio input */
+.radio-buttons-wrapper .form-check-input[type="radio"] {
+  position: absolute !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Label з текстом */
+.radio-buttons-wrapper .form-check-label {
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-size: 15px !important;
+  font-weight: 500 !important;
+  margin: 0 !important;
+  cursor: pointer !important;
+  line-height: 1.3 !important;
+  user-select: none !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+/* Іконка (квадратик) перед текстом */
+.radio-buttons-wrapper .form-check-label .radio-icon {
+  width: 18px !important;
+  height: 18px !important;
+  border-radius: 4px !important;
+  flex-shrink: 0 !important;
+  transition: all 0.3s ease !important;
+}
+
+/* Синя іконка для Edit Transaction Modal */
+#editTransactionModal .radio-buttons-wrapper .form-check-label .radio-icon {
+  background-color: rgba(58, 160, 255, 0.3) !important;
+  border: 2px solid rgba(58, 160, 255, 0.5) !important;
+}
+
+#editTransactionModal .radio-buttons-wrapper .form-check:has(input:checked) .radio-icon {
   background-color: #3aa0ff !important;
   border-color: #3aa0ff !important;
+  box-shadow: 0 0 8px rgba(58, 160, 255, 0.4) !important;
 }
 
-.modal .form-check-input:focus {
-  box-shadow: 0 0 0 0.2rem rgba(58, 160, 255, 0.25) !important;
-  border-color: #3aa0ff !important;
+/* Зелена іконка для Add Transaction Modal */
+#addTransactionModal .radio-buttons-wrapper .form-check-label .radio-icon {
+  background-color: rgba(16, 185, 129, 0.3) !important;
+  border: 2px solid rgba(16, 185, 129, 0.5) !important;
 }
 
-/* Зелений колір radio buttons тільки для Add Transaction модального вікна */
-#addTransactionModal .form-check-input:checked {
+#addTransactionModal .radio-buttons-wrapper .form-check:has(input:checked) .radio-icon {
   background-color: #10b981 !important;
   border-color: #10b981 !important;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.4) !important;
 }
 
-#addTransactionModal .form-check-input:focus {
-  box-shadow: 0 0 0 0.2rem rgba(16, 185, 129, 0.25) !important;
-  border-color: #10b981 !important;
-}
-
-.modal .form-check-label {
-  color: rgba(255,255,255,0.9) !important;
-  margin-left: 0.5rem !important;
-}
-
-/* Кнопка закриття (×) */
+/* Кнопка закриття (×) - простий світлий хрестик */
 .modal .btn-close {
-  background: rgba(255, 255, 255, 0.15) !important;
+  background: transparent !important;
   width: 32px !important;
   height: 32px !important;
   padding: 0 !important;
   opacity: 1 !important;
-  border: 2px solid rgba(255, 255, 255, 0.3) !important;
-  border-radius: 6px !important;
-  transition: all 0.3s ease !important;
+  border: none !important;
+  border-radius: 0 !important;
+  transition: all 0.2s ease !important;
   position: relative !important;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4) !important;
+  box-shadow: none !important;
   cursor: pointer !important;
   display: flex !important;
   align-items: center !important;
@@ -1294,8 +1322,8 @@ h1,h2,h3,h4,h5{color:inherit;margin-top:0}
 
 .modal .btn-close::before {
   content: "✕" !important;
-  color: rgba(255, 255, 255, 0.9) !important;
-  font-size: 20px !important;
+  color: #9aa1a6 !important;
+  font-size: 24px !important;
   font-weight: 300 !important;
   line-height: 1 !important;
   display: block !important;
@@ -1304,13 +1332,13 @@ h1,h2,h3,h4,h5{color:inherit;margin-top:0}
 
 .modal .btn-close:hover {
   opacity: 1 !important;
-  transform: scale(1.05) !important;
-  background: rgba(255, 255, 255, 0.25) !important;
+  transform: none !important;
+  background: transparent !important;
 }
 
 .modal .btn-close:focus {
   opacity: 1 !important;
-  box-shadow: 0 0 0 4px rgba(58, 160, 255, 0.3) !important;
+  box-shadow: none !important;
   outline: none !important;
 }
 
@@ -1807,12 +1835,12 @@ label,
    🔥 MOBILE FIXES FOR MODALS - VERTICAL SCROLL
    ==================================================== */
 @media (max-width: 768px) {
-  /* 🔥 FIX: Кнопка закриття (хрестик) на мобільних */
+  /* 🔥 FIX: Кнопка закриття (хрестик) на мобільних - простий світлий */
   .modal-header .btn-close,
   .modal .btn-close,
   .btn-close,
   button.btn-close {
-    background: rgba(255, 255, 255, 0.15) !important;
+    background: transparent !important;
     background-image: none !important;
     background-size: 0 !important;
     width: 32px !important;
@@ -1828,8 +1856,8 @@ label,
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    border: 2px solid rgba(255, 255, 255, 0.3) !important;
-    border-radius: 6px !important;
+    border: none !important;
+    border-radius: 0 !important;
     opacity: 1 !important;
     position: relative !important;
     z-index: 1000 !important;
@@ -1841,9 +1869,9 @@ label,
   .btn-close::before,
   button.btn-close::before {
     content: "✕" !important;
-    color: rgba(255, 255, 255, 0.9) !important;
-    font-size: 18px !important;
-    font-weight: 400 !important;
+    color: #9aa1a6 !important;
+    font-size: 24px !important;
+    font-weight: 300 !important;
     line-height: 1 !important;
     display: block !important;
     position: static !important;
@@ -1940,113 +1968,24 @@ label,
 /* End of mobile modal fixes */
 
 /* =================================================================
-   🚀 FINAL FIX V3: THE GHOST METHOD (Absolute Geometry)
-   Paste at the VERY END of main.css (Replace previous fix)
+   🎯 Mobile Radio Buttons Override
+   Застосовуємо стилі кнопок-карток на мобільних як на десктопі
    ================================================================= */
 
 @media (max-width: 768px) {
-
-  /* 1. Налаштування контейнера */
-  .modal .form-check,
-  #addTransactionModal .form-check,
-  #editTransactionModal .form-check {
-    display: flex !important;
-    align-items: center !important;
-    gap: 12px !important;
-    min-height: 44px !important;
-    width: 100% !important;
-    padding: 6px 0 !important;
-    position: relative !important; /* Важливо для позиціонування */
+  /* Radio buttons на мобільних - збільшуємо для touch-friendly */
+  .radio-buttons-wrapper .form-check {
+    min-height: 52px !important;
+    padding: 16px 20px !important;
   }
 
-  /* 2. INPUT стає "Привидом" (невидима зона кліку) */
-  .modal .form-check-input,
-  .modal .form-check-input[type="radio"],
-  #addTransactionModal .form-check-input[type="radio"],
-  #editTransactionModal .form-check-input[type="radio"] {
-    /* Займаємо місце в потоці */
-    width: 24px !important;
-    height: 24px !important;
-    min-width: 24px !important;
-    flex: 0 0 24px !important;
-
-    /* Робимо його "базою" для малювання */
-    position: relative !important;
-
-    /* Прибираємо стандартний вигляд повністю */
-    -webkit-appearance: none !important;
-    appearance: none !important;
-    border: none !important;        /* Прибираємо границі самого інпуту */
-    background: transparent !important; /* Прибираємо фон */
-    outline: none !important;
-    box-shadow: none !important;
-    margin: 0 !important;
-  }
-
-  /* 3. МАЛЮЄМО РАМКУ (КРУГ) через ::after
-     Це гарантує ідеальне коло, бо position: absolute ігнорує сплющування */
-  .modal .form-check-input[type="radio"]::after {
-    content: "" !important;
-    position: absolute !important;
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) !important; /* Центрування */
-
-    /* Жорсткі розміри ВІЗУАЛЬНОГО кола */
-    width: 22px !important;
-    height: 22px !important;
-
-    border-radius: 50% !important;
-    border: 2px solid rgba(255, 255, 255, 0.4) !important;
-    background-color: rgba(255, 255, 255, 0.05) !important;
-    box-sizing: border-box !important;
-    pointer-events: none !important; /* Пропускаємо кліки на інпут під ним */
-  }
-
-  /* 4. МАЛЮЄМО КРАПКУ (CHECKMARK) через ::before */
-  .modal .form-check-input[type="radio"]::before {
-    content: "" !important;
-    position: absolute !important;
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) scale(0) !important;
-
-    width: 10px !important;
-    height: 10px !important;
-
-    border-radius: 50% !important;
-    background-color: #fff !important;
-    z-index: 2 !important;
-    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
-    pointer-events: none !important;
-  }
-
-  /* --- СТАНИ (Впливають на псевдо-елементи) --- */
-
-  /* Активний стан: показуємо крапку */
-  .modal .form-check-input[type="radio"]:checked::before {
-    transform: translate(-50%, -50%) scale(1) !important;
-  }
-
-  /* Активний колір рамки/фону (General - Blue) */
-  .modal .form-check-input[type="radio"]:checked::after {
-    background-color: #3aa0ff !important;
-    border-color: #3aa0ff !important;
-  }
-
-  /* Активний колір (Add Transaction - Green) */
-  #addTransactionModal .form-check-input[type="radio"]:checked::after {
-    background-color: #10b981 !important;
-    border-color: #10b981 !important;
-  }
-
-  /* Текст поруч */
-  .modal .form-check-label {
-    margin: 0 !important;
-    padding-left: 0 !important;
-    line-height: 1.3 !important;
+  /* Збільшуємо текст на мобільних */
+  .radio-buttons-wrapper .form-check-label {
     font-size: 16px !important;
-    color: rgba(255, 255, 255, 0.9) !important;
-    flex: 1 !important;
+  }
+
+  /* Збільшуємо gap між двома кнопками */
+  .radio-buttons-wrapper {
+    gap: 16px !important;
   }
 }

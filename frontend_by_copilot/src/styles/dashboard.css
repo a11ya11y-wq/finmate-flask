@@ -2412,12 +2412,12 @@ button.period-btn.active,
 }
 
 @media (max-width: 768px) {
-  /* 🔥 FIX: Кнопка закриття (хрестик) на мобільних */
+  /* 🔥 FIX: Кнопка закриття (хрестик) на мобільних - простий сірий */
   .modal-header .btn-close,
   .modal .btn-close,
   .btn-close,
   button.btn-close {
-    background: rgba(255, 255, 255, 0.15) !important;
+    background: transparent !important;
     background-image: none !important;
     background-size: 0 !important;
     width: 32px !important;
@@ -2433,8 +2433,8 @@ button.period-btn.active,
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    border: 2px solid rgba(255, 255, 255, 0.3) !important;
-    border-radius: 6px !important;
+    border: none !important;
+    border-radius: 0 !important;
     opacity: 1 !important;
     position: relative !important;
     z-index: 1000 !important;
@@ -2446,9 +2446,9 @@ button.period-btn.active,
   .btn-close::before,
   button.btn-close::before {
     content: "✕" !important;
-    color: rgba(255, 255, 255, 0.9) !important;
-    font-size: 18px !important;
-    font-weight: 400 !important;
+    color: #9aa1a6 !important;
+    font-size: 24px !important;
+    font-weight: 300 !important;
     line-height: 1 !important;
     display: block !important;
     position: static !important;
