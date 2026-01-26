@@ -137,9 +137,18 @@ Screenshots are located in `frontend_by_copilot/public/img/screenshots/`.
 
 3.  **Run with Docker (Recommended):**
     Ensure you have Docker and Docker Compose installed.
-    ```bash
-    docker compose up -d --build
-    ```
+
+    * **Enable Development Mode (Optional):**
+        To expose ports (DB: 5432, Backend: 5000, Redis: 6379) for local tools like Postman or DBeaver, create an override file from the development template:
+        ```bash
+        cp docker-compose.dev.yaml docker-compose.override.yaml
+        ```
+
+    * **Build and Run:**
+        Docker will automatically pick up the override configuration if it exists.
+        ```bash
+        docker compose up -d --build
+        ```
     The app will be available at `http://localhost:3000`.
 
 4.  **Run Tests:**
@@ -149,13 +158,36 @@ Screenshots are located in `frontend_by_copilot/public/img/screenshots/`.
 
 ## 🔌 API Endpoints
 
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| **Auth** | | |
-| `POST` | `/api/v1/auth/register` | Register a new user |
-| `POST` | `/api/v1/auth/login` | Login user (returns Access & Refresh Tokens) |
-| `POST` | `/api/v1/auth/refresh` | Rotate tokens using Refresh Token |
-| **Transactions** | | |
-| `GET` | `/api/v1/transactions` | Fetch all user transactions |
-| `POST` | `/api/v1/transactions` | Add new expense/income |
-|      |  |  |
+| Method            | Endpoint                             | Description                                  |
+|:------------------|:-------------------------------------|:---------------------------------------------|
+| **Auth**          |                                      |                                              |
+| `POST`            | `/api/v1/auth/register`              | Register a new user                          |
+| `POST`            | `/api/v1/auth/login`                 | Login user (returns Access & Refresh Tokens) |
+| `POST`            | `/api/v1/auth/refresh`               | Rotate tokens using Refresh Token            |
+| `POST`            | `/api/v1/auth/logout`                | Logout user (blacklist tokens)               |
+| **Transactions**  |                                      |                                              |
+| `POST`            | `/api/v1/transactions/`              | Create transaction                           |
+| `DELETE`          | `/api/v1/transactions/{id}`          | Delete transaction                           |
+| `PUT`             | `/api/v1/transactions/{id}`          | Update transaction                           |
+| `GET`             | `/api/v1/transactions/{id}`          | Getone transactions                          |
+| **Categories**    |                                      |                                              |
+| `POST`            | `/api/v1/categories/`                | Create category                              |
+| `DELETE`          | `/api/v1/categories/{id}`            | Delete category                              |
+| `PUT`             | `/api/v1/categories/<{id}`           | Update category                              |
+| `GET`             | `/api/v1/categories/all`             | Get all categories                           |
+| **Budgets**       |                                      |                                              |
+| `POST`            | `/api/v1/budgets/`                   | Create or update budget                      |
+| `DELETE`          | `/api/v1/budgets/{id}`               | Delete budget                                |
+| `GET`             | `/api/v1/budgets/`                   | Get all budgets                              |
+| **Profile**       |                                      |                                              |
+| `GET`             | `/api/v1/profile/me`                 | Get user profile                             |
+| `PUT`             | `/api/v1/profile/me`                 | Update user profile                          |
+| `DELETE`          | `/api/v1/profile/me`                 | Delete user account                          |
+| `POST`            | `/api/v1/profile/change-password`    | Change password                              |
+| `PUT`             | `/api/v1/profile/monobank`           | Add/Update monobank token                    |
+| `DELETE`          | `/api/v1/profile/monobank`           | Remove monobank token                        |
+| **Dashboard**     |                                      |
+| `GET`             | `/api/v1/dashboard/`                 | Get dashboard overview data                  |
+| **Monobank Sync** |                                      |
+| `POST`            | `/api/v1/monobank/sync-transactions` | Trigger manual sync of transactions          |
+| `GET`             | `/api/v1/monobank/tasks/{id}`        | Get status of task                           |
