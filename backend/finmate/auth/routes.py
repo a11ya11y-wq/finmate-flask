@@ -4,12 +4,14 @@ from flask_jwt_extended import jwt_required
 from .service import AuthService
 from finmate.auth import bp
 from finmate.utils.error_parser import parse_exception
+from finmate.extensions import limiter
 
 
 
 service = AuthService()
 
 @bp.route('/login', methods=['POST'])
+@limiter.limit("5 per minute")
 def login():
     try:
         data = request.get_json()
@@ -37,6 +39,7 @@ def login():
 
 
 @bp.route('/refresh', methods=['POST'])
+@limiter.limit("10 per minute")
 def refresh():
     refresh_token = request.cookies.get("finmate_refresh_token")
     if not refresh_token:
@@ -67,6 +70,7 @@ def refresh():
 
 
 @bp.route('/register', methods=['POST'])
+@limiter.limit("5 per minute")
 def register():
     try:
         data = request.get_json()

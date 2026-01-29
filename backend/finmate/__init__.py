@@ -8,7 +8,8 @@ import logging
 
 
 load_dotenv()
-from .extensions import db, migrate, jwt, redis_client, init_redis, init_celery
+from .extensions import db, migrate, jwt, redis_client, init_redis, init_celery, limiter
+from .utils.error_handlers import register_error_handlers
 from .config import config
 
 FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -44,6 +45,8 @@ def create_app(config_name='default'):
     jwt.init_app(app)
     db.init_app(app)
     init_celery(app)
+    limiter.init_app(app)
+    register_error_handlers(app)
     migrate.init_app(app, db)
     redis_conn = init_redis(app)
 

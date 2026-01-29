@@ -6,7 +6,7 @@ from . import bp
 from .service import MonobankService
 from finmate.utils.error_parser import parse_exception
 from .tasks import task_sync_monobank_tx
-from finmate.extensions import celery
+from finmate.extensions import celery, limiter
 
 
 logger = logging.getLogger(__name__)
@@ -16,6 +16,7 @@ service = MonobankService()
 
 @bp.route('/sync-transactions', methods=["POST"])
 @jwt_required()
+@limiter.limit("2 per minute")
 def sync_transactions():
     try:
         user_id = int(get_jwt_identity())

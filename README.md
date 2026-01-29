@@ -54,11 +54,11 @@ To avoid boilerplate code in services, a custom `@redis_cache` decorator was imp
 - TTL (Time-To-Live) management.
 - Logging of Cache Hits/Misses for monitoring.
 
-### 2. Centralized Error Handling
-Instead of try-except blocks scattered across controllers, a global `error_parser` is used. It intercepts exceptions and standardizes responses:
+### 2. Centralized & Unified Error Handling
+Instead of try-except blocks scattered across controllers, a global error handler registry is used. It intercepts exceptions and standardizes responses:
 - **Business Errors:** Custom `FinMateError` exceptions return clear messages to the frontend.
 - **Validation Errors:** `Pydantic` validation errors are parsed into a readable list of field-specific issues.
-- **Unexpected Errors:** Generic 500 responses hide internal implementation details for security.
+- **Consistent JSON Responses:** All HTTP exceptions (404, 500), Authentication failures, and Rate Limit violations (429) return a standardized JSON structure (`{ "error": "...", "message": "..." }`), ensuring the frontend never encounters raw HTML errors.
 
 ### 3. Advanced JWT Flow
 The authentication system goes beyond simple login:
@@ -68,6 +68,11 @@ The authentication system goes beyond simple login:
 ### 4. Security & Data Protection
 Security is a top priority for financial applications. Beyond standard JWT authentication, FinMate implements:
 - **Fernet Encryption:** Monobank personal tokens are never stored in plain text. They are encrypted using the `cryptography` library before being saved to PostgreSQL and decrypted only in memory during Celery task execution. This protects user financial data in case of a database dump leak.
+
+### 5. API Rate Limiting & DoS Protection
+To protect against brute-force attacks and service abuse, **Flask-Limiter** is integrated using Redis as storage:
+- **Granular Control:** The API implements a "Sphere of Defense" strategy with sane global limits (e.g., 2000 req/day) and strict throttling for critical endpoints (Login, Register, Monobank Sync — e.g., 5 req/min).
+- **Proxy Awareness:** The application is configured with `Werkzeug ProxyFix` to correctly resolve client IP addresses through the Docker/Nginx reverse proxy layer, ensuring accurate limiting in a containerized environment.
 
 ## 🛠 Tech Stack
 

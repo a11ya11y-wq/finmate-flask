@@ -2,6 +2,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from flask import jsonify
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import redis
 from celery import Celery
 
@@ -11,19 +13,11 @@ migrate = Migrate()
 jwt = JWTManager()
 celery = Celery()
 
-@jwt.invalid_token_loader
-def invalid_token_callback(error):
-    return jsonify({
-        "error": "Invalid token",
-        "details": error
-    }), 401
-
-@jwt.unauthorized_loader
-def missing_token_callback(error):
-    return jsonify({
-        "error": "Missing token",
-        "details": error
-    }), 401
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=["2000 per day", "500 per hour"],
+    storage_uri="redis://redis:6379/0"
+)
 
 
 redis_client = None
