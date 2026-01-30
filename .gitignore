@@ -4,6 +4,9 @@ backend/.venv/
 venv/
 env/
 
+htmlcov/
+.coverage
+
 __pycache__/
 *.pyc
 *.pyo

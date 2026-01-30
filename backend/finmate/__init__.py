@@ -8,7 +8,8 @@ import logging
 
 
 load_dotenv()
-from .extensions import db, migrate, jwt, redis_client, init_redis, init_celery, limiter
+
+from .extensions import db, migrate, jwt, redis_client, init_redis, init_celery, init_limiter
 from .utils.error_handlers import register_error_handlers
 from .config import config
 
@@ -45,17 +46,10 @@ def create_app(config_name='default'):
     jwt.init_app(app)
     db.init_app(app)
     init_celery(app)
-    limiter.init_app(app)
+    init_limiter(app)
     register_error_handlers(app)
     migrate.init_app(app, db)
-    redis_conn = init_redis(app)
-
-    try:
-        response = redis_conn.ping()
-        logger.info(f"Redis connection successful: {response}")
-    except redis.ConnectionError  as e:
-        logger.error(f"Redis connection error: {e}")
-
+    init_redis(app)
 
     with app.app_context():
         from .categories import bp as cat_bp

@@ -7,16 +7,6 @@ from finmate.models.category_model import Category
 from finmate import create_app, db
 
 
-
-@pytest.fixture(autouse=True)
-def mock_redis(mocker):
-    mock = mocker.patch("finmate.extensions.redis_client")
-
-    mock.get.return_value = None # blacklist (logout)
-    mock.set.return_value = True # caching (data)
-    return mock
-
-
 @pytest.fixture(scope='session')
 def app():
     app = create_app(config_name='testing')

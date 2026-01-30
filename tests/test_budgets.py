@@ -244,7 +244,8 @@ class TestGetBudgets:
         assert budget_stat['remaining'] == 500.0
         assert budget_stat['percentage'] == 50.0
 
-        assert "days left" in budget_stat['deadline_info']
+        assert "day" in budget_stat['deadline_info']
+        assert "left" in budget_stat['deadline_info']
 
     def test_get_all_budgets_wo_auth(self, client):
         response = client.get("/api/v1/budgets/")

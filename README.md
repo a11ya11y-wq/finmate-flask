@@ -13,6 +13,7 @@
 ![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 ![Nginx](https://img.shields.io/badge/Nginx-Reverse_Proxy-009639?style=for-the-badge&logo=nginx&logoColor=white)
 ![Vite](https://img.shields.io/badge/Frontend-Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![Coverage](https://img.shields.io/badge/Coverage-80%25-green?style=for-the-badge)
 
 ## 🚀 Live Demo
 Check out the application live at: **[https://fin-mate.app](https://fin-mate.app)**
@@ -34,7 +35,10 @@ Check out the application live at: **[https://fin-mate.app](https://fin-mate.app
 - **Performance:** **Redis** performs a dual role:
     1.  **Caching:** Stores heavy analytical queries (Dashboard) and user profiles.
     2.  **Message Broker:** Manages the task queue for Celery workers.
-- **Testing:** Comprehensive test suite utilizing **Pytest** for backend logic validation.
+- **Testing & Quality Assurance:**
+    - Comprehensive test suite utilizing **Pytest**.
+    - Achieved **80% code coverage** for backend logic.
+    - <details><summary>View Coverage Report</summary><img src="/screenshots/coverage_report.png" alt="Coverage Report"></details>
 
 ## 🏗 Infrastructure & Deployment
 The project is fully containerized and deployed to a production environment using a robust DevOps stack:

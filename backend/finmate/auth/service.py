@@ -133,7 +133,10 @@ class AuthService:
 
 
             if ttl > 0:
-                self.redis.setex(f"auth:blacklist:{jti}", ttl, "revoked")
+                try:
+                    self.redis.setex(f"auth:blacklist:{jti}", ttl, "revoked")
+                except Exception as e:
+                    logger.warning(f"Redis unavailable during logout: {e}")
 
             logger.info(f"User {user_id} logged out successfully.")
         except Exception as e:

@@ -17,6 +17,11 @@ def redis_cache(ttl=300, key_builder=None):
                 raise ValueError(
                     f"Error in @redis_cache for {func.__name__} : key_builder function is required."
                 )
+
+            if not extensions.redis_client:
+                logger.warning(f"Redis client not initialized in @redis_cache for {func.__name__}. Bypassing cache.")
+                return func(*args, **kwargs)
+
             try:
                 cache_key = key_builder(*args, **kwargs)
             except Exception as e:
@@ -51,6 +56,11 @@ def invalidate_cache(key_pattern):
     if not key_pattern:
         logger.error("Key pattern must be provided for cache invalidation.")
         raise ValueError("Key pattern must be provided for cache invalidation.")
+
+    if not extensions.redis_client:
+        logger.warning("Redis client not initialized. Cannot invalidate cache.")
+        return 0
+
     deleted_count = 0
     try:
         keys_to_delete = [key for key in extensions.redis_client.scan_iter(match=key_pattern)]
