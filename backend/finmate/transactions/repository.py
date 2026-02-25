@@ -129,11 +129,16 @@ class TransactionRepository:
             db.session.rollback()
             raise Exception(f"Error while updating transaction in DB: {e}")
 
+
+    def refresh_session(self):
+        db.session.expire_all()
+
+
     def get_existing_mono_ids(self, user_id: int, mono_ids: set) -> set:
         stmt = db.select(Transactions.mono_id).filter(
             Transactions.user_id == user_id,
             Transactions.mono_id.in_(mono_ids)
-        )
+        ).execution_options(populate_existing=True)
 
         result = db.session.execute(stmt).scalars().all()
 

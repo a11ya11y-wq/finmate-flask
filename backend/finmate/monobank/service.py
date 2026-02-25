@@ -53,10 +53,14 @@ class MonobankService:
                 account_id = acc['id']
                 break
 
+        logger.info(f"Selected Account ID for sync: {account_id}")
+
         thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
         from_time = int(thirty_days_ago.timestamp())
 
         transactions_from_mono = api.get_transactions(account_id, from_time)
+
+        self.tx_repo.refresh_session()
 
         if isinstance(transactions_from_mono, dict) and transactions_from_mono.get('errorDescription'):
             error_msg = transactions_from_mono['errorDescription']
