@@ -404,7 +404,7 @@ window.deleteCategory = async function(categoryId) {
     const category = categories.find(c => c.id === categoryId)
     const categoryName = category ? category.name : 'this category'
 
-    const confirmed = await confirmDelete(`category "${categoryName}"`)
+    const confirmed = await confirmDelete(`"${categoryName}"`, true)
     if (!confirmed) return
 
     try {
@@ -449,10 +449,12 @@ async function saveMonobankToken(e) {
 // Delete Monobank token
 async function deleteMonobankToken() {
     const confirmed = await showConfirmDialog({
-        title: 'Delete Monobank Token',
-        message: 'Are you sure you want to disconnect your Monobank account? You will need to re-enter your API token to reconnect.',
-        confirmText: 'Delete Token',
-        type: 'danger'
+        title: 'Disconnect Monobank',
+        message: 'Are you sure you want to disconnect your Monobank account?',
+        confirmText: 'Disconnect',
+        cancelText: 'Cancel',
+        type: 'danger',
+        compact: true
     })
 
     if (!confirmed) return
@@ -472,9 +474,11 @@ async function deleteMonobankToken() {
 async function deleteAccount() {
     const confirmed = await showConfirmDialog({
         title: 'Delete Account',
-        message: 'Warning! This action is irreversible. All your data will be permanently deleted. Are you sure you want to delete your account?',
-        confirmText: 'Delete My Account',
-        type: 'danger'
+        message: 'All your data will be permanently deleted. This cannot be undone.',
+        confirmText: 'Delete Account',
+        cancelText: 'Cancel',
+        type: 'danger',
+        compact: true
     })
 
     if (!confirmed) return

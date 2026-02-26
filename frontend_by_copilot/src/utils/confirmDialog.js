@@ -1,204 +1,154 @@
-// Confirm Dialog utility - uses simpleModal for consistent UX
-import { showWarning } from './toast.js'
+// Confirm Dialog utility — unified dark-theme design
 
 /**
- * Create and show a confirmation dialog using our modal system
- * @param {Object} options - Dialog configuration
- * @param {string} options.title - Dialog title
- * @param {string} options.message - Dialog message
- * @param {string} options.confirmText - Confirm button text (default: 'Підтвердити')
- * @param {string} options.cancelText - Cancel button text (default: 'Скасувати')
- * @param {string} options.type - Dialog type: 'danger', 'warning', 'info' (default: 'warning')
- * @returns {Promise<boolean>} - Resolves to true if confirmed, false if canceled
+ * Show a confirmation dialog.
+ * @param {Object} options
+ * @param {string} options.title
+ * @param {string} options.message
+ * @param {string} [options.confirmText='Confirm']
+ * @param {string} [options.cancelText='Cancel']
+ * @param {string} [options.type='danger'] - 'danger' | 'warning' | 'info'
+ * @param {boolean} [options.compact=false] - Smaller modal (for Profile pages)
+ * @returns {Promise<boolean>}
  */
 export async function showConfirmDialog(options = {}) {
   const {
-    title = 'Підтвердження',
-    message = 'Ви впевнені?',
-    confirmText = 'Підтвердити',
-    cancelText = 'Скасувати',
-    type = 'warning'
+    title = 'Confirm',
+    message = 'Are you sure?',
+    confirmText = 'Confirm',
+    cancelText = 'Cancel',
+    type = 'danger',
+    compact = false
   } = options
 
   return new Promise((resolve) => {
-    // Create modal element
-    const modalId = 'confirmDialog-' + Date.now()
-    const modal = createConfirmModal({
-      modalId,
-      title,
-      message,
-      confirmText,
-      cancelText,
-      type,
-      onConfirm: () => {
-        cleanup()
-        resolve(true)
-      },
-      onCancel: () => {
-        cleanup()
-        resolve(false)
+    const overlayId = 'cdOverlay-' + Date.now()
+
+    const iconMap = {
+      danger:  { icon: 'bi-exclamation-triangle-fill', color: '#ef4444', bg: 'rgba(239,68,68,0.15)' },
+      warning: { icon: 'bi-exclamation-circle-fill',   color: '#f59e0b', bg: 'rgba(245,158,11,0.15)' },
+      info:    { icon: 'bi-info-circle-fill',           color: '#3b82f6', bg: 'rgba(59,130,246,0.15)' }
+    }
+    const cfg = iconMap[type] || iconMap.danger
+
+    const overlay = document.createElement('div')
+    overlay.id = overlayId
+    overlay.style.cssText = `
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.75);
+      z-index: 10500;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+    `
+
+    const accentGradients = {
+      danger:  'linear-gradient(135deg, #ef4444, #dc2626)',
+      warning: 'linear-gradient(135deg, #f59e0b, #d97706)',
+      info:    'linear-gradient(135deg, #3b82f6, #2563eb)'
+    }
+    const confirmGradient = accentGradients[type] || accentGradients.danger
+
+    overlay.innerHTML = `
+      <div class="cd-modal-box cd-modal-accent-${type} ${compact ? 'cd-modal-compact' : ''}">
+        <!-- Close X -->
+        <button class="cd-close-btn" data-action="cancel" aria-label="Close">
+          <i class="bi bi-x"></i>
+        </button>
+
+        <!-- Icon -->
+        <div class="cd-icon-wrap ${compact ? 'cd-icon-wrap--sm' : ''}" style="background:${cfg.bg};">
+          <i class="bi ${cfg.icon}" style="color:${cfg.color};"></i>
+        </div>
+
+        <!-- Title -->
+        <h5 class="cd-title">${title}</h5>
+
+        <!-- Message -->
+        <p class="cd-message">${message}</p>
+
+        <!-- Buttons -->
+        <div class="cd-btn-row">
+          <button class="cd-btn-cancel" data-action="cancel">${cancelText}</button>
+          <button class="cd-btn-confirm cd-btn-confirm--${type}" data-action="confirm" style="background:${confirmGradient};">${confirmText}</button>
+        </div>
+      </div>
+    `
+
+    document.body.appendChild(overlay)
+
+    // Animate in
+    requestAnimationFrame(() => {
+      const box = overlay.querySelector('.cd-modal-box')
+      if (box) {
+        box.style.transform = 'scale(1)'
+        box.style.opacity   = '1'
       }
     })
 
-    // Append to body
-    document.body.appendChild(modal)
-
-    // Show modal
-    setTimeout(() => {
-      modal.style.display = 'block'
-      modal.classList.add('show')
-      createBackdrop(modalId)
-    }, 10)
-
-    // Cleanup function
     function cleanup() {
-      modal.classList.remove('show')
-      removeBackdrop()
-      setTimeout(() => {
-        if (modal.parentElement) {
-          modal.remove()
-        }
-      }, 300)
-    }
-
-    // Handle escape key
-    function handleEscape(e) {
-      if (e.key === 'Escape') {
-        cleanup()
-        resolve(false)
-        document.removeEventListener('keydown', handleEscape)
+      const box = overlay.querySelector('.cd-modal-box')
+      if (box) {
+        box.style.transform = 'scale(0.95)'
+        box.style.opacity   = '0'
       }
+      overlay.style.opacity = '0'
+      setTimeout(() => {
+        if (overlay.parentElement) overlay.remove()
+        document.removeEventListener('keydown', handleEscape)
+      }, 200)
     }
 
+    overlay.querySelectorAll('[data-action="confirm"]').forEach(btn =>
+      btn.addEventListener('click', () => { cleanup(); resolve(true) })
+    )
+    overlay.querySelectorAll('[data-action="cancel"]').forEach(btn =>
+      btn.addEventListener('click', () => { cleanup(); resolve(false) })
+    )
+
+    // Close on backdrop click
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) { cleanup(); resolve(false) }
+    })
+
+    function handleEscape(e) {
+      if (e.key === 'Escape') { cleanup(); resolve(false) }
+    }
     document.addEventListener('keydown', handleEscape)
   })
 }
 
 /**
- * Show delete confirmation dialog
- * @param {string} itemName - Name of item to delete
+ * Show delete confirmation dialog (compact for Profile pages).
+ * Clicking Cancel only closes the modal — no toast.
+ * @param {string} itemName
+ * @param {boolean} [compact=false]
  * @returns {Promise<boolean>}
  */
-export async function confirmDelete(itemName = 'цей елемент') {
-  const result = await showConfirmDialog({
-    title: 'Підтвердження видалення',
-    message: `Ви впевнені, що хочете видалити ${itemName}? Цю дію неможливо скасувати.`,
-    confirmText: 'Видалити',
-    cancelText: 'Скасувати',
-    type: 'danger'
+export async function confirmDelete(itemName = 'this item', compact = false) {
+  return await showConfirmDialog({
+    title: 'Delete?',
+    message: `Are you sure you want to delete ${itemName}? This action cannot be undone.`,
+    confirmText: 'Delete',
+    cancelText: 'Cancel',
+    type: 'danger',
+    compact
   })
-
-  if (!result) {
-    showWarning('Видалення скасовано')
-  }
-
-  return result
 }
 
 /**
- * Show generic confirmation dialog
- * @param {string} message - Dialog message
- * @param {string} confirmText - Confirm button text
+ * Show generic confirmation dialog.
+ * @param {string} message
+ * @param {string} [confirmText='Confirm']
  * @returns {Promise<boolean>}
  */
-export async function confirmAction(message, confirmText = 'Підтвердити') {
+export async function confirmAction(message, confirmText = 'Confirm') {
   return await showConfirmDialog({
-    title: 'Підтвердження',
+    title: 'Confirm',
     message,
     confirmText,
-    cancelText: 'Скасувати',
+    cancelText: 'Cancel',
     type: 'info'
   })
 }
 
-// ========================================
-// INTERNAL HELPERS (Template-based)
-// ========================================
-
-function createConfirmModal({ modalId, title, message, confirmText, cancelText, type, onConfirm, onCancel }) {
-  const modal = document.createElement('div')
-  modal.id = modalId
-  modal.className = 'modal fade'
-  modal.setAttribute('tabindex', '-1')
-  modal.setAttribute('role', 'dialog')
-  modal.setAttribute('aria-labelledby', `${modalId}-title`)
-  modal.setAttribute('aria-hidden', 'true')
-
-  // Type-specific colors
-  const colors = {
-    danger: {
-      icon: 'bi-exclamation-triangle-fill',
-      iconColor: '#ef4444',
-      iconBg: 'rgba(239, 68, 68, 0.15)',
-      btnClass: 'btn-danger'
-    },
-    warning: {
-      icon: 'bi-exclamation-circle-fill',
-      iconColor: '#f59e0b',
-      iconBg: 'rgba(245, 158, 11, 0.15)',
-      btnClass: 'btn-warning'
-    },
-    info: {
-      icon: 'bi-info-circle-fill',
-      iconColor: '#3b82f6',
-      iconBg: 'rgba(59, 130, 246, 0.15)',
-      btnClass: 'btn-primary'
-    }
-  }
-
-  const config = colors[type] || colors.info
-
-  modal.innerHTML = `
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header border-0 pb-0">
-          <h5 class="modal-title" id="${modalId}-title">
-            <i class="bi ${config.icon}" style="color: ${config.iconColor}; background: ${config.iconBg}; padding: 8px; border-radius: 50%; font-size: 20px;"></i>
-            ${title}
-          </h5>
-          <button type="button" class="btn-close" data-action="cancel" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <p style="margin: 0; color: rgba(255, 255, 255, 0.85); line-height: 1.6;">${message}</p>
-        </div>
-        <div class="modal-footer border-0" style="gap: 12px;">
-          <button type="button" class="btn btn-secondary" data-action="cancel">${cancelText}</button>
-          <button type="button" class="btn ${config.btnClass}" data-action="confirm" autofocus>${confirmText}</button>
-        </div>
-      </div>
-    </div>
-  `
-
-  // Event listeners
-  modal.querySelectorAll('[data-action="confirm"]').forEach(btn => {
-    btn.addEventListener('click', onConfirm)
-  })
-
-  modal.querySelectorAll('[data-action="cancel"]').forEach(btn => {
-    btn.addEventListener('click', onCancel)
-  })
-
-  return modal
-}
-
-function createBackdrop(modalId) {
-  const backdrop = document.createElement('div')
-  backdrop.id = `${modalId}-backdrop`
-  backdrop.className = 'modal-backdrop fade show'
-  backdrop.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1040;
-  `
-  document.body.appendChild(backdrop)
-}
-
-function removeBackdrop() {
-  const backdrops = document.querySelectorAll('[id$="-backdrop"]')
-  backdrops.forEach(b => b.remove())
-}
 

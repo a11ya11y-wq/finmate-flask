@@ -64,60 +64,58 @@ function logError(context, error){
 // ✅ Confirmation dialog for delete action
 async function confirmDelete(){
   return new Promise((resolve) => {
-    const modalHTML = `
-      <div class="modal-overlay" id="deleteConfirmModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 10200; display: flex; align-items: center; justify-content: center; padding: 20px;">
-        <div class="modal-content modal-delete-transaction" style="background: #1a1d23; border-radius: 16px; padding: 24px; max-width: 320px; width: 100%; box-shadow: 0 10px 40px rgba(0,0,0,0.6); border: 1px solid rgba(255,107,107,0.3); position: relative;">
-          <button id="closeDeleteModalBtn" style="position: absolute; top: 12px; right: 12px; background: transparent; border: none; color: #9aa1a6; font-size: 24px; cursor: pointer; padding: 4px 8px; line-height: 1; transition: color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#9aa1a6'">
-            <i class="bi bi-x"></i>
+    const overlay = document.createElement('div')
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:10500;display:flex;align-items:center;justify-content:center;padding:20px;'
+    overlay.innerHTML = `
+      <div class="cd-modal-box cd-modal-accent-danger">
+        <button class="cd-close-btn" id="closeDeleteModalBtn" aria-label="Close">
+          <i class="bi bi-x"></i>
+        </button>
+        <div class="cd-icon-wrap" style="background:rgba(239,68,68,0.15);">
+          <i class="bi bi-exclamation-triangle-fill" style="color:#ef4444;"></i>
+        </div>
+        <h5 class="cd-title">Delete Transaction?</h5>
+        <p class="cd-message">This action cannot be undone. Are you sure you want to delete this transaction?</p>
+        <div class="cd-btn-row">
+          <button id="cancelDeleteBtn" class="cd-btn-cancel">Cancel</button>
+          <button id="confirmDeleteBtn" class="cd-btn-confirm cd-btn-confirm--danger" style="background:linear-gradient(135deg,#ef4444,#dc2626);">
+            <i class="bi bi-trash me-1"></i>Delete
           </button>
-          <div style="text-align: center; margin-bottom: 16px;">
-            <i class="bi bi-exclamation-triangle-fill" style="color: #ff6b6b; font-size: 48px;"></i>
-          </div>
-          <h5 style="color: #fff; margin-bottom: 12px; font-size: 18px; font-weight: 600; text-align: center;">
-            Delete Transaction?
-          </h5>
-          <p style="color: #9aa1a6; margin-bottom: 24px; font-size: 14px; text-align: center; line-height: 1.5;">
-            This action cannot be undone. Are you sure you want to delete this transaction?
-          </p>
-          <div style="display: flex; flex-direction: column; gap: 10px; padding: 0 4px;">
-            <button id="confirmDeleteBtn" class="btn btn-danger" style="width: 100%; padding: 12px 20px; font-size: 15px; font-weight: 600;">
-              <i class="bi bi-trash"></i> Delete
-            </button>
-            <button id="cancelDeleteBtn" class="btn btn-secondary" style="width: 100%; padding: 12px 20px; font-size: 15px;">
-              Cancel
-            </button>
-          </div>
         </div>
       </div>
     `
+    document.body.appendChild(overlay)
 
-    const modalDiv = document.createElement('div')
-    modalDiv.innerHTML = modalHTML
-    const modal = modalDiv.firstElementChild
-    document.body.appendChild(modal)
+    requestAnimationFrame(() => {
+      const box = overlay.querySelector('.cd-modal-box')
+      if(box){ box.style.transform='scale(1)'; box.style.opacity='1' }
+    })
 
     const cleanup = () => {
-      try{ modal.remove() }catch(_){}
+      const box = overlay.querySelector('.cd-modal-box')
+      if(box){ box.style.transform='scale(0.95)'; box.style.opacity='0' }
+      overlay.style.opacity='0'
+      setTimeout(()=>{ try{ overlay.remove() }catch(_){} }, 200)
     }
 
-    document.getElementById('confirmDeleteBtn')?.addEventListener('click', () => {
+    overlay.querySelector('#confirmDeleteBtn')?.addEventListener('click', () => {
       cleanup()
       resolve(true)
     })
 
-    document.getElementById('cancelDeleteBtn')?.addEventListener('click', () => {
+    overlay.querySelector('#cancelDeleteBtn')?.addEventListener('click', () => {
       cleanup()
       resolve(false)
     })
 
-    document.getElementById('closeDeleteModalBtn')?.addEventListener('click', () => {
+    overlay.querySelector('#closeDeleteModalBtn')?.addEventListener('click', () => {
       cleanup()
       resolve(false)
     })
 
     // Close on overlay click
-    modal.addEventListener('click', (e) => {
-      if(e.target === modal){
+    overlay.addEventListener('click', (e) => {
+      if(e.target === overlay){
         cleanup()
         resolve(false)
       }

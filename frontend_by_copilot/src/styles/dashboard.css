@@ -3229,3 +3229,274 @@ html body .modal-footer .btn {
 }
 /* End of mobile modal scroll fix */
 
+
+/* ===================================
+   UNIFIED CONFIRM/DELETE DIALOG (cd-modal-box)
+   Used by: Dashboard, Budget, Profile, Categories
+   Mirrors the Add/Edit Transaction modal style.
+   =================================== */
+
+/* Overlay — above bottom nav (z-index 9999) */
+.cd-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 10500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  transition: opacity 0.2s ease;
+}
+
+/* Modal box */
+.cd-modal-box {
+  background: #1a1d21;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 36px 28px 28px;
+  width: 90%;
+  max-width: 400px;
+  position: relative;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+  overflow: hidden; /* Required for ::before accent bar */
+  transform: scale(0.95);
+  opacity: 0;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+/* ── Accent bar (mirrors modal-add-transaction::before) ── */
+.cd-modal-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  border-radius: 16px 16px 0 0;
+  z-index: 1;
+  /* default — overridden by type variants below */
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+/* Danger accent — red */
+.cd-modal-accent-danger::before {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+/* Warning accent — amber */
+.cd-modal-accent-warning::before {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+/* Info accent — blue */
+.cd-modal-accent-info::before {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+/* Compact variant (Profile — Monobank, Account, Category) */
+.cd-modal-compact {
+  max-width: 320px;
+  padding: 30px 22px 22px;
+}
+
+/* ── Close X button ── */
+.cd-close-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: transparent;
+  border: none;
+  color: #9aa1a6;
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  padding: 0;
+  font-size: 20px;
+  line-height: 1;
+  transition: color 0.15s ease;
+  z-index: 2;
+}
+
+.cd-close-btn:hover,
+.cd-close-btn:focus {
+  color: #9aa1a6;
+  background: transparent;
+  outline: none;
+}
+
+/* ── Icon circle ── */
+.cd-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  margin: 0 auto 18px;
+  width: 68px;
+  height: 68px;
+  flex-shrink: 0;
+}
+
+.cd-icon-wrap i {
+  font-size: 34px;
+}
+
+/* Compact icon — smaller & bright red */
+.cd-icon-wrap--sm {
+  width: 50px;
+  height: 50px;
+  margin-bottom: 14px;
+}
+
+.cd-icon-wrap--sm i {
+  font-size: 26px;
+  color: #ef4444 !important;
+}
+
+.cd-modal-compact .cd-icon-wrap {
+  width: 50px;
+  height: 50px;
+  margin-bottom: 14px;
+}
+
+.cd-modal-compact .cd-icon-wrap i {
+  font-size: 26px;
+  color: #ef4444 !important;
+}
+
+/* ── Title ── */
+.cd-title {
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 10px;
+  line-height: 1.3;
+}
+
+.cd-modal-compact .cd-title {
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+/* ── Description ── */
+.cd-message {
+  color: #9ca3af;
+  font-size: 14px;
+  line-height: 1.55;
+  margin: 0 0 24px;
+}
+
+.cd-modal-compact .cd-message {
+  font-size: 13px;
+  margin-bottom: 18px;
+}
+
+/* ── Button row — row on desktop ── */
+.cd-btn-row {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+}
+
+/* Cancel button */
+.cd-btn-cancel {
+  flex: 1;
+  padding: 11px 16px;
+  background: transparent;
+  color: #9aa1a6;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.cd-btn-cancel:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #e0e0e0;
+}
+
+/* Confirm button — filled, type-colored */
+.cd-btn-confirm {
+  flex: 1;
+  padding: 11px 16px;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.cd-btn-confirm:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
+
+.cd-btn-confirm--danger:hover {
+  box-shadow: 0 6px 18px rgba(239, 68, 68, 0.4);
+}
+
+.cd-btn-confirm--warning:hover {
+  box-shadow: 0 6px 18px rgba(245, 158, 11, 0.4);
+}
+
+.cd-btn-confirm--info:hover {
+  box-shadow: 0 6px 18px rgba(59, 130, 246, 0.4);
+}
+
+.cd-btn-confirm:active {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* ── Mobile: full-width vertical stack ── */
+@media (max-width: 768px) {
+  .cd-modal-box {
+    width: 90%;
+    max-width: 90vw;
+    padding: 30px 20px 22px;
+    border-radius: 18px;
+  }
+
+  .cd-modal-compact {
+    max-width: 85vw;
+    padding: 26px 18px 20px;
+  }
+
+  .cd-btn-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* Delete/Confirm on top on mobile */
+  .cd-btn-confirm {
+    order: -1;
+    padding: 13px;
+    font-size: 15px;
+    width: 100%;
+  }
+
+  .cd-btn-cancel {
+    padding: 12px;
+    font-size: 14px;
+    width: 100%;
+  }
+
+  /* X button: never darken on touch */
+  .cd-close-btn:hover,
+  .cd-close-btn:focus,
+  .cd-close-btn:active {
+    color: #9aa1a6 !important;
+    background: transparent !important;
+  }
+}
+
+

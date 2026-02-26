@@ -209,7 +209,6 @@ function renderBudgets() {
 // Attach event listeners
 function attachEventListeners() {
   document.getElementById('budgetForm').addEventListener('submit', handleBudgetSubmit)
-  document.getElementById('confirmDeleteBtn').addEventListener('click', handleDeleteBudget)
 }
 
 // Reset form
@@ -254,11 +253,60 @@ async function handleBudgetSubmit(e) {
   }
 }
 
-// Open delete modal
+// Open delete confirmation (dynamic modal, no Bootstrap)
 function openDeleteModal(budgetId) {
   budgetToDelete = budgetId
-  const modal = new bootstrap.Modal(document.getElementById('deleteBudgetModal'))
-  modal.show()
+
+  const overlay = document.createElement('div')
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:10500;display:flex;align-items:center;justify-content:center;padding:20px;'
+  overlay.innerHTML = `
+    <div class="cd-modal-box cd-modal-accent-danger">
+      <button class="cd-close-btn" id="budgetDeleteCloseBtn" aria-label="Close">
+        <i class="bi bi-x"></i>
+      </button>
+      <div class="cd-icon-wrap" style="background:rgba(239,68,68,0.15);">
+        <i class="bi bi-exclamation-triangle-fill" style="color:#ef4444;"></i>
+      </div>
+      <h5 class="cd-title">Delete Budget?</h5>
+      <p class="cd-message">Are you sure you want to delete this budget? This action cannot be undone.</p>
+      <div class="cd-btn-row">
+        <button id="budgetDeleteCancelBtn" class="cd-btn-cancel">Cancel</button>
+        <button id="budgetDeleteConfirmBtn" class="cd-btn-confirm cd-btn-confirm--danger" style="background:linear-gradient(135deg,#ef4444,#dc2626);">
+          <i class="bi bi-trash me-1"></i>Delete
+        </button>
+      </div>
+    </div>
+  `
+  document.body.appendChild(overlay)
+
+  requestAnimationFrame(() => {
+    const box = overlay.querySelector('.cd-modal-box')
+    if (box) { box.style.transform = 'scale(1)'; box.style.opacity = '1' }
+  })
+
+  const close = () => {
+    const box = overlay.querySelector('.cd-modal-box')
+    if (box) { box.style.transform = 'scale(0.95)'; box.style.opacity = '0' }
+    overlay.style.opacity = '0'
+    setTimeout(() => { try { overlay.remove() } catch(_) {} }, 200)
+  }
+
+  document.getElementById('budgetDeleteConfirmBtn').addEventListener('click', async () => {
+    close()
+    await handleDeleteBudget()
+  })
+
+  document.getElementById('budgetDeleteCancelBtn').addEventListener('click', () => { close(); budgetToDelete = null })
+  document.getElementById('budgetDeleteCloseBtn').addEventListener('click', () => { close(); budgetToDelete = null })
+
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) { close(); budgetToDelete = null }
+  })
+
+  const escHandler = (e) => {
+    if (e.key === 'Escape') { close(); budgetToDelete = null; document.removeEventListener('keydown', escHandler) }
+  }
+  document.addEventListener('keydown', escHandler)
 }
 
 // Handle delete budget
@@ -269,8 +317,6 @@ async function handleDeleteBudget() {
     await api.del(`/budgets/${budgetToDelete}/`)
     showSuccess('Budget deleted successfully!')
 
-    const modal = bootstrap.Modal.getInstance(document.getElementById('deleteBudgetModal'))
-    modal.hide()
 
     budgetToDelete = null
     await loadBudgets()
