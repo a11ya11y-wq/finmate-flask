@@ -47,6 +47,9 @@ class TransactionService:
             logger.warning(f"Transaction {tx_id} not found for deletion.")
             raise ResourceNotFound(f"Transaction {tx_id} not found or access denied.")
 
+        if tx_to_delete.mono_id:
+            raise BusinessLogicError("You cannot delete a synchronized bank transaction.")
+
         self.repo.delete_transaction(tx_to_delete)
 
         self._clear_related_caches(user_id)
@@ -68,6 +71,15 @@ class TransactionService:
 
         if not update_payload:
             raise BusinessLogicError("No valid fields to update.")
+
+        if tx_to_update.mono_id:
+            forbidden_fields = ['amount', 'transaction_type', 'created_at']
+
+            for field in forbidden_fields:
+                update_payload.pop(field, None)
+
+            if not update_payload:
+                raise BusinessLogicError("You can only change the category and notes for a bank transaction.")
 
         if 'category_id' in update_payload:
             new_cat_id = update_payload['category_id']

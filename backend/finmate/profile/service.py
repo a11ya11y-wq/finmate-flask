@@ -4,11 +4,13 @@ from flask import current_app
 import logging
 
 from .repository import ProfileRepository
+from finmate.transactions.repository import TransactionRepository
 from  .schemas import ProfileUpdateSchema, MonoTokenUpdateSchema, PasswordChangeSchema
 from finmate.exceptions import ResourceNotFound, BusinessLogicError, AuthenticationError
 from finmate.utils.caching import invalidate_cache, redis_cache
 from finmate.constants import ALLOWED_AVATARS
 
+from decimal import Decimal
 
 
 logger = logging.getLogger(__name__)
@@ -22,6 +24,7 @@ class ProfileService:
 
     def __init__(self):
         self.repo = ProfileRepository()
+        self.tx_repo = TransactionRepository()
 
 
     def get_user_entity(self, user_id):
@@ -145,6 +148,17 @@ class ProfileService:
         self._clear_related_caches(user_id)
         logger.info(f"User {user_id} deleted Monobank token.")
         return True
+
+
+    def recalculate_initial_point(self, user_id):
+        user = self.repo.get_user_info(user_id)
+
+        real_balance = Decimal(user.last_real_balance or 0)
+        current_mono_sum = Decimal(self.tx_repo.get_current_balance_mono(user_id) or 0)
+
+        new_initial = real_balance - current_mono_sum
+        self.repo.setup_initial_balance(user, new_initial)
+        return Decimal(new_initial)
 
 
     @staticmethod

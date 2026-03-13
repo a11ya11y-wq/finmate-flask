@@ -44,6 +44,23 @@ class TransactionRepository:
         return Decimal(current_balance)
 
 
+    def get_current_balance_mono(self, user_id):
+        current_balance = db.session.query(
+            func.sum(
+                case(
+                    (Transactions.transaction_type == 'income', Transactions.amount),
+                    (Transactions.transaction_type == 'expense', -Transactions.amount),
+                    else_=0
+                )
+            )
+        ).filter(
+            Transactions.user_id == user_id,
+            Transactions.mono_id.isnot(None)
+        ).scalar()
+
+        return Decimal(current_balance or 0)
+
+
     def get_expense_by_category(self, user_id, period):
         query = self.get_base_query(user_id, period)
         return query.filter(

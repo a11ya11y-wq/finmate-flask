@@ -66,3 +66,11 @@ class ProfileRepository:
         except Exception as e:
             db.session.rollback()
             raise Exception(f"Error while setup initial balance in DB: {e}")
+
+    def update_real_balance(self, user_obj: Users, new_balance):
+        try:
+            user_obj.last_real_balance = new_balance
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            raise Exception(f"Error while updating last balance in DB: {e}")

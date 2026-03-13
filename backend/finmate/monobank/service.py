@@ -6,6 +6,7 @@ import logging
 from finmate.profile.repository import ProfileRepository
 from finmate.transactions.repository import TransactionRepository
 from finmate.categories.repository import CategoryRepository
+from finmate.profile.service import ProfileService
 from finmate.categories.service import CategoryService
 from .api_client import MonoAPI
 from finmate.exceptions import ThrottlingError
@@ -22,6 +23,7 @@ class MonobankService:
         self.cat_repo = CategoryRepository()
         self.tx_repo = TransactionRepository()
         self.cat_service = CategoryService()
+        self.prof_service = ProfileService()
 
 
     def sync_tx(self, user_id):
@@ -54,8 +56,9 @@ class MonobankService:
                 account_id = acc['id']
                 real_card_balance_cents = acc['balance']
                 break
-        real_card_balance = Decimal(real_card_balance_cents) / Decimal(100)
 
+        real_card_balance = Decimal(real_card_balance_cents) / Decimal(100)
+        self.profile_repo.update_real_balance(user, real_card_balance)
 
         logger.info(f"Selected Account ID for sync: {account_id}")
 
@@ -124,11 +127,7 @@ class MonobankService:
             logger.info(f"No new transactions to add for user {user_id} from Monobank.")
 
 
-        # Calculated Balance
-        current_db_sum = self.tx_repo.get_current_balance(user_id)  # Sum all tx for user in DB
-        calculated_initial_balance = real_card_balance - current_db_sum
-        self.profile_repo.setup_initial_balance(user, calculated_initial_balance)
-
+        calculated_initial_balance = self.prof_service.recalculate_initial_point(user_id)
         logger.info(f"Balance adjusted. New Initial: {calculated_initial_balance}")
 
         return added_count
