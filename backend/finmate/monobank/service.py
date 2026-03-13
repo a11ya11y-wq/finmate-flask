@@ -48,17 +48,28 @@ class MonobankService:
             logger.exception(f"Monobank sync failed for user {user_id}")
             raise ForbiddenError(f"Invalid token or API error: {str(e)}")
 
-        account_id = client_info['accounts'][0]['id']
-        real_card_balance_cents = 0 # Actual balance on card (in cents)
+        accounts = client_info.get('accounts', [])
+        if not accounts:
+            raise BusinessLogicError("No accounts found in Monobank")
 
-        for acc in client_info['accounts']:
-            if acc['type'] == 'black':
-                account_id = acc['id']
-                real_card_balance_cents = acc['balance']
+
+        account_id = None
+        real_card_balance_cents = 0
+
+        for acc in accounts:
+            if acc.get('type') == 'black' and acc.get('currencyCode') == 980:
+                account_id = acc.get('id')
+                real_card_balance_cents = acc.get('balance')
                 break
+
+        if not account_id:
+            account_id = accounts[0]['id']
+            real_card_balance_cents = accounts[0]['balance']
+            logger.info(f"No correct card found in Mnobank")
 
         real_card_balance = Decimal(real_card_balance_cents) / Decimal(100)
         self.profile_repo.update_real_balance(user, real_card_balance)
+
 
         logger.info(f"Selected Account ID for sync: {account_id}")
 

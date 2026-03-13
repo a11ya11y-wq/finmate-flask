@@ -34,6 +34,12 @@ def setup_mocks(mocker):
     ).return_value
     mock_profile_repo.get_user_info.return_value = FAKE_USER
 
+    mock_profile_service = mocker.patch(
+        "finmate.monobank.service.ProfileService",
+        autospec=True
+    ).return_value
+    mock_profile_service.recalculate_initial_point.return_value = 1000
+
     mock_cat_repo = mocker.patch(
         "finmate.monobank.service.CategoryRepository",
         autospec=True
