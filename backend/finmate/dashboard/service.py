@@ -7,6 +7,7 @@ from finmate.exceptions import BusinessLogicError
 from finmate.utils.caching import redis_cache
 from finmate.constants import VALID_PERIODS
 
+from decimal import Decimal
 
 logger = logging.getLogger(__name__)
 
@@ -43,12 +44,14 @@ class DashboardService:
             prev_income = 0.0
             prev_expense = 0.0
 
-        initial_balance = user.initial_balance or 0.0
 
         # Current Period Data
         current_income = self.tx_repo.get_total_amount(user_id, "income", start_date, today)
         current_expense = self.tx_repo.get_total_amount(user_id, "expense", start_date, today)
-        balance = self.tx_repo.get_current_balance(user_id, initial_balance)
+
+        initial_balance = Decimal(user.initial_balance or 0)
+        current_db_sum = Decimal(self.tx_repo.get_current_balance(user_id)or 0)
+        balance = initial_balance + current_db_sum
 
         expenses_by_cat_raw = self.tx_repo.get_expense_by_category(user_id, start_date)
         balance_chart_raw = self.tx_repo.get_transactions_for_balance_chart(user_id, start_date)

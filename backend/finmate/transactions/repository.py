@@ -31,7 +31,7 @@ class TransactionRepository:
         return float(result) if result else 0.0
 
 
-    def get_current_balance(self, user_id, initial_balance=0):
+    def get_current_balance(self, user_id):
         current_balance = db.session.query(
             func.sum(
                 case(
@@ -41,7 +41,7 @@ class TransactionRepository:
                 )
             )
         ).filter(Transactions.user_id == user_id).scalar() or 0.0
-        return Decimal(initial_balance) + Decimal(current_balance)
+        return Decimal(current_balance)
 
 
     def get_expense_by_category(self, user_id, period):

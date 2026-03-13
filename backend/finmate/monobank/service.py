@@ -47,7 +47,7 @@ class MonobankService:
             raise ForbiddenError(f"Invalid token or API error: {str(e)}")
 
         account_id = client_info['accounts'][0]['id']
-        real_card_balance_cents = 0
+        real_card_balance_cents = 0 # Actual balance on card (in cents)
 
         for acc in client_info['accounts']:
             if acc['type'] == 'black':
@@ -96,11 +96,7 @@ class MonobankService:
         existing_ids = self.tx_repo.get_existing_mono_ids(user_id, mono_ids) #{str(id_tuple[0] for id_tuple in existing_ids_query)}
         new_transactions_to_add = []
 
-        total_tx_sum = Decimal(0)
         for t_dict in transactions_from_mono:
-
-            total_tx_sum += Decimal(t_dict['amount']) / Decimal(100)
-
             if t_dict['id'] not in existing_ids:
                 mcc_code_str = str(t_dict.get('mcc', ''))
                 assigned_category_id = mcc_map.get(mcc_code_str, default_category.id)
@@ -118,20 +114,23 @@ class MonobankService:
                 )
                 new_transactions_to_add.append(new_tx)
 
-        if user.initial_balance == 0:
-            initial_balance = real_card_balance - total_tx_sum
-            self.profile_repo.setup_initial_balance(user_obj=user, initial_balance=initial_balance)
-
-        if not new_transactions_to_add:
+        added_count = 0
+        if new_transactions_to_add:
+            added_count = self.tx_repo.bulk_insert_transactions(new_transactions_to_add)
+            if added_count > 0:
+                self._clear_related_caches(user_id)
+            logger.info(f"Added {added_count} new transactions for user {user_id} from Monobank.")
+        else:
             logger.info(f"No new transactions to add for user {user_id} from Monobank.")
-            return 0
 
-        added_count = self.tx_repo.bulk_insert_transactions(new_transactions_to_add)
 
-        if added_count > 0:
-            self._clear_related_caches(user_id)
+        # Calculated Balance
+        current_db_sum = self.tx_repo.get_current_balance(user_id)  # Sum all tx for user in DB
+        calculated_initial_balance = real_card_balance - current_db_sum
+        self.profile_repo.setup_initial_balance(user, calculated_initial_balance)
 
-        logger.info(f"Added {added_count} new transactions for user {user_id} from Monobank.")
+        logger.info(f"Balance adjusted. New Initial: {calculated_initial_balance}")
+
         return added_count
 
 
