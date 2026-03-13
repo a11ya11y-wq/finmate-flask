@@ -11,6 +11,7 @@ class Users(db.Model):
     avatar = db.Column(db.String(200), nullable=False, default='avatars/default/default.svg')
     currency = db.Column(db.String(5), nullable=False, default='USD')
     password_hash = db.Column(db.String, nullable=False)
+    initial_balance = db.Column(db.Numeric(10, 2), default=0) # Точка відліку при першій синхронізації
     monobank_api_token = db.Column(db.LargeBinary, nullable=True)
     refresh_token = db.Column(db.String(500), nullable=True, index=True) #TODO: Зробити мульти сесії
 

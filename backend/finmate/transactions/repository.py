@@ -1,7 +1,7 @@
 from finmate.extensions import db
 from sqlalchemy import func, case
 from finmate.models import Category, Transactions
-
+from decimal import Decimal
 
 
 class TransactionRepository:
@@ -31,8 +31,8 @@ class TransactionRepository:
         return float(result) if result else 0.0
 
 
-    def get_current_balance(self, user_id):
-        return db.session.query(
+    def get_current_balance(self, user_id, initial_balance=0):
+        current_balance = db.session.query(
             func.sum(
                 case(
                     (Transactions.transaction_type == 'income', Transactions.amount),
@@ -41,6 +41,7 @@ class TransactionRepository:
                 )
             )
         ).filter(Transactions.user_id == user_id).scalar() or 0.0
+        return Decimal(initial_balance) + Decimal(current_balance)
 
 
     def get_expense_by_category(self, user_id, period):
@@ -58,8 +59,8 @@ class TransactionRepository:
         return query.order_by(Transactions.created_at.asc()).all()
 
 
-    def get_opening_balance(self, user_id, start_date):
-        balance = db.session.query(
+    def get_opening_balance(self, user_id, start_date, initial_balance=0):
+        historical_diff = db.session.query(
             func.sum(
                 case(
                     (Transactions.transaction_type == 'income', Transactions.amount),
@@ -70,9 +71,9 @@ class TransactionRepository:
         ).filter(
             Transactions.user_id == user_id,
             Transactions.created_at < start_date
-        ).scalar()
+        ).scalar() or 0.0
 
-        return float(balance or 0.0)
+        return Decimal(initial_balance) + Decimal(historical_diff)
 
 
     def create_transaction(self, data):

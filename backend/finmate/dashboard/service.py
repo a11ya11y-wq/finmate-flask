@@ -2,6 +2,7 @@ from datetime import  datetime, timedelta
 import logging
 
 from finmate.transactions.repository import TransactionRepository
+from finmate.profile.repository import ProfileRepository
 from finmate.exceptions import BusinessLogicError
 from finmate.utils.caching import redis_cache
 from finmate.constants import VALID_PERIODS
@@ -16,7 +17,7 @@ class DashboardService:
 
     def __init__(self):
         self.tx_repo = TransactionRepository()
-
+        self.profile_repo = ProfileRepository()
 
     @redis_cache(ttl=3600, key_builder=dashboard_key_builder)
     def get_dashboard_data(self, user_id, period):
@@ -29,6 +30,8 @@ class DashboardService:
 
         today = datetime.now()
 
+        user = self.profile_repo.get_user_info(user_id)
+
         # Previous Period Data
         prev_start_date = self._calculate_prev_start_date(period, start_date)
         prev_end_date = start_date
@@ -40,10 +43,12 @@ class DashboardService:
             prev_income = 0.0
             prev_expense = 0.0
 
+        initial_balance = user.initial_balance or 0.0
+
         # Current Period Data
         current_income = self.tx_repo.get_total_amount(user_id, "income", start_date, today)
         current_expense = self.tx_repo.get_total_amount(user_id, "expense", start_date, today)
-        balance = self.tx_repo.get_current_balance(user_id)
+        balance = self.tx_repo.get_current_balance(user_id, initial_balance)
 
         expenses_by_cat_raw = self.tx_repo.get_expense_by_category(user_id, start_date)
         balance_chart_raw = self.tx_repo.get_transactions_for_balance_chart(user_id, start_date)
@@ -53,15 +58,17 @@ class DashboardService:
         income_pct = self._calculate_percentage_change(current_income, prev_income)
         expense_pct = self._calculate_percentage_change(current_expense, prev_expense)
 
+
+
         if period == 'all':
-            opening_balance = 0.0
+            opening_balance = initial_balance
         else:
-            opening_balance=  self.tx_repo.get_opening_balance(user_id, start_date)
+            opening_balance =  self.tx_repo.get_opening_balance(user_id, start_date, initial_balance)
 
         category_labels = [item[0] if item[0] is not None else 'Uncategorized' for item in expenses_by_cat_raw]
         category_amounts = [float(item[1]) if item[1] is not None else 0.0 for item in expenses_by_cat_raw]
 
-        current_balance_for_chart = float(opening_balance)
+        current_balance_for_chart = float(opening_balance or 0.0)
         daily_balances = {}
 
         for t in balance_chart_raw:

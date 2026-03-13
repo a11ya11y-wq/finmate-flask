@@ -6,7 +6,7 @@ from finmate.models import Users
 
 class ProfileRepository:
 
-    def get_user_info(self, user_id):
+    def get_user_info(self, user_id) -> Users:
         return Users.query.get(user_id)
 
 
@@ -57,3 +57,12 @@ class ProfileRepository:
         except Exception as e:
             db.session.rollback()
             raise Exception(f'Error while changing password in DB: {e}')
+
+
+    def setup_initial_balance(self, user_obj: Users, initial_balance):
+        try:
+            user_obj.initial_balance = initial_balance
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            raise Exception(f"Error while setup initial balance in DB: {e}")

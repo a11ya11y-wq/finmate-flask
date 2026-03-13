@@ -47,11 +47,15 @@ class MonobankService:
             raise ForbiddenError(f"Invalid token or API error: {str(e)}")
 
         account_id = client_info['accounts'][0]['id']
+        real_card_balance_cents = 0
 
         for acc in client_info['accounts']:
             if acc['type'] == 'black':
                 account_id = acc['id']
+                real_card_balance_cents = acc['balance']
                 break
+        real_card_balance = Decimal(real_card_balance_cents) / Decimal(100)
+
 
         logger.info(f"Selected Account ID for sync: {account_id}")
 
@@ -92,7 +96,11 @@ class MonobankService:
         existing_ids = self.tx_repo.get_existing_mono_ids(user_id, mono_ids) #{str(id_tuple[0] for id_tuple in existing_ids_query)}
         new_transactions_to_add = []
 
+        total_tx_sum = Decimal(0)
         for t_dict in transactions_from_mono:
+
+            total_tx_sum += Decimal(t_dict['amount']) / Decimal(100)
+
             if t_dict['id'] not in existing_ids:
                 mcc_code_str = str(t_dict.get('mcc', ''))
                 assigned_category_id = mcc_map.get(mcc_code_str, default_category.id)
@@ -109,6 +117,10 @@ class MonobankService:
                     category_id=assigned_category_id
                 )
                 new_transactions_to_add.append(new_tx)
+
+        if user.initial_balance == 0:
+            initial_balance = real_card_balance - total_tx_sum
+            self.profile_repo.setup_initial_balance(user_obj=user, initial_balance=initial_balance)
 
         if not new_transactions_to_add:
             logger.info(f"No new transactions to add for user {user_id} from Monobank.")

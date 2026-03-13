@@ -28,6 +28,8 @@ services:
   backend:
     image: finmate_backend
     build: ./backend
+    command: >
+      sh -c "PYTHONPATH=/app python3 -m flask db upgrade && gunicorn -w 4 -b 0.0.0.0:5000 app:app"
     ports:
       - "127.0.0.1:5000:5000"
     env_file:

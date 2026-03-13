@@ -12,7 +12,7 @@ from finmate.exceptions import BusinessLogicError
 
 
 
-FAKE_CLIENT_INFO = {"accounts": [{"id": "ACC_ID_001", 'type': 'black'}]}
+FAKE_CLIENT_INFO = {"accounts": [{"id": "ACC_ID_001", 'type': 'black', 'balance': '10000000'}]}
 FAKE_MONO_TRANSACTIONS = [
     {"id": "mono_id_NEW_1", "amount": 10000, "description": "Sushi", "time": 1700000000, "mcc": 5812},
     {"id": "mono_id_OLD_2", "amount": 5000, "description": "Rent", "time": 1700000000, "mcc": 4900},
