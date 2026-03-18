@@ -8,11 +8,13 @@ class UnitOfWork:
         from finmate.categories.repository import CategoryRepository
         from finmate.profile.repository import ProfileRepository
         from finmate.budgets.repository import BudgetRepository
+        from finmate.auth.repository import AuthRepository
 
         self.transactions = TransactionRepository()
         self.categories = CategoryRepository()
         self.profile = ProfileRepository()
         self.budget = BudgetRepository()
+        self.auth = AuthRepository()
 
     def __enter__(self):
         return self

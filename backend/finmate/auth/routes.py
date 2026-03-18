@@ -1,14 +1,13 @@
 from flask import request, jsonify, make_response
 from flask_jwt_extended import jwt_required
 
-from .service import AuthService
 from finmate.auth import bp
-from finmate.utils.error_parser import parse_exception
 from finmate.extensions import limiter
-
-
+from finmate.utils.error_parser import parse_exception
+from .service import AuthService
 
 service = AuthService()
+
 
 @bp.route('/login', methods=['POST'])
 @limiter.limit("5 per minute")
