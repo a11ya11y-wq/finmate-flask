@@ -7,10 +7,12 @@ class UnitOfWork:
         from finmate.transactions.repository import TransactionRepository
         from finmate.categories.repository import CategoryRepository
         from finmate.profile.repository import ProfileRepository
+        from finmate.budgets.repository import BudgetRepository
 
         self.transactions = TransactionRepository()
         self.categories = CategoryRepository()
         self.profile = ProfileRepository()
+        self.budget = BudgetRepository()
 
     def __enter__(self):
         return self

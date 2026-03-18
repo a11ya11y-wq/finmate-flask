@@ -1,13 +1,14 @@
-from finmate.categories.repository import CategoryRepository
-from finmate.budgets.repository import BudgetRepository
-from .schemas import CategoryCreateSchema, CategoryUpdateSchema
-from finmate.exceptions import ConflictError, BusinessLogicError, ResourceNotFound
-from finmate.utils.caching import redis_cache, invalidate_cache
-from finmate.constants import ALLOWED_ICONS, MAX_CATEGORIES_PER_USER
-from finmate.transactions.repository import TransactionRepository
 import logging
 
+from finmate.constants import ALLOWED_ICONS, MAX_CATEGORIES_PER_USER
+from finmate.exceptions import ConflictError, BusinessLogicError, ResourceNotFound
+from finmate.models.category_model import Category
+from finmate.uow import UnitOfWork
+from finmate.utils.caching import redis_cache, invalidate_cache
+from .schemas import CategoryCreateSchema, CategoryUpdateSchema
+
 logger = logging.getLogger(__name__)
+
 
 def categories_key_builder(self, user_id):
     return f"categories:{user_id}"
@@ -15,104 +16,114 @@ def categories_key_builder(self, user_id):
 
 class CategoryService:
 
-    def __init__(self):
-        self.repo = CategoryRepository()
-        self.repo_tx = TransactionRepository()
-        self.repo_bud = BudgetRepository()
-
     @redis_cache(ttl=86400, key_builder=categories_key_builder)
-    def get_all_categories(self, user_id):
-        cat_objects =  self.repo.get_all_categories(user_id)
+    def get_all_categories(self, user_id: int) -> list[Category]:
+
+        with UnitOfWork() as uow:
+            cat_objects = uow.categories.get_all_categories(user_id)
 
         return [cat.to_dict() for cat in cat_objects]
 
-    def create_category(self, user_id, data):
-
-        if MAX_CATEGORIES_PER_USER <= self.repo.get_count_by_user(user_id):
-            raise BusinessLogicError(f'You have reached the limit of {MAX_CATEGORIES_PER_USER} categories')
+    def create_category(self, user_id: int, data: dict) -> Category:
 
         validated_data = CategoryCreateSchema.model_validate(data)
-
-        name = validated_data.name
-        existing_category = self.repo.get_by_name_and_user(name, user_id)
-
-        if existing_category:
-            logger.warning(f"Category creation failed: duplicate name {name} for user {user_id}")
-            raise ConflictError(f"Category with name {name} already exists.")
 
         if validated_data.icon not in ALLOWED_ICONS:
             logger.warning(f"Category creation failed: invalid icon {validated_data.icon} for user {user_id}")
             raise BusinessLogicError(f"Icon {validated_data.icon} is not allowed.")
 
+        name = validated_data.name
         payload = validated_data.model_dump()
         payload['user_id'] = user_id
 
-        new_cat = self.repo.create_category(payload)
+        with UnitOfWork() as uow:
+            if MAX_CATEGORIES_PER_USER <= uow.categories.get_count_by_user(user_id):
+                raise BusinessLogicError(f'You have reached the limit of {MAX_CATEGORIES_PER_USER} categories')
 
-        self._clear_related_caches(user_id)
-        logger.info(f"New category created for user {user_id} with name {name}")
+            existing_category = uow.categories.get_by_name_and_user(name, user_id)
+
+            if existing_category:
+                logger.warning(f"Category creation failed: duplicate name {name} for user {user_id}")
+                raise ConflictError(f"Category with name {name} already exists.")
+
+            new_cat = uow.categories.create_category(payload)
+            uow.commit()
+        try:
+            self._clear_related_caches(user_id)
+            logger.info(f"New category created for user {user_id} with name {name}")
+        except Exception as e:
+            logger.error(f"Post-commit action failed: {e}")
         return new_cat
 
-
-    def update_category(self, user_id, data, cat_id):
-        cat_to_update = self.repo.get_cat_by_id_and_user(cat_id, user_id)
-
-        if not cat_to_update:
-            logger.warning(f"Attempt to update non-existing category {cat_id} by user {user_id}")
-            raise ResourceNotFound(f"Category {cat_to_update} not found or access denied.")
+    def update_category(self, user_id: int, data: dict, cat_id: int) -> Category:
 
         validated_data = CategoryUpdateSchema.model_validate(data)
+        cat_name = validated_data.name
+        cat_icon = validated_data.icon
 
-        if cat_to_update.name.strip().lower() == "uncategorized":
-            if validated_data.name and validated_data.name.strip().lower() != "uncategorized":
-                raise BusinessLogicError("Cannot rename the default 'Uncategorized' category.")
+        if cat_icon and cat_icon not in ALLOWED_ICONS:
+            logger.warning(f"Category update failed: invalid icon {cat_icon} for user {user_id}")
+            raise BusinessLogicError(f"Icon {cat_icon} is not allowed.")
 
-        if validated_data.name:
-            existing_category = self.repo.get_by_name_and_user(validated_data.name, user_id)
-            if existing_category and existing_category.id != cat_id:
-                logger.warning(f"Category update failed: duplicate name {validated_data.name} for user {user_id}")
-                raise ConflictError(f"Category with name {validated_data.name} already exists.")
+        with UnitOfWork() as uow:
+            cat_to_update = uow.categories.get_by_id_and_user(cat_id, user_id)
 
-            if validated_data.icon and validated_data.icon not in ALLOWED_ICONS:
-                logger.warning(f"Category update failed: invalid icon {validated_data.icon} for user {user_id}")
-                raise BusinessLogicError(f"Icon {validated_data.icon} is not allowed.")
+            if not cat_to_update:
+                logger.warning(f"Attempt to update non-existing category {cat_id} by user {user_id}")
+                raise ResourceNotFound(f"Category {cat_to_update} not found or access denied.")
 
-        payload = validated_data.model_dump(exclude_unset=True)
-        if not payload:
-            raise BusinessLogicError("No data provided for update.")
+            if cat_to_update.name.strip().lower() == "uncategorized":
+                if validated_data.name and validated_data.name.strip().lower() != "uncategorized":
+                    raise BusinessLogicError("Cannot rename the default 'Uncategorized' category.")
 
-        updated_cat = self.repo.update_category(cat_to_update, payload)
+            if cat_name:
+                existing_category = uow.categories.get_by_name_and_user(cat_name, user_id)
+                if existing_category and existing_category.id != cat_id:
+                    logger.warning(f"Category update failed: duplicate name {cat_name} for user {user_id}")
+                    raise ConflictError(f"Category with name {cat_name} already exists.")
 
-        self._clear_related_caches(user_id)
-        invalidate_cache(f"budgets:{user_id}")
-        logger.info(f"Category {cat_id} updated for user {user_id}")
+            payload = validated_data.model_dump(exclude_unset=True)
+            if not payload:
+                raise BusinessLogicError("No data provided for update.")
+
+            updated_cat = uow.categories.update_category(cat_to_update, payload)
+            uow.commit()
+        try:
+            self._clear_related_caches(user_id)
+            invalidate_cache(f"budgets:{user_id}")
+            logger.info(f"Category {cat_id} updated for user {user_id}")
+        except Exception as e:
+            logger.error(f"Post-commit action failed: {e}")
         return updated_cat
 
+    def delete_category(self, cat_id: int, user_id: int) -> bool:
 
-    def delete_category(self, cat_id, user_id):
-        cat_to_delete = self.repo.get_cat_by_id_and_user(cat_id, user_id)
+        with UnitOfWork() as uow:
+            cat_to_delete = uow.categories.get_cat_by_id_and_user(cat_id, user_id)
 
-        if not cat_to_delete:
-            logger.warning(f"Attempt to delete non-existing category {cat_id} by user {user_id}")
-            raise ResourceNotFound(f"Category {cat_id} not found or access denied.")
+            if not cat_to_delete:
+                logger.warning(f"Attempt to delete non-existing category {cat_id} by user {user_id}")
+                raise ResourceNotFound(f"Category {cat_id} not found or access denied.")
 
-        count_tx = self.repo_tx.get_count_by_category(user_id, cat_id)
-        if count_tx > 0:
-            raise BusinessLogicError(f"Cannot delete category. It has {count_tx} related transactions.")
+            count_tx = uow.transactions.get_count_by_category(user_id, cat_id)
+            if count_tx > 0:
+                raise BusinessLogicError(f"Cannot delete category. It has {count_tx} related transactions.")
 
-        if cat_to_delete.name.strip().lower() == "uncategorized":
-            raise BusinessLogicError("Cannot delete the default 'Uncategorized' category.")
+            if cat_to_delete.name.strip().lower() == "uncategorized":
+                raise BusinessLogicError("Cannot delete the default 'Uncategorized' category.")
 
-        budget_exist = self.repo_bud.get_by_category_and_user(user_id, cat_id)
-        if budget_exist:
-            raise BusinessLogicError("Cannot delete category. It is associated with existing budgets.")
+            budget_exist = uow.budget.get_by_category_and_user(user_id, cat_id)
+            if budget_exist:
+                raise BusinessLogicError("Cannot delete category. It is associated with existing budgets.")
 
-        self.repo.delete_category(cat_to_delete)
-
-        self._clear_related_caches(user_id)
-        logger.info(f"Category {cat_id} deleted for user {user_id}")
+            uow.categories.delete_category(cat_to_delete)
+            uow.commit()
+        try:
+            self._clear_related_caches(user_id)
+            logger.info(f"Category {cat_id} deleted for user {user_id}")
+        except Exception as e:
+            logger.error(f"Post-commit action failed: {e}")
         return True
-
 
     @staticmethod
     def _clear_related_caches(user_id):

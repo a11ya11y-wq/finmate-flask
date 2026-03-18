@@ -1,12 +1,12 @@
 from flask import request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
-from .service import CategoryService
-from  . import bp
 from finmate.utils.error_parser import parse_exception
-
+from . import bp
+from .service import CategoryService
 
 service = CategoryService()
+
 
 @bp.route('/all', methods=['GET'])
 @jwt_required()
@@ -35,7 +35,7 @@ def create_category():
 
 @bp.route('/<int:cat_id>', methods=['PUT'])
 @jwt_required()
-def update_category(cat_id):
+def update_category(cat_id: int):
     try:
         user_id = int(get_jwt_identity())
         data = request.get_json()
@@ -48,7 +48,7 @@ def update_category(cat_id):
 
 @bp.route('/<int:cat_id>', methods=['DELETE'])
 @jwt_required()
-def delete_category(cat_id):
+def delete_category(cat_id: int):
     try:
         user_id = int(get_jwt_identity())
         service.delete_category(cat_id, user_id)
@@ -56,5 +56,3 @@ def delete_category(cat_id):
 
     except Exception as e:
         return parse_exception(e)
-
-
