@@ -1,13 +1,13 @@
-from flask_jwt_extended import jwt_required, get_jwt_identity
-from flask import  jsonify
 import logging
 
+from flask import jsonify
+from flask_jwt_extended import jwt_required, get_jwt_identity
+
+from finmate.extensions import celery, limiter
+from finmate.utils.error_parser import parse_exception
 from . import bp
 from .service import MonobankService
-from finmate.utils.error_parser import parse_exception
 from .tasks import task_sync_monobank_tx
-from finmate.extensions import celery, limiter
-
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ def get_task_status(task_id):
     task_result = celery.AsyncResult(task_id)
     response = {
         "task_id": task_id,
-        "status": task_result.state, # PENDING, STARTED, SUCCESS, FAILURE
+        "status": task_result.state,  # PENDING, STARTED, SUCCESS, FAILURE
         "result": None
     }
 

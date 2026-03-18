@@ -3,14 +3,10 @@ from decimal import Decimal
 import pytest
 import requests
 
-from finmate.monobank.service import MonobankService
-from finmate.models import Users, Category
-from finmate.exceptions import ThrottlingError
 from finmate.exceptions import BusinessLogicError
-
-
-
-
+from finmate.exceptions import ThrottlingError
+from finmate.models import Users, Category
+from finmate.monobank.service import MonobankService
 
 FAKE_CLIENT_INFO = {"accounts": [{"id": "ACC_ID_001", 'type': 'black', 'balance': '10000000'}]}
 FAKE_MONO_TRANSACTIONS = [
@@ -28,30 +24,17 @@ def setup_mocks(mocker):
     ).return_value
     mock_mono_client.get_client_info.return_value = FAKE_CLIENT_INFO
 
-    mock_profile_repo = mocker.patch(
-        "finmate.monobank.service.ProfileRepository",
-        autospec=True
-    ).return_value
-    mock_profile_repo.get_user_info.return_value = FAKE_USER
+    mock_uow_class = mocker.patch("finmate.monobank.service.UnitOfWork", autospec=True)
+    mock_uow = mock_uow_class.return_value.__enter__.return_value
 
-    mock_profile_service = mocker.patch(
-        "finmate.monobank.service.ProfileService",
-        autospec=True
-    ).return_value
+    mock_uow.profile.get_user_info.return_value = FAKE_USER
+    mock_uow.categories.get_by_name_and_user.return_value = FAKE_UNCAT_CATEGORY
+    mock_uow.categories.get_all_categories.return_value = []
+
+    mock_profile_service = mocker.patch("finmate.monobank.service.ProfileService", autospec=True).return_value
     mock_profile_service.recalculate_initial_point.return_value = 1000
 
-    mock_cat_repo = mocker.patch(
-        "finmate.monobank.service.CategoryRepository",
-        autospec=True
-    ).return_value
-    mock_cat_repo.get_by_name_and_user.return_value = FAKE_UNCAT_CATEGORY
-
-    mock_tx_repo = mocker.patch(
-        "finmate.monobank.service.TransactionRepository",
-        autospec=True
-    ).return_value
-
-    return mock_mono_client, mock_tx_repo, mock_cat_repo, mock_profile_repo
+    return mock_mono_client, mock_uow.transactions, mock_uow.categories, mock_uow.profile
 
 
 def test_sync_tx_success(mocker, app):
@@ -101,7 +84,7 @@ def test_sync_tx_fails_on_rate_limit(mocker, app):
 
 
 def test_sync_tx_no_new_tx(mocker, app):
-    mock_mono_client , mock_tx_repo, mock_cat_repo, mock_profile_repo = setup_mocks(mocker)
+    mock_mono_client, mock_tx_repo, mock_cat_repo, mock_profile_repo = setup_mocks(mocker)
 
     mock_mono_client.get_transactions.return_value = {}
     mock_tx_repo.bulk_insert_transactions.return_value = 0
@@ -113,6 +96,7 @@ def test_sync_tx_no_new_tx(mocker, app):
 
     assert added_count == 0
     mock_tx_repo.bulk_insert_transactions.assert_not_called()
+
 
 def test_sync_tx_api_error(mocker, app):
     mock_mono_client, mock_tx_repo, mock_cat_repo, mock_profile_repo = setup_mocks(mocker)

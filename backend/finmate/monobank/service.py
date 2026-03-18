@@ -1,148 +1,144 @@
-import requests
+import logging
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
-import logging
 
-from finmate.profile.repository import ProfileRepository
-from finmate.transactions.repository import TransactionRepository
-from finmate.categories.repository import CategoryRepository
-from finmate.profile.service import ProfileService
-from finmate.categories.service import CategoryService
-from .api_client import MonoAPI
+import requests
+
+from finmate.exceptions import BusinessLogicError, ForbiddenError
 from finmate.exceptions import ThrottlingError
 from finmate.models.transaction_model import Transactions
-from finmate.exceptions import BusinessLogicError, ForbiddenError
+from finmate.profile.service import ProfileService
+from finmate.uow import UnitOfWork
 from finmate.utils.caching import invalidate_cache
-
+from .api_client import MonoAPI
 
 logger = logging.getLogger(__name__)
 
-class MonobankService:
-    def __init__(self):
-        self.profile_repo = ProfileRepository()
-        self.cat_repo = CategoryRepository()
-        self.tx_repo = TransactionRepository()
-        self.cat_service = CategoryService()
-        self.prof_service = ProfileService()
 
+class MonobankService:
+
+    def __init__(self):
+        self.profile_service = ProfileService()
 
     def sync_tx(self, user_id):
-        user = self.profile_repo.get_user_info(user_id)
-        token_bytes = user.monobank_api_token
 
-        if not user or not token_bytes:
-            logger.warning(f"Monobank sync failed: API token not found or access denied for user {user_id}")
-            raise BusinessLogicError("API token not found or user access denied.")
+        with UnitOfWork() as uow:
+            user = uow.profile.get_user_info(user_id)
+            token_bytes = user.monobank_api_token
 
-        api = MonoAPI(encrypted_token_bytes=token_bytes)
+            if not user or not token_bytes:
+                logger.warning(f"Monobank sync failed: API token not found or access denied for user {user_id}")
+                raise BusinessLogicError("API token not found or user access denied.")
 
-        try:
-            client_info = api.get_client_info()
-            if 'errorDescription' in client_info:
-                raise ForbiddenError(client_info['errorDescription'])
+            api = MonoAPI(encrypted_token_bytes=token_bytes)
 
-        except requests.RequestException as e:
-            logger.exception(f"Monobank API request error for user {user_id}")
-            raise ThrottlingError(f"Monobank connection failed: {str(e)}")
-        except Exception as e:
-            logger.exception(f"Monobank sync failed for user {user_id}")
-            raise ForbiddenError(f"Invalid token or API error: {str(e)}")
+            try:
+                client_info = api.get_client_info()
+                if 'errorDescription' in client_info:
+                    raise ForbiddenError(client_info['errorDescription'])
 
-        accounts = client_info.get('accounts', [])
-        if not accounts:
-            raise BusinessLogicError("No accounts found in Monobank")
+            except requests.RequestException as e:
+                logger.exception(f"Monobank API request error for user {user_id}")
+                raise ThrottlingError(f"Monobank connection failed: {str(e)}")
+            except Exception as e:
+                logger.exception(f"Monobank sync failed for user {user_id}")
+                raise ForbiddenError(f"Invalid token or API error: {str(e)}")
 
+            accounts = client_info.get('accounts', [])
+            if not accounts:
+                raise BusinessLogicError("No accounts found in Monobank")
 
-        account_id = None
-        real_card_balance_cents = 0
+            account_id = None
+            real_card_balance_cents = 0
 
-        for acc in accounts:
-            if acc.get('type') == 'black' and acc.get('currencyCode') == 980:
-                account_id = acc.get('id')
-                real_card_balance_cents = acc.get('balance')
-                break
+            for acc in accounts:
+                if acc.get('type') == 'black' and acc.get('currencyCode') == 980:
+                    account_id = acc.get('id')
+                    real_card_balance_cents = acc.get('balance')
+                    break
 
-        if not account_id:
-            account_id = accounts[0]['id']
-            real_card_balance_cents = accounts[0]['balance']
-            logger.info(f"No correct card found in Mnobank")
+            if not account_id:
+                account_id = accounts[0]['id']
+                real_card_balance_cents = accounts[0]['balance']
+                logger.info(f"No correct card found in Mnobank")
 
-        real_card_balance = Decimal(real_card_balance_cents) / Decimal(100)
-        self.profile_repo.update_real_balance(user, real_card_balance)
+            real_card_balance = Decimal(real_card_balance_cents) / Decimal(100)
+            uow.profile.update_real_balance(user, real_card_balance)
 
+            logger.info(f"Selected Account ID for sync: {account_id}")
 
-        logger.info(f"Selected Account ID for sync: {account_id}")
+            thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
+            from_time = int(thirty_days_ago.timestamp())
 
-        thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
-        from_time = int(thirty_days_ago.timestamp())
+            transactions_from_mono = api.get_transactions(account_id, from_time)
 
-        transactions_from_mono = api.get_transactions(account_id, from_time)
+            uow.transactions.refresh_session()
 
-        self.tx_repo.refresh_session()
+            if isinstance(transactions_from_mono, dict) and transactions_from_mono.get('errorDescription'):
+                error_msg = transactions_from_mono['errorDescription']
 
-        if isinstance(transactions_from_mono, dict) and transactions_from_mono.get('errorDescription'):
-            error_msg = transactions_from_mono['errorDescription']
+                if error_msg == 'Too many requests':
+                    logger.warning(f"Monobank API throttling error for user {user_id}: {error_msg}")
+                    raise ThrottlingError(error_msg)
+                logger.error(f"Monobank API error for user {user_id}: {error_msg}")
+                raise ForbiddenError(f'Monobank API Error: {error_msg}')
 
-            if error_msg == 'Too many requests':
-                logger.warning(f"Monobank API throttling error for user {user_id}: {error_msg}")
-                raise ThrottlingError(error_msg)
-            logger.error(f"Monobank API error for user {user_id}: {error_msg}")
-            raise ForbiddenError(f'Monobank API Error: {error_msg}')
+            default_category = uow.categories.get_by_name_and_user("Uncategorized", user_id)
 
-        default_category = self.cat_repo.get_by_name_and_user("Uncategorized", user_id)
+            if not default_category:
+                data = {"name": "Uncategorized"}
+                default_category = uow.categories.create_category(user_id, data)
 
-        if not default_category:
-            data = {"name": "Uncategorized"}
-            default_category = self.cat_service.create_category(user_id, data)
+            mcc_map = {}
+            all_categories = uow.categories.get_all_categories(user_id)
 
-        mcc_map = {}
-        all_categories = self.cat_service.get_all_categories(user_id)
+            for cat in all_categories:
+                mcc_code_val = cat.get('mcc_code')
+                if mcc_code_val:
+                    codes = mcc_code_val.split(',')
+                    for code in codes:
+                        mcc_map[code.strip()] = cat['id']
 
-        for cat in all_categories:
-            mcc_code_val = cat.get('mcc_code')
-            if mcc_code_val:
-                codes = mcc_code_val.split(',')
-                for code in codes:
-                    mcc_map[code.strip()] = cat['id']
+            mono_ids = {t['id'] for t in transactions_from_mono}
 
-        mono_ids = {t['id'] for t in transactions_from_mono}
+            existing_ids = uow.transactions.get_existing_mono_ids(user_id,
+                                                                  mono_ids)  # {str(id_tuple[0] for id_tuple in existing_ids_query)}
+            new_transactions_to_add = []
 
-        existing_ids = self.tx_repo.get_existing_mono_ids(user_id, mono_ids) #{str(id_tuple[0] for id_tuple in existing_ids_query)}
-        new_transactions_to_add = []
+            for t_dict in transactions_from_mono:
+                if t_dict['id'] not in existing_ids:
+                    mcc_code_str = str(t_dict.get('mcc', ''))
+                    assigned_category_id = mcc_map.get(mcc_code_str, default_category.id)
 
-        for t_dict in transactions_from_mono:
-            if t_dict['id'] not in existing_ids:
-                mcc_code_str = str(t_dict.get('mcc', ''))
-                assigned_category_id = mcc_map.get(mcc_code_str, default_category.id)
+                    new_tx = Transactions(
+                        title=t_dict['description'],
 
-                new_tx = Transactions(
-                    title=t_dict['description'],
+                        amount=Decimal(abs(t_dict['amount'])) / Decimal(100),
 
-                    amount=Decimal(abs(t_dict['amount'])) / Decimal(100),
+                        created_at=datetime.fromtimestamp(t_dict['time'], tz=timezone.utc),
+                        user_id=user_id,
+                        mono_id=t_dict['id'],
+                        transaction_type='income' if t_dict['amount'] > 0 else 'expense',
+                        category_id=assigned_category_id
+                    )
+                    new_transactions_to_add.append(new_tx)
 
-                    created_at=datetime.fromtimestamp(t_dict['time'], tz=timezone.utc),
-                    user_id=user_id,
-                    mono_id=t_dict['id'],
-                    transaction_type='income' if t_dict['amount'] > 0 else 'expense',
-                    category_id=assigned_category_id
-                )
-                new_transactions_to_add.append(new_tx)
-
-        added_count = 0
-        if new_transactions_to_add:
-            added_count = self.tx_repo.bulk_insert_transactions(new_transactions_to_add)
-            if added_count > 0:
+            added_count = 0
+            if new_transactions_to_add:
+                added_count = uow.transactions.bulk_insert_transactions(new_transactions_to_add)
+                logger.info(f"Added {added_count} new transactions for user {user_id} from Monobank.")
+            else:
+                logger.info(f"No new transactions to add for user {user_id} from Monobank.")
+            uow.commit()
+        calculated_initial_balance = self.profile_service.recalculate_initial_point(user_id)
+        if added_count > 0:
+            try:
                 self._clear_related_caches(user_id)
-            logger.info(f"Added {added_count} new transactions for user {user_id} from Monobank.")
-        else:
-            logger.info(f"No new transactions to add for user {user_id} from Monobank.")
-
-
-        calculated_initial_balance = self.prof_service.recalculate_initial_point(user_id)
+            except Exception as e:
+                logger.error(f"Post-commit action failed: {e}")
         logger.info(f"Balance adjusted. New Initial: {calculated_initial_balance}")
 
         return added_count
-
 
     @staticmethod
     def _clear_related_caches(user_id):
