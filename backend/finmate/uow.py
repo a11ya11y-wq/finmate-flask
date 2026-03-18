@@ -1,12 +1,13 @@
-from finmate.categories.repository import CategoryRepository
 from finmate.extensions import db
-from finmate.profile.repository import ProfileRepository
-from finmate.transactions.repository import TransactionRepository
 
 
 class UnitOfWork:
 
     def __init__(self):
+        from finmate.transactions.repository import TransactionRepository
+        from finmate.categories.repository import CategoryRepository
+        from finmate.profile.repository import ProfileRepository
+
         self.transactions = TransactionRepository()
         self.categories = CategoryRepository()
         self.profile = ProfileRepository()
