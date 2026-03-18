@@ -1,9 +1,9 @@
-from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask import request, jsonify
-from finmate.profile import bp
-from .service import ProfileService
-from finmate.utils.error_parser import parse_exception
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
+from finmate.profile import bp
+from finmate.utils.error_parser import parse_exception
+from .service import ProfileService
 
 service = ProfileService()
 
@@ -65,7 +65,7 @@ def update_monobank_integration():
         user_id = int(get_jwt_identity())
         data = request.get_json()
 
-        updated_user= service.update_mono_token(user_id, data)
+        updated_user = service.update_mono_token(user_id, data)
         return jsonify(updated_user.to_dict()), 200
 
     except Exception as e:
@@ -82,6 +82,3 @@ def delete_monobank_token():
 
     except Exception as e:
         return parse_exception(e)
-
-
-
