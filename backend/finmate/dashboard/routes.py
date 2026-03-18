@@ -1,12 +1,11 @@
 from flask import request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
-from . import bp
 from finmate.dashboard.service import DashboardService
 from finmate.utils.error_parser import parse_exception
+from . import bp
 
 dashboard_service = DashboardService()
-
 
 
 @bp.route('/')
