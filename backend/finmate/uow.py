@@ -1,0 +1,23 @@
+from finmate.categories.repository import CategoryRepository
+from finmate.extensions import db
+from finmate.transactions.repository import TransactionRepository
+
+
+class UnitOfWork:
+
+    def __init__(self):
+        self.transactions = TransactionRepository()
+        self.categories = CategoryRepository()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if exc_type is not None:
+            self.rollback()
+
+    def commit(self):
+        db.session.commit()
+
+    def rollback(self):
+        db.session.rollback()

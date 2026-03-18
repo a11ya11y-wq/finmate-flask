@@ -1,119 +1,121 @@
-from datetime import  datetime, time
 import logging
+from datetime import datetime, time
 
-from finmate.transactions.repository import TransactionRepository
-from finmate.categories.repository import CategoryRepository
-from .schemas import TransactionCreateSchema, TransactionUpdateSchema
 from finmate.exceptions import ResourceNotFound, BusinessLogicError
+from finmate.models.transaction_model import Transactions
+from finmate.uow import UnitOfWork
 from finmate.utils.caching import invalidate_cache
-
+from .schemas import TransactionCreateSchema, TransactionUpdateSchema
 
 logger = logging.getLogger(__name__)
 
+
 class TransactionService:
 
-    def __init__(self):
-        self.repo = TransactionRepository()
-        self.cat_repo = CategoryRepository()
-
-
-    def create_transaction(self, data, user_id):
-
+    def create_transaction(self, data: dict, user_id: int) -> Transactions:
         validated_data = TransactionCreateSchema.model_validate(data)
-
         category_id = validated_data.category_id
 
-        cat_obj = self.cat_repo.get_by_id_and_user(category_id, user_id)
+        with UnitOfWork() as uow:
+            cat_obj = uow.categories.get_cat_by_id_and_user(category_id, user_id)
 
-        if not cat_obj:
-            logger.warning(f"Category {category_id} not found")
-            raise ResourceNotFound(f"Category {category_id} not found or access denied.")
+            if not cat_obj:
+                logger.warning(f"Category {category_id} not found")
+                raise ResourceNotFound(f"Category {category_id} not found or access denied.")
 
-        payload = validated_data.model_dump()
-        payload['user_id'] = user_id
+            payload = validated_data.model_dump()
+            payload['user_id'] = user_id
 
-        new_tx = self.repo.create_transaction(payload)
+            new_tx = uow.transactions.create_transaction(payload)
+            uow.commit()
 
-        self._clear_related_caches(user_id)
-
-        logger.info(f"Transaction {new_tx.id} created for user {user_id}.")
+        try:
+            self._clear_related_caches(user_id)
+            logger.info(f"Transaction {new_tx.id} created for user {user_id}.")
+        except Exception as e:
+            logger.error(f"Post-commit action failed: {e}")
         return new_tx
 
+    def delete_transaction(self, tx_id: int, user_id: int) -> bool:
 
-    def delete_transaction(self, tx_id, user_id):
-        tx_to_delete = self.repo.get_by_id_and_user(user_id, tx_id)
+        with UnitOfWork() as uow:
+            tx_to_delete = uow.transactions.get_by_id_and_user(user_id, tx_id)
 
-        if not tx_to_delete:
-            logger.warning(f"Transaction {tx_id} not found for deletion.")
-            raise ResourceNotFound(f"Transaction {tx_id} not found or access denied.")
+            if not tx_to_delete:
+                logger.warning(f"Transaction {tx_id} not found for deletion.")
+                raise ResourceNotFound(f"Transaction {tx_id} not found or access denied.")
 
-        if tx_to_delete.mono_id:
-            raise BusinessLogicError("You cannot delete a synchronized bank transaction.")
+            if tx_to_delete.mono_id:
+                raise BusinessLogicError("You cannot delete a synchronized bank transaction.")
 
-        self.repo.delete_transaction(tx_to_delete)
+            uow.transactions.delete_transaction(tx_to_delete)
+            uow.commit()
 
-        self._clear_related_caches(user_id)
-
-        logger.info(f"Transaction {tx_id} deleted for user {user_id}.")
+        try:
+            self._clear_related_caches(user_id)
+            logger.info(f"Transaction {tx_id} deleted for user {user_id}.")
+        except Exception as e:
+            logger.error(f"Post-commit action failed: {e}")
         return True
 
+    def update_transaction(self, tx_id: int, user_id: int, data: dict) -> Transactions:
 
-    def update_transaction(self, tx_id, user_id, data):
-        tx_to_update = self.repo.get_by_id_and_user(user_id, tx_id)
-
-        if not tx_to_update:
-            logger.warning(f"Transaction {tx_id} not found for update.")
-            raise ResourceNotFound(f"Transaction {tx_id} not found or access denied.")
-
-        validated_data  = TransactionUpdateSchema.model_validate(data)
-
-        update_payload = validated_data.model_dump(exclude_unset=True) #включи до нього ТІЛЬКИ ті поля, які користувач РЕАЛЬНО надіслав
-
+        validated_data = TransactionUpdateSchema.model_validate(data)
+        update_payload = validated_data.model_dump(exclude_unset=True)
         if not update_payload:
             raise BusinessLogicError("No valid fields to update.")
 
-        if tx_to_update.mono_id:
-            forbidden_fields = ['amount', 'transaction_type', 'created_at']
+        with UnitOfWork() as uow:
 
-            for field in forbidden_fields:
-                update_payload.pop(field, None)
+            tx_to_update = uow.transactions.get_by_id_and_user(user_id, tx_id)
 
-            if not update_payload:
-                raise BusinessLogicError("You can only change the category and notes for a bank transaction.")
+            if not tx_to_update:
+                logger.warning(f"Transaction {tx_id} not found for update.")
+                raise ResourceNotFound(f"Transaction {tx_id} not found or access denied.")
 
-        if 'category_id' in update_payload:
-            new_cat_id = update_payload['category_id']
-            cat_obj = self.cat_repo.get_by_id_and_user(new_cat_id, user_id)
+            if tx_to_update.mono_id:
+                forbidden_fields = ['amount', 'transaction_type', 'created_at']
 
-            if not cat_obj:
-                logger.warning(f"Category {new_cat_id} not found for update.")
-                raise ResourceNotFound(f"Category {new_cat_id} not found or access denied.")
+                for field in forbidden_fields:
+                    update_payload.pop(field, None)
 
-        if 'created_at' in update_payload: # Додає час для дати (При редагуванні дати, час має залишатися той самий)
-            new_date = update_payload['created_at']
-            original_time = tx_to_update.created_at.time() if tx_to_update.created_at else time(0,0,0)
-            combined_datetime = datetime.combine(new_date.date(), original_time)
+                if not update_payload:
+                    raise BusinessLogicError("You can only change the category and notes for a bank transaction.")
 
-            update_payload['created_at'] = combined_datetime
+            if 'category_id' in update_payload:
+                new_cat_id = update_payload['category_id']
+                cat_obj = uow.categories.get_cat_by_id_and_user(new_cat_id, user_id)
 
+                if not cat_obj:
+                    logger.warning(f"Category {new_cat_id} not found for update.")
+                    raise ResourceNotFound(f"Category {new_cat_id} not found or access denied.")
 
-        updated_tx = self.repo.update_transaction(tx_to_update, update_payload)
+            if 'created_at' in update_payload:  # Додає час для дати (При редагуванні дати, час має залишатися той самий)
+                new_date = update_payload['created_at']
+                original_time = tx_to_update.created_at.time() if tx_to_update.created_at else time(0, 0, 0)
+                combined_datetime = datetime.combine(new_date.date(), original_time)
 
-        self._clear_related_caches(user_id)
+                update_payload['created_at'] = combined_datetime
 
-        logger.info(f"Transaction {tx_id} updated for user {user_id}.")
+            updated_tx = uow.transactions.update_transaction(tx_to_update, update_payload)
+            uow.commit()
+
+        try:
+            self._clear_related_caches(user_id)
+            logger.info(f"Transaction {tx_id} updated for user {user_id}.")
+        except Exception as e:
+            logger.error(f"Post-commit action failed: {e}")
         return updated_tx
 
+    def get_transaction(self, tx_id: int, user_id: int) -> Transactions:
+        with UnitOfWork() as uow:
+            transaction = uow.transactions.get_by_id_and_user(user_id, tx_id)
 
-    def get_transaction(self, tx_id, user_id):
-        transaction = self.repo.get_by_id_and_user(user_id, tx_id)
-
-        if not transaction:
-            logger.warning(f"Transaction {tx_id} not found.")
-            raise ResourceNotFound(f"Transaction {tx_id} not found or access denied.")
+            if not transaction:
+                logger.warning(f"Transaction {tx_id} not found.")
+                raise ResourceNotFound(f"Transaction {tx_id} not found or access denied.")
 
         return transaction
-
 
     @staticmethod
     def _clear_related_caches(user_id):
