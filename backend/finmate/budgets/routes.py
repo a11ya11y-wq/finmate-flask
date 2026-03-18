@@ -1,12 +1,9 @@
 from flask import jsonify, request
-
 from flask_jwt_extended import jwt_required, get_jwt_identity
+
 from finmate.budgets import bp
-from .service import BudgetService
 from finmate.utils.error_parser import parse_exception
-
-
-
+from .service import BudgetService
 
 service = BudgetService()
 
@@ -42,7 +39,7 @@ def create_or_update_budget():
 
 @bp.route('/<int:budget_id>', methods=['DELETE'])
 @jwt_required()
-def delete_budget(budget_id):
+def delete_budget(budget_id: int):
     try:
         user_id = int(get_jwt_identity())
         service.delete_budget(user_id, budget_id)
