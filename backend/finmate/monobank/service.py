@@ -72,8 +72,6 @@ class MonobankService:
 
             transactions_from_mono = api.get_transactions(account_id, from_time)
 
-            uow.transactions.refresh_session()
-
             if isinstance(transactions_from_mono, dict) and transactions_from_mono.get('errorDescription'):
                 error_msg = transactions_from_mono['errorDescription']
 
@@ -93,11 +91,11 @@ class MonobankService:
             all_categories = uow.categories.get_all_categories(user_id)
 
             for cat in all_categories:
-                mcc_code_val = cat.get('mcc_code')
+                mcc_code_val = cat.mcc_code
                 if mcc_code_val:
                     codes = mcc_code_val.split(',')
                     for code in codes:
-                        mcc_map[code.strip()] = cat['id']
+                        mcc_map[code.strip()] = cat.id
 
             mono_ids = {t['id'] for t in transactions_from_mono}
 
@@ -144,3 +142,4 @@ class MonobankService:
     def _clear_related_caches(user_id):
         invalidate_cache(f"dashboard:{user_id}:*")
         invalidate_cache(f"budgets:{user_id}")
+        invalidate_cache(f"profile:{user_id}")

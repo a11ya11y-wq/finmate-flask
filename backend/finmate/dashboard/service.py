@@ -10,7 +10,7 @@ from finmate.utils.caching import redis_cache
 logger = logging.getLogger(__name__)
 
 
-def dashboard_key_builder(user_id, period):
+def dashboard_key_builder(self, user_id, period):
     return f"dashboard:{user_id}:{period}"
 
 

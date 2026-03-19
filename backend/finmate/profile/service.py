@@ -159,7 +159,7 @@ class ProfileService:
             logger.error(f"Post-commit action failed: {e}")
         return True
 
-    def recalculate_initial_point(self, user_id: int) -> Decimal:  # sync w mono clear cache!
+    def recalculate_initial_point(self, user_id: int) -> Decimal:
 
         with UnitOfWork() as uow:
             user_obj = self._get_user_or_404(uow, user_id)
@@ -167,8 +167,15 @@ class ProfileService:
             current_mono_sum = Decimal(uow.transactions.get_current_balance_mono(user_id) or 0)
 
             new_initial = real_balance - current_mono_sum
+            print(real_balance, current_mono_sum, "new", new_initial)
             uow.profile.setup_initial_balance(user_obj, new_initial)
             uow.commit()
+        try:
+            invalidate_cache(f"dashboard:{user_id}:*")
+            self._clear_related_caches(user_id)
+        except Exception as e:
+            logger.error(f"Post-commit action failed: {e}")
+        logger.info(f"User {user_id}: Initial point recalculated to {new_initial}")
         return Decimal(new_initial)
 
     @staticmethod

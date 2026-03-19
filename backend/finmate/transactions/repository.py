@@ -135,6 +135,3 @@ class TransactionRepository:
     def bulk_insert_transactions(self, transactions_to_add: list[Transactions]) -> int:
         db.session.add_all(transactions_to_add)
         return len(transactions_to_add)
-
-    def refresh_session(self) -> None:
-        db.session.expire_all()
