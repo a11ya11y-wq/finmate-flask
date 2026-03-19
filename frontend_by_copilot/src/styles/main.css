@@ -1,5 +1,3 @@
-
-
 /* ===================================
    CONSOLIDATED GLOBAL STYLES
    Merged from: custom.css, mobile-performance.css
@@ -501,14 +499,27 @@ h1,h2,h3,h4,h5{color:inherit;margin-top:0}
   .particle {
     display: none !important;
   }
+}
 
-  /* Remove will-change hints on mobile */
-  .stat-card,
-  .table-modern tbody tr,
-  .period-btn.active,
-  .toast-container .toast {
-    will-change: auto !important;
-  }
+/* Fix for budget amount input color */
+#budgetAmount,
+.form-control#budgetAmount {
+    color: #E0E0E0 !important;
+    background-color: transparent !important; /* Ensure it starts transparent */
+}
+
+#budgetAmount:focus,
+.form-control#budgetAmount:focus {
+    color: #E0E0E0 !important;
+    background-color: #1a1f28 !important; /* Dark background on focus */
+    border-color: rgba(58, 160, 255, 0.5) !important;
+    box-shadow: 0 0 0 0.2rem rgba(58, 160, 255, 0.15) !important;
+}
+
+#budgetAmount::placeholder,
+.form-control#budgetAmount::placeholder {
+    color: #9ca3af !important; /* Using a muted color for placeholder */
+    opacity: 1; /* Browsers often apply a lower opacity, so we reset it */
 }
 
 /* Reduced motion support (accessibility) */
@@ -1989,3 +2000,4 @@ label,
     gap: 16px !important;
   }
 }
+
