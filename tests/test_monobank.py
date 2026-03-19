@@ -86,7 +86,7 @@ def test_sync_tx_fails_on_rate_limit(mocker, app):
 def test_sync_tx_no_new_tx(mocker, app):
     mock_mono_client, mock_tx_repo, mock_cat_repo, mock_profile_repo = setup_mocks(mocker)
 
-    mock_mono_client.get_transactions.return_value = {}
+    mock_mono_client.get_transactions.return_value = []
     mock_tx_repo.bulk_insert_transactions.return_value = 0
 
     service = MonobankService()

@@ -159,17 +159,14 @@ class ProfileService:
             logger.error(f"Post-commit action failed: {e}")
         return True
 
-    def recalculate_initial_point(self, user_id: int) -> Decimal:
+    def recalculate_initial_point(self, uow: UnitOfWork, user_id: int) -> Decimal:
+        user_obj = self._get_user_or_404(uow, user_id)
+        real_balance = Decimal(user_obj.last_real_balance or 0)
+        current_mono_sum = Decimal(uow.transactions.get_current_balance_mono(user_id) or 0)
 
-        with UnitOfWork() as uow:
-            user_obj = self._get_user_or_404(uow, user_id)
-            real_balance = Decimal(user_obj.last_real_balance or 0)
-            current_mono_sum = Decimal(uow.transactions.get_current_balance_mono(user_id) or 0)
-
-            new_initial = real_balance - current_mono_sum
-            print(real_balance, current_mono_sum, "new", new_initial)
-            uow.profile.setup_initial_balance(user_obj, new_initial)
-            uow.commit()
+        new_initial = real_balance - current_mono_sum
+        print(real_balance, current_mono_sum, "new", new_initial)
+        uow.profile.setup_initial_balance(user_obj, new_initial)
         try:
             invalidate_cache(f"dashboard:{user_id}:*")
             self._clear_related_caches(user_id)
