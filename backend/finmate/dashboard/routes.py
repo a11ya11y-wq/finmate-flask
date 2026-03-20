@@ -18,3 +18,17 @@ def get_dashboard():
         return jsonify(data), 200
     except Exception as e:
         return parse_exception(e)
+
+
+@bp.route('/history')
+@jwt_required()
+def get_transaction_history():
+    try:
+        user_id = int(get_jwt_identity())
+        period = request.args.get('period', 'all')
+        page = request.args.get('page', 1, type=int)
+        data = dashboard_service.get_tx_history(user_id, period, page)
+        return jsonify(data), 200
+
+    except Exception as e:
+        return parse_exception(e)

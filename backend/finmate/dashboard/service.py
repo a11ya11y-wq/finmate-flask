@@ -1,9 +1,11 @@
 import logging
+import math
 from datetime import datetime, timedelta
 from decimal import Decimal
 
 from finmate.constants import VALID_PERIODS
 from finmate.exceptions import BusinessLogicError
+from finmate.models.transaction_model import Transactions
 from finmate.models.user_model import Users
 from finmate.uow import UnitOfWork
 from finmate.utils.caching import redis_cache
@@ -32,7 +34,8 @@ class DashboardService:
             stats = self._get_stats(uow, user, period, start_date)
             category_chart = self._get_category_chart(uow, user, start_date)
             balance_dynamics = self._get_balance_dynamics(uow, user, period, start_date)
-            recent_tx = self.get_recent_tx(uow, user, start_date)
+            recent_tx = self._get_recent_tx(uow, user, start_date)
+            total_page = self._get_total_count_of_page(uow, user, start_date)
 
         return {
             "stats": stats,
@@ -40,7 +43,20 @@ class DashboardService:
                 "expenses_by_category": category_chart,
                 "balance_dynamics": balance_dynamics
             },
-            "recent_transactions": recent_tx
+            "recent_transactions": {
+                "data": recent_tx,
+                "total_page": total_page
+            }
+        }
+
+    def get_tx_history(self, user_id: int, period, page: int):
+        start_date = self._calculate_start_date(period)
+        offset = (page - 1) * 15
+        with UnitOfWork() as uow:
+            recent_transactions = uow.transactions.get_recent_transactions(user_id, start_date, limit=15, offset=offset)
+            transactions = [tx.to_dict() for tx in recent_transactions]
+        return {
+            "data": transactions
         }
 
     def _get_stats(self, uow: UnitOfWork, user: Users, period, start_date) -> dict:
@@ -124,10 +140,14 @@ class DashboardService:
         }
 
     @staticmethod
-    def get_recent_tx(uow: UnitOfWork, user: Users, start_date):
+    def _get_recent_tx(uow: UnitOfWork, user: Users, start_date) -> list[Transactions]:
         recent_transactions = uow.transactions.get_recent_transactions(user.id, start_date)
         return [tx.to_dict() for tx in recent_transactions]
 
+    def _get_total_count_of_page(self, uow: UnitOfWork, user: Users, start_date) -> int:
+        total_count = uow.transactions.get_total_count_of_tx(user.id, start_date)
+        total_page = math.ceil(total_count / 15)
+        return total_page
 
     @staticmethod
     def _calculate_start_date(period):

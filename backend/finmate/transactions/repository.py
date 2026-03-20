@@ -21,9 +21,13 @@ class TransactionRepository:
     def get_by_id_and_user(self, user_id: int, tx_id: int) -> Optional[Transactions]:
         return Transactions.query.filter_by(user_id=user_id, id=tx_id).first()
 
-    def get_recent_transactions(self, user_id: int, period, limit: int = 15) -> list[Transactions]:
+    def get_recent_transactions(self, user_id: int, period, limit: int = 15, offset: int = 0) -> list[Transactions]:
         query = self.get_base_query(user_id, period)
-        return query.order_by(Transactions.created_at.desc()).limit(limit).all()
+        return query.order_by(Transactions.created_at.desc()).limit(limit).offset(offset).all()
+
+    def get_total_count_of_tx(self, user_id: int, period=None) -> int:
+        query = self.get_base_query(user_id, period)
+        return query.count()
 
     def get_total_amount(self, user_id: int, transaction_type, start_date, end_date) -> float:
         result = db.session.query(func.sum(Transactions.amount)) \
