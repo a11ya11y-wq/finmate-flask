@@ -40,6 +40,11 @@ let chartsRendering = false // ✅ Запобігаємо одночасному
 let lastChartRenderTime = 0 // ✅ Таймстамп останнього успішного рендерингу графіків
 let userCurrency = 'USD' // ✅ Валюта користувача з профілю (default з моделі Users)
 
+// ✅ ПАГІНАЦІЯ recent_transactions
+let currentPage = 1
+let totalPages = 1
+let transactionsCacheByPage = {} // кеш: page -> массив транзакцій
+
 let modalSafetyAttached = false
 // queue for modal open requests to avoid concurrent opens
 let pendingModalQueue = []
@@ -367,6 +372,8 @@ function renderSkeleton(){
           </tbody>
         </table>
       </div>
+      <!-- ✅ Контейнер для пагінації -->
+      <div id="transactions-pagination" style="margin-top: 20px;"></div>
     </div>
 
     <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
@@ -616,6 +623,160 @@ function getCategoryColor(categoryName) {
   return 'linear-gradient(135deg, rgba(58, 160, 255, 0.3), rgba(58, 160, 255, 0.2))'
 }
 
+// ✅ Завантажити сторінку історії (сторінки 2+)
+async function loadTransactionPage(page, period = 'all') {
+  try {
+    if (transactionsCacheByPage[page]) {
+      currentPage = page
+      renderTransactionsTable(transactionsCacheByPage[page])
+      renderPaginationControls()
+      return
+    }
+    const response = await api.get(`/dashboard/history?period=${period}&page=${page}`)
+    const txData = response.data || []
+    transactionsCacheByPage[page] = txData
+    currentPage = page
+    renderTransactionsTable(txData)
+    renderPaginationControls()
+  } catch (err) {
+    console.error('[loadTransactionPage] Error:', err)
+    showError('Failed to load transactions: ' + (err.message || err))
+  }
+}
+
+// ✅ Рендерити таблицю транзакцій
+function renderTransactionsTable(txList) {
+  const currencySymbol = getCurrencySymbol(userCurrency)
+  const tbody = document.getElementById('transactions-list')
+  if (!tbody) return
+  if (txList.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-state-icon"><i class="bi bi-inbox"></i></div><div class="empty-state-text">No transactions yet</div><div class="empty-state-subtext">Start tracking your finances by adding your first transaction</div></div></td></tr>`
+  } else {
+    tbody.innerHTML = txList.map((tx, idx) => {
+      const amountNum = (typeof tx.amount === 'number') ? tx.amount : parseFloat(tx.amount || 0)
+      const isIncome = tx.transaction_type === 'income'
+      const amountFormatted = (typeof amountNum === 'number') ? Math.abs(amountNum).toFixed(2) : (tx.amount || '')
+      const amountHTML = `<span class="${isIncome ? 'amount-positive' : 'amount-negative'}">${isIncome ? '+' : '-'}${currencySymbol}${amountFormatted}</span>`
+      const desc = tx.title || ''
+      let categoryObj = null
+      if (tx && tx.category && typeof tx.category === 'object') categoryObj = tx.category
+      if (!categoryObj) categoryObj = { name: tx.category_name }
+      const rawIcon = (tx && tx.category_icon) ? tx.category_icon : (categoryObj && categoryObj.icon ? categoryObj.icon : 'bi-tag-fill')
+      const iconName = String(rawIcon || '').trim().replace(/^bi\s+/, '')
+      const categoryName = (categoryObj && categoryObj.name) ? categoryObj.name : (tx.category_name || 'Uncategorized')
+      const styleObj = getCategoryStyle(categoryName)
+      const categoryBadge = `<div class="d-flex align-items-center"><div class="category-icon-badge" style="background: ${escapeHtml(styleObj.bg)}; color: ${escapeHtml(styleObj.iconColor)}"><i class="bi ${escapeHtml(iconName)}" aria-hidden="true"></i></div><span>${escapeHtml(categoryName)}</span></div>`
+      return `<tr class="transaction-row" data-tx-id="${tx.id}"><td class="td-num" style="color: var(--fm-muted)">${idx+1}</td><td class="td-desc" title="${escapeHtml(desc + (tx.note ? (' - ' + tx.note) : ''))}"><div class="td-desc-wrapper"><div style="font-weight: 600;">${escapeHtml(desc)}</div><div class="small text-muted tx-note-block${tx.note ? ' has-note' : ''}"><span class="tx-date-inline">${tx.created_at ? formatDateDMY(tx.created_at) : ''}</span>${tx.note ? `<span class="tx-note">${escapeHtml(tx.note)}</span>` : ''}</div></div></td><td class="td-cat">${categoryBadge}</td><td class="td-amount" style="text-align:right">${amountHTML}</td><td class="td-date" style="color: var(--fm-muted); font-size: 0.875rem">${tx.created_at ? formatDateDMY(tx.created_at) : ''}</td><td class="td-actions"><div class="action-btn-group"><button class="action-btn btn-edit" data-tx-id="${tx.id}" data-action="edit" title="Edit" aria-label="Edit transaction"><i class="bi bi-pencil"></i><span class="btn-text"> Edit</span></button><button class="action-btn btn-delete" data-tx-id="${tx.id}" data-action="delete" title="Delete" aria-label="Delete transaction"><i class="bi bi-trash"></i><span class="btn-text"></span></button></div></td></tr>`
+    }).join('')
+  }
+}
+
+// ✅ Рендерити контроли пагінації
+function renderPaginationControls() {
+  const paginationContainer = document.getElementById('transactions-pagination')
+  if (!paginationContainer) return
+  
+  // Hide pagination if 1 or fewer pages
+  if (!totalPages || totalPages <= 1) {
+    paginationContainer.innerHTML = ''
+    return
+  }
+
+  // Calculate which pages to show using the stable 5-page algorithm
+  let pages = []
+  if (totalPages <= 5) {
+    // Show all pages if 5 or fewer
+    for (let i = 1; i <= totalPages; i++) pages.push(i)
+  } else {
+    // Always show first page
+    pages.push(1)
+    
+    // Calculate the 3 middle buttons
+    let midStart = Math.max(2, currentPage - 1)
+    let midEnd = Math.min(totalPages - 1, currentPage + 1)
+    
+    // Keep exactly 3 middle buttons at the edges
+    if (currentPage <= 3) {
+      midStart = 2
+      midEnd = 4
+    } else if (currentPage >= totalPages - 2) {
+      midStart = totalPages - 3
+      midEnd = totalPages - 1
+    }
+    
+    for (let i = midStart; i <= midEnd; i++) {
+      pages.push(i)
+    }
+    
+    // Always show last page
+    pages.push(totalPages)
+  }
+
+  // Build HTML
+  let html = '<nav aria-label="Transactions pagination" style="display: flex; justify-content: center; margin-top: 24px; width: 100%;"><div style="display: flex; gap: 6px; align-items: center; white-space: nowrap;">'
+
+  // Previous button
+  if (currentPage > 1) {
+    html += `<button class="pagination-btn" data-page="${currentPage - 1}" style="width: 40px; height: 40px; min-width: 40px; min-height: 40px; padding: 0; background: rgba(55, 65, 81, 0.6); color: #e5e7eb; border-radius: 6px; border: 1px solid rgba(107, 114, 128, 0.4); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;">
+      <i class="bi bi-chevron-left" style="font-size: 16px;"></i>
+    </button>`
+  } else {
+    html += `<span style="width: 40px; height: 40px; min-width: 40px; min-height: 40px; padding: 0; background: rgba(31, 41, 55, 0.4); color: #6b7280; border-radius: 6px; border: 1px solid rgba(55, 65, 81, 0.3); font-size: 14px; font-weight: 600; cursor: not-allowed; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; opacity: 0.5;">
+      <i class="bi bi-chevron-left" style="font-size: 16px;"></i>
+    </span>`
+  }
+
+  // Render page buttons from the pages array (no ellipsis)
+  for (let i = 0; i < pages.length; i++) {
+    const pageNum = pages[i]
+
+    if (pageNum === currentPage) {
+      // Active page - blue gradient with white text
+      html += `<span style="width: 40px; height: 40px; min-width: 40px; min-height: 40px; padding: 0; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border-radius: 6px; border: none; font-size: 13px; font-weight: 600; cursor: default; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">${pageNum}</span>`
+    } else {
+      // Clickable page number
+      html += `<button class="pagination-btn" data-page="${pageNum}" style="width: 40px; height: 40px; min-width: 40px; min-height: 40px; padding: 0; background: rgba(55, 65, 81, 0.6); color: #e5e7eb; border-radius: 6px; border: 1px solid rgba(107, 114, 128, 0.4); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;">${pageNum}</button>`
+    }
+  }
+
+  // Next button
+  if (currentPage < totalPages) {
+    html += `<button class="pagination-btn" data-page="${currentPage + 1}" style="width: 40px; height: 40px; min-width: 40px; min-height: 40px; padding: 0; background: rgba(55, 65, 81, 0.6); color: #e5e7eb; border-radius: 6px; border: 1px solid rgba(107, 114, 128, 0.4); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;">
+      <i class="bi bi-chevron-right" style="font-size: 16px;"></i>
+    </button>`
+  } else {
+    html += `<span style="width: 40px; height: 40px; min-width: 40px; min-height: 40px; padding: 0; background: rgba(31, 41, 55, 0.4); color: #6b7280; border-radius: 6px; border: 1px solid rgba(55, 65, 81, 0.3); font-size: 14px; font-weight: 600; cursor: not-allowed; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; opacity: 0.5;">
+      <i class="bi bi-chevron-right" style="font-size: 16px;"></i>
+    </span>`
+  }
+
+  html += '</div></nav>'
+  paginationContainer.innerHTML = html
+
+  // Attach event listeners to all clickable buttons
+  paginationContainer.querySelectorAll('button.pagination-btn').forEach(btn => {
+    btn.addEventListener('mouseenter', () => {
+      btn.style.background = 'rgba(75, 85, 99, 0.8)'
+      btn.style.borderColor = 'rgba(107, 114, 128, 0.6)'
+      btn.style.transform = 'translateY(-2px)'
+      btn.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)'
+    })
+    btn.addEventListener('mouseleave', () => {
+      btn.style.background = 'rgba(55, 65, 81, 0.6)'
+      btn.style.borderColor = 'rgba(107, 114, 128, 0.4)'
+      btn.style.transform = 'translateY(0)'
+      btn.style.boxShadow = 'none'
+    })
+
+    btn.addEventListener('click', async (e) => {
+      e.preventDefault()
+      const page = parseInt(btn.dataset.page)
+      await loadTransactionPage(page, currentPeriod)
+    })
+  })
+}
+
+
 async function loadData(period = 'all'){
   // Serialize concurrent calls
   if(loadInProgress){
@@ -747,82 +908,18 @@ async function loadData(period = 'all'){
     updateTrend('.income-card .stat-card-trend', incomePct, false);
     updateTrend('.expense-card .stat-card-trend', expensePct, true);
 
-    const txList = data.recent_transactions || []
-    const tbody = document.getElementById('transactions-list')
-    if(txList.length === 0){
-      tbody.innerHTML = `<tr><td colspan="6">
-        <div class="empty-state">
-          <div class="empty-state-icon"><i class="bi bi-inbox"></i></div>
-          <div class="empty-state-text">No transactions yet</div>
-          <div class="empty-state-subtext">Start tracking your finances by adding your first transaction</div>
-        </div>
-      </td></tr>`
-    } else {
-      tbody.innerHTML = txList.map((tx, idx) => {
-        const amountNum = (typeof tx.amount === 'number') ? tx.amount : parseFloat(tx.amount || 0)
-        const isIncome = tx.transaction_type === 'income'
-        const amountFormatted = (typeof amountNum === 'number') ? Math.abs(amountNum).toFixed(2) : (tx.amount || '')
-        const amountHTML = `<span class="${isIncome ? 'amount-positive' : 'amount-negative'}">${isIncome ? '+' : '-'}${currencySymbol}${amountFormatted}</span>`
-        const desc = tx.title || ''
+    const recentTxObj = data.recent_transactions || {}
+    const txList = recentTxObj.data || []
+    const newTotalPages = recentTxObj.total_page || 1
 
-        // Category badge with icon
-        // Strategy: use tx.category object if present; otherwise if backend included 'data.categories' try to match by id; fallback to tx.category_name
-        let categoryObj = null
-        if(tx && tx.category && typeof tx.category === 'object'){
-          categoryObj = tx.category
-        } else if(tx && (tx.category_id || tx.category) && Array.isArray(data.categories)){
-          // tx.category might be id or category_id
-          const cid = tx.category_id || tx.category
-          try{ categoryObj = data.categories.find(c => c && (c.id === cid || String(c.id) === String(cid))) }catch(_){ categoryObj = null }
-        }
-        if(!categoryObj) categoryObj = { name: tx.category_name }
+    // Ініціалізуємо пагінацію
+    currentPage = 1
+    totalPages = newTotalPages
+    transactionsCacheByPage[1] = txList
 
-        // Determine iconClass: prefer tx.category_icon, then categoryObj.icon, fallback to 'bi-tag-fill'
-        const rawIcon = (tx && tx.category_icon) ? tx.category_icon : (categoryObj && categoryObj.icon ? categoryObj.icon : 'bi-tag-fill')
-        // Normalize: remove any leading 'bi ' if present so we can render as `bi ${name}` safely
-        const iconName = String(rawIcon || '').trim().replace(/^bi\s+/, '')
-
-        const categoryName = (categoryObj && categoryObj.name) ? categoryObj.name : (tx.category_name || 'Uncategorized')
-        const styleObj = getCategoryStyle(categoryName)
-
-        const categoryBadge = `
-          <div class="d-flex align-items-center">
-            <div class="category-icon-badge" style="background: ${escapeHtml(styleObj.bg)}; color: ${escapeHtml(styleObj.iconColor)}">
-              <i class="bi ${escapeHtml(iconName)}" aria-hidden="true"></i>
-            </div>
-            <span>${escapeHtml(categoryName)}</span>
-          </div>
-        `
-
-         return `
-         <tr class="transaction-row" data-tx-id="${tx.id}">
-           <td class="td-num" style="color: var(--fm-muted)">${idx+1}</td>
-           <td class="td-desc" title="${escapeHtml(desc + (tx.note ? (' - ' + tx.note) : ''))}">
-             <div class="td-desc-wrapper">
-               <div style="font-weight: 600;">${escapeHtml(desc)}</div>
-               <div class="small text-muted tx-note-block${tx.note ? ' has-note' : ''}">
-                 <span class="tx-date-inline">${tx.created_at ? formatDateDMY(tx.created_at) : ''}</span>
-                 ${tx.note ? `<span class="tx-note">${escapeHtml(tx.note)}</span>` : ''}
-               </div>
-             </div>
-           </td>
-           <td class="td-cat">${categoryBadge}</td>
-           <td class="td-amount" style="text-align:right">${amountHTML}</td>
-           <td class="td-date" style="color: var(--fm-muted); font-size: 0.875rem">${tx.created_at ? formatDateDMY(tx.created_at) : ''}</td>
-           <td class="td-actions">
-             <div class="action-btn-group">
-               <button class="action-btn btn-edit" data-tx-id="${tx.id}" data-action="edit" title="Edit" aria-label="Edit transaction">
-                 <i class="bi bi-pencil"></i><span class="btn-text"> Edit</span>
-               </button>
-               <button class="action-btn btn-delete" data-tx-id="${tx.id}" data-action="delete" title="Delete" aria-label="Delete transaction">
-                 <i class="bi bi-trash"></i><span class="btn-text"></span>
-               </button>
-             </div>
-           </td>
-         </tr>
-       `
-       }).join('')
-     }
+    // Рендеримо таблицю
+    renderTransactionsTable(txList)
+    renderPaginationControls()
 
      // populate categories for quick form
      try{
