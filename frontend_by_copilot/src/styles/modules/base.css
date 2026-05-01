@@ -1,0 +1,53 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background:
+    radial-gradient(1000px 500px at 10% 10%, rgba(58, 160, 255, 0.03), transparent),
+    var(--fm-bg);
+  color: var(--fm-text);
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  overflow-x: hidden;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 28px;
+  overflow: visible;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+  color: inherit;
+  margin-top: 0;
+}
+
+.text-muted,
+.muted {
+  color: var(--fm-muted);
+}
+
+.small {
+  font-size: 0.85rem;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
