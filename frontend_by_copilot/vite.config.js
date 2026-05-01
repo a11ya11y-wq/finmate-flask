@@ -4,14 +4,6 @@ import { resolve } from 'path'; // 👈 1. Обов'язково додай це
 export default defineConfig({
   server: {
     port: 5173,
-    // Proxy all /api requests to the backend running on localhost:5000 during development
-    proxy: {
-      '/api': {
-        target: 'http://127.0.0.1:5000',
-        changeOrigin: true,
-        secure: false,
-      }
-    }
   },
 
   build: {
