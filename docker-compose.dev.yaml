@@ -33,12 +33,16 @@ services:
     image: nginx:alpine
     container_name: finmate_gateway
     ports:
-      - "80:80" #єдиний вхід у систему
+      - "80:80"
     volumes:
-      - ./gateway/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./gateway/nginx.local.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       - frontend
       - backend
+
+  certbot:
+    profiles: [ "debug" ]
+    entrypoint: [ "echo", "Certbot is disabled in dev mode" ]
 
   backend:
     image: finmate_backend

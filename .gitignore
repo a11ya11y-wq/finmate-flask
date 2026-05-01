@@ -27,4 +27,6 @@ build/
 *.env
 .env.*
 
+docker-compose.override.yaml
+
 TODO.txt
