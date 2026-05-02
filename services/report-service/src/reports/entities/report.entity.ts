@@ -14,10 +14,10 @@ export class Report {
   userId: number;
 
   @Column({ name: 'start_date', type: 'timestamp' })
-  startDate: string;
+  startDate: Date;
 
   @Column({ name: 'end_date', type: 'timestamp' })
-  endDate: string;
+  endDate: Date;
 
   @Column({ type: 'varchar', length: 20 })
   status: 'pending' | 'processed' | 'failed';
@@ -26,5 +26,5 @@ export class Report {
   filePath: string;
 
   @CreateDateColumn({ name: 'created_at' })
-  createdAt: string;
+  createdAt: Date;
 }

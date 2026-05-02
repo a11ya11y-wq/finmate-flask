@@ -8,8 +8,8 @@ r = redis.Redis(host='localhost', port=6379, db=0)
 # Дані для звіту
 payload = {
     "data": {
-        "userId": 1,
-        "startDate": "2026-04-01",
+        "userId": 7,
+        "startDate": "2026-01-01",
         "endDate": "2026-04-30"
     },
     "id": str(uuid.uuid4()) # NestJS очікує унікальний ID для кожної задачі
