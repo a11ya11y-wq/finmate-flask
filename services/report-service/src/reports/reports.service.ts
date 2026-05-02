@@ -5,9 +5,9 @@ import { UpdateReportDto } from './dto/update-report.dto';
 @Injectable()
 export class ReportsService {
   async create(createReportDto: CreateReportDto) {
-    const {userId, startDate, endDate} = createReportDto;
+    const { userId, startDate, endDate } = createReportDto;
     console.log(`🛠 Початок генерації звіту для користувача #${userId}`);
-    console.log(`📅 Період: ${startDate} - ${endDate}`)
+    console.log(`📅 Період: ${startDate} - ${endDate}`);
 
     return {
       status: 'processed',
@@ -15,8 +15,7 @@ export class ReportsService {
       data: {
         userId,
         generatedAt: new Date().toISOString(),
-      }
+      },
     };
   }
-
 }
