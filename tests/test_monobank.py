@@ -3,10 +3,10 @@ from decimal import Decimal
 import pytest
 import requests
 
-from finmate.exceptions import BusinessLogicError
-from finmate.exceptions import ThrottlingError
-from finmate.models import Users, Category
-from finmate.monobank.service import MonobankService
+from core_service.exceptions import BusinessLogicError
+from core_service.exceptions import ThrottlingError
+from core_service.models import Users, Category
+from core_service.monobank.service import MonobankService
 
 FAKE_CLIENT_INFO = {"accounts": [{"id": "ACC_ID_001", 'type': 'black', 'balance': '10000000'}]}
 FAKE_MONO_TRANSACTIONS = [
@@ -19,19 +19,19 @@ FAKE_USER = Users(id=1, monobank_api_token=b'FAKE_TOKEN')
 
 def setup_mocks(mocker):
     mock_mono_client = mocker.patch(
-        "finmate.monobank.service.MonoAPI",
+        "core_service.monobank.service.MonoAPI",
         autospec=True
     ).return_value
     mock_mono_client.get_client_info.return_value = FAKE_CLIENT_INFO
 
-    mock_uow_class = mocker.patch("finmate.monobank.service.UnitOfWork", autospec=True)
+    mock_uow_class = mocker.patch("core_service.monobank.service.UnitOfWork", autospec=True)
     mock_uow = mock_uow_class.return_value.__enter__.return_value
 
     mock_uow.profile.get_user_info.return_value = FAKE_USER
     mock_uow.categories.get_by_name_and_user.return_value = FAKE_UNCAT_CATEGORY
     mock_uow.categories.get_all_categories.return_value = []
 
-    mock_profile_service = mocker.patch("finmate.monobank.service.ProfileService", autospec=True).return_value
+    mock_profile_service = mocker.patch("core_service.monobank.service.ProfileService", autospec=True).return_value
     mock_profile_service.recalculate_initial_point.return_value = 1000
 
     return mock_mono_client, mock_uow.transactions, mock_uow.categories, mock_uow.profile

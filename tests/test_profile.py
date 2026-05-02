@@ -2,7 +2,7 @@ import pytest
 from werkzeug.security import generate_password_hash
 
 from tests.conftest import db_session
-from finmate.models import Users
+from core_service.models import Users
 
 @pytest.mark.usefixtures("db_session")
 class TestGetUser:

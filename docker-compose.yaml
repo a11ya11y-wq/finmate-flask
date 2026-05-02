@@ -38,7 +38,7 @@ services:
       - webroot:/var/www/certbot:ro
     depends_on:
       - frontend
-      - backend
+      - api-main
 
   certbot:
       image: certbot/certbot
@@ -49,9 +49,9 @@ services:
         - webroot:/var/www/certbot
       entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
-  backend:
-    image: finmate_backend
-    build: ./backend
+  api-main:
+    image: finmate_api_main
+    build: api-main
     working_dir: /app
     environment:
       - PYTHONPATH=/app
@@ -59,9 +59,9 @@ services:
     command: >
       sh -c "PYTHONPATH=. python3 -m flask db upgrade && python3 -m flask run --host=0.0.0.0 --port=5000"
     env_file:
-      - ./backend/.env
+      - api-main/.env
     volumes:
-      - ./backend:/app
+      - ./api-main:/app
     depends_on:
         db:
           condition: service_healthy
@@ -69,21 +69,21 @@ services:
           condition: service_healthy
 
   celery_worker:
-    image: finmate-backend
-    build: ./backend
+    image: finmate_api_main
+    build: api-main
     command: celery -A celery_worker.celery worker --pool=solo --loglevel=info
     env_file:
-      - ./backend/.env
+      - api-main/.env
     volumes:
-      - ./backend:/app
+      - ./api-main:/app
     depends_on:
-      - backend
+      - api-main
 
   frontend:
     container_name: finmate_frontend
     build: ./frontend_by_copilot
     depends_on:
-      - backend
+      - api-main
 
 volumes:
   pg_data:

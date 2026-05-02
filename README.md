@@ -121,7 +121,7 @@ Screenshots are located in `frontend_by_copilot/public/img/screenshots/`.
 1.  **Clone the repository:**
     ```bash
     git clone https://github.com/a11ya11y-wq/finmate-flask.git
-    cd finmate
+    cd core_service
     ```
 
 2.  **Environment Setup:**
@@ -166,7 +166,7 @@ Screenshots are located in `frontend_by_copilot/public/img/screenshots/`.
 
 4.  **Run Tests:**
     ```bash
-    docker compose exec backend pytest
+    docker compose exec api-main pytest
     ```
 
 ## 🔌 API Endpoints

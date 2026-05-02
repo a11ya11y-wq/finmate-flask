@@ -1,6 +1,6 @@
-backend/.venv/
+api-main/.venv/
 
-backend/.venv/
+api-main/.venv/
 venv/
 env/
 
@@ -12,7 +12,7 @@ __pycache__/
 *.pyo
 *.pyd
 
-backend/.idea/
+api-main/.idea/
 .idea/
 .vscode/
 *.iml

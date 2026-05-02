@@ -1,10 +1,10 @@
 import pytest
 from sqlalchemy.orm import scoped_session, sessionmaker
 from flask_jwt_extended import create_access_token
-from finmate.models.user_model import Users
-from finmate.models.category_model import Category
+from core_service.models.user_model import Users
+from core_service.models.category_model import Category
 
-from finmate import create_app, db
+from core_service import create_app, db
 
 
 @pytest.fixture(scope='session')
