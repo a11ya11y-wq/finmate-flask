@@ -12,6 +12,7 @@ export class CreateReportDto {
   @IsNotEmpty({ message: 'The start date is required' })
   startDate: string;
 
+  // TODO: Add custom deco to compare startDate and endDate
   @IsDateString(
     {},
     { message: 'The end date must be a valid ISO 8601 date string' },

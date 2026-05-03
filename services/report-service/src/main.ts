@@ -1,6 +1,10 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import {
+  MicroserviceOptions,
+  RpcException,
+  Transport,
+} from '@nestjs/microservices';
 import { Logger, ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
@@ -22,6 +26,24 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
+      exceptionFactory: (validationErrors) => {
+        const logger = new Logger('Validation');
+
+        const messages = validationErrors.map((err) => {
+          const constraints = err.constraints
+            ? Object.values(err.constraints)
+            : [];
+          return `${err.property}: ${constraints.join(', ')}`;
+        });
+
+        logger.error(`Validation failed: ${messages.join('; ')}`);
+
+        return new RpcException({
+          status: 'error',
+          message: 'Validation failed',
+          errors: messages,
+        });
+      },
     }),
   );
   await app.listen();

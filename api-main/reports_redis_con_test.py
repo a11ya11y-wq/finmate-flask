@@ -9,8 +9,8 @@ r = redis.Redis(host='localhost', port=6379, db=0)
 payload = {
     "data": {
         "userId": 7,
-        "startDate": "2026-01-01",
-        "endDate": "2026-04-30"
+        "startDate": "2025-05-30",
+        "endDate": "2026-05-10"
     },
     "id": str(uuid.uuid4()) # NestJS очікує унікальний ID для кожної задачі
 }
