@@ -1,12 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { CreateReportDto } from './dto/create-report.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Report } from './entities/report.entity';
+import { Report, ReportStatus } from './entities/report.entity';
 import { Between, Repository } from 'typeorm';
 import { Transaction } from './entities/transaction.entity';
 
 @Injectable()
 export class ReportsService {
+  private readonly logger = new Logger(ReportsService.name);
+
   constructor(
     @InjectRepository(Report)
     private readonly reportRepository: Repository<Report>,
@@ -20,11 +22,11 @@ export class ReportsService {
       userId: dto.userId,
       startDate: dto.startDate,
       endDate: dto.endDate,
-      status: 'pending',
+      status: ReportStatus.PENDING,
     });
 
     const savedReport = await this.reportRepository.save(newReport);
-    console.log(
+    this.logger.log(
       `Report created with ID: ${savedReport.id} for user ${savedReport.userId}`,
     );
     return savedReport;
@@ -42,6 +44,34 @@ export class ReportsService {
       },
       relations: ['category'],
       order: { date: 'ASC' },
+    });
+  }
+
+  async updateReportStatus(
+    reportId: number,
+    status: ReportStatus,
+    filePath?: string | null,
+  ) {
+    const report = await this.reportRepository.findOne({
+      where: { id: reportId },
+    });
+    if (!report) {
+      throw new Error(`Report with ID ${reportId} not found`);
+    }
+    report.status = status;
+    report.filePath = filePath;
+    await this.reportRepository.save(report);
+    this.logger.log(`Report ID ${reportId} status updated to ${status}`);
+  }
+
+  async findExistingReport(userId: number, startDate: Date, endDate: Date) {
+    return await this.reportRepository.findOne({
+      where: {
+        userId,
+        startDate,
+        endDate,
+        status: ReportStatus.PROCESSED, // We need only completed reports
+      },
     });
   }
 }

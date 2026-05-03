@@ -5,6 +5,13 @@ import {
   CreateDateColumn,
 } from 'typeorm';
 
+export enum ReportStatus {
+  PENDING = 'pending',
+  PROCESSED = 'processed',
+  FAILED = 'failed',
+  EXPIRED = 'expired',
+}
+
 @Entity('reports')
 export class Report {
   @PrimaryGeneratedColumn()
@@ -19,11 +26,11 @@ export class Report {
   @Column({ name: 'end_date', type: 'timestamp' })
   endDate: Date;
 
-  @Column({ type: 'varchar', length: 20 })
-  status: 'pending' | 'processed' | 'failed';
+  @Column({ type: 'enum', enum: ReportStatus, default: ReportStatus.PENDING })
+  status: ReportStatus;
 
-  @Column({ name: 'file_path', nullable: true })
-  filePath: string;
+  @Column({ name: 'file_path', type: 'varchar', nullable: true })
+  filePath?: string | null;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

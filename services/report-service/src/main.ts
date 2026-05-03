@@ -1,9 +1,11 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
+  const logger = new Logger('Bootstrap');
+
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
     AppModule,
     {
@@ -23,6 +25,12 @@ async function bootstrap() {
     }),
   );
   await app.listen();
-  console.log('🚀Report service is listening...🚀');
+  logger.log('🚀Report service is listening...🚀');
 }
-bootstrap();
+bootstrap().catch((err: unknown) => {
+  if (err instanceof Error) {
+    new Logger('Bootstrap').error(
+      `Application failed to start: ${err.message}`,
+    );
+  }
+});

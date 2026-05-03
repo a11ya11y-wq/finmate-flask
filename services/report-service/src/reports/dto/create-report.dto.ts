@@ -1,7 +1,7 @@
-import { IsDateString, IsNotEmpty, IsNumber } from 'class-validator';
+import { IsDateString, IsNotEmpty, IsInt } from 'class-validator';
 
 export class CreateReportDto {
-  @IsNumber({}, { message: 'The user ID must be a number' })
+  @IsInt({ message: 'The user ID must be a number' })
   @IsNotEmpty({ message: 'The user ID is required' })
   userId: number;
 

@@ -33,4 +33,8 @@ export class Transaction {
 
   @Column({ name: 'transaction_type' })
   type: string; // income or expense, but in DB type=string
+
+  get correctedAmount(): number {
+    return this.type === 'expense' ? -Math.abs(this.amount) : this.amount;
+  }
 }
