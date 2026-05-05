@@ -30,14 +30,14 @@ export class TasksService {
     });
 
     for (const report of expiredReports) {
-      if (report.filePath && fs.existsSync(report.filePath)) {
+      if (report.fileName && fs.existsSync(report.fileName)) {
         try {
-          fs.unlinkSync(report.filePath);
+          fs.unlinkSync(report.fileName);
           this.logger.log(`Deleted file for expired report ID: ${report.id}`);
         } catch (error: unknown) {
           if (error instanceof Error) {
             this.logger.error(
-              `Failed to delete file ${report.filePath}: ${error.message}`,
+              `Failed to delete file ${report.fileName}: ${error.message}`,
             );
           }
         }

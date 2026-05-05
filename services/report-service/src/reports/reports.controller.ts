@@ -8,7 +8,7 @@ import * as fs from 'node:fs';
 
 interface ReportResponse {
   reportId: number;
-  filePath?: string;
+  fileName?: string;
   status?: ReportStatus;
   msg?: string;
 }
@@ -26,17 +26,23 @@ export class ReportsController {
   async handleCreateReport(
     @Payload() data: CreateReportDto,
   ): Promise<ReportResponse> {
-    const report = await this.reportsService.create(data);
+    let currentReportId: number = 0;
+
     try {
       const existingReport = await this.reportsService.findExistingReport(
-        report.userId,
-        new Date(report.startDate),
-        new Date(report.endDate),
+        data.userId,
+        new Date(data.startDate),
+        new Date(data.endDate),
       );
-
-      if (existingReport?.status === ReportStatus.PROCESSED) {
+      if (existingReport) {
         this.logger.log(
-          `The report: ${existingReport.id} is still being proceed for user ${report.userId}`,
+          `Found existing report ID: ${existingReport.id} for user ${data.userId} with status ${existingReport.status}`,
+        );
+      }
+
+      if (existingReport?.status === ReportStatus.PENDING) {
+        this.logger.log(
+          `The report: ${existingReport.id} is still being pending for user ${data.userId}`,
         );
         return {
           reportId: existingReport.id,
@@ -45,16 +51,20 @@ export class ReportsController {
         };
       }
 
-      if (existingReport && existingReport.filePath) {
-        if (fs.existsSync(existingReport.filePath)) {
+      if (existingReport && existingReport.fileName) {
+        const fullPath = `./uploads/${existingReport.fileName}`;
+        if (fs.existsSync(fullPath)) {
           this.logger.log(`Returning existing report ID: ${existingReport.id}`);
           return {
             reportId: existingReport.id,
-            filePath: existingReport.filePath,
+            fileName: existingReport.fileName,
             msg: 'A report for the specified date range already exists. Returning the existing report.',
           };
         }
       }
+      const report = await this.reportsService.create(data);
+      currentReportId = report.id;
+
       const transactions = await this.reportsService.getTransactionsForReport(
         report.userId,
         new Date(report.startDate),
@@ -75,7 +85,7 @@ export class ReportsController {
         };
       }
 
-      const filePath = await this.pdfService.generateTxReport(
+      const fileName = await this.pdfService.generateTxReport(
         report.id,
         transactions,
       );
@@ -83,21 +93,26 @@ export class ReportsController {
       await this.reportsService.updateReportStatus(
         report.id,
         ReportStatus.PROCESSED,
-        filePath,
+        fileName,
       );
       this.logger.log(
         `Report ID ${report.id} for user ${report.userId} includes ${transactions.length} transactions`,
       );
 
-      return { reportId: report.id, filePath: filePath };
+      return { reportId: report.id, fileName: fileName };
     } catch (error) {
-      this.logger.error(`Error processing report ID ${report.id}:`, error);
-      await this.reportsService.updateReportStatus(
-        report.id,
-        ReportStatus.FAILED,
+      this.logger.error(
+        `Error processing report ID ${currentReportId}:`,
+        error,
       );
+      if (currentReportId !== 0) {
+        await this.reportsService.updateReportStatus(
+          currentReportId,
+          ReportStatus.FAILED,
+        );
+      }
       return {
-        reportId: report.id,
+        reportId: currentReportId,
         status: ReportStatus.FAILED,
         msg: 'An error occurred while processing the report. Please try again later.',
       };

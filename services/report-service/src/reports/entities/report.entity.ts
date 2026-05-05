@@ -29,8 +29,8 @@ export class Report {
   @Column({ type: 'enum', enum: ReportStatus, default: ReportStatus.PENDING })
   status: ReportStatus;
 
-  @Column({ name: 'file_path', type: 'varchar', nullable: true })
-  filePath?: string | null;
+  @Column({ name: 'file_name', type: 'varchar', nullable: true })
+  fileName?: string | null;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

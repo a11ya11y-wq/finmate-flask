@@ -50,7 +50,7 @@ export class ReportsService {
   async updateReportStatus(
     reportId: number,
     status: ReportStatus,
-    filePath?: string | null,
+    fileName?: string | null,
   ) {
     const report = await this.reportRepository.findOne({
       where: { id: reportId },
@@ -59,7 +59,7 @@ export class ReportsService {
       throw new Error(`Report with ID ${reportId} not found`);
     }
     report.status = status;
-    report.filePath = filePath;
+    report.fileName = fileName;
     await this.reportRepository.save(report);
     this.logger.log(`Report ID ${reportId} status updated to ${status}`);
   }

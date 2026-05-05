@@ -2,10 +2,8 @@ services:
   db:
     image: postgres:15
     container_name: finmate_postgres
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+    env_file:
+      - .env
     ports:
       - "5432:5432"
     volumes:
@@ -50,9 +48,10 @@ services:
     ports:
       - "5000:5000"
     env_file:
-      - api-main/.env
+      - .env
     volumes:
       - ./api-main:/app
+      - ./shared_reports:/app/uploads
     depends_on:
         db:
           condition: service_healthy
@@ -64,11 +63,25 @@ services:
     build: api-main
     command: celery -A celery_worker.celery worker --pool=solo --loglevel=info
     env_file:
-      - api-main/.env
+      - .env
     volumes:
       - ./api-main:/app
     depends_on:
       - api-main
+
+  report-service:
+    build: ./services/report-service
+    container_name: finmate_report_service
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+#        - ./services/report-service:/app
+        - ./shared_reports:/app/uploads
 
   frontend:
     container_name: finmate_frontend

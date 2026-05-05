@@ -4,6 +4,8 @@ api-main/.venv/
 venv/
 env/
 
+shared_reports
+
 htmlcov/
 .coverage
 

@@ -14,7 +14,7 @@ import { ScheduleModule } from '@nestjs/schedule';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         type: 'postgres',
-        url: String(config.get<string>('DATABASE_URL')),
+        url: String(config.get<string>('REPORT_SERVICE_DATABASE_URL')),
         autoLoadEntities: true,
         synchronize: true,
         logging: true,

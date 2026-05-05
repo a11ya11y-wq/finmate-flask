@@ -74,7 +74,7 @@ def create_app(config_name='default'):
         app.register_blueprint(mono_bp, url_prefix='/api/v1/monobank')
 
         from .reports import bp as report_bp
-        app.register_blueprint(mono_bp, url_prefix='/api/v1/report')
+        app.register_blueprint(report_bp, url_prefix='/api/v1/report')
 
 
         from . import models

@@ -7,7 +7,6 @@ import { Transaction } from './entities/transaction.entity';
 
 @Injectable()
 export class PdfService {
-
   async generateTxReport(reportId: number, transactions: Transaction[]) {
     const templatePath = path.join(process.cwd(), 'templates', 'report.hbs');
     const templateHtml = fs.readFileSync(templatePath, 'utf-8');
@@ -30,24 +29,35 @@ export class PdfService {
       })),
     });
 
-    const browser = await puppeteer.launch({ headless: true });
+    const browser = await puppeteer.launch({
+      headless: true,
+      executablePath:
+        process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium-browser',
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--headless',
+      ],
+    });
     try {
       const page = await browser.newPage();
 
       await page.setContent(htmlContent);
 
       const fileName = `report_${reportId}_${Date.now()}.pdf`;
-      const filePath = path.join(
-        __dirname,
-        '..',
-        '..',
-        'static',
-        'reports',
-        fileName,
-      );
-      await page.pdf({ path: filePath, format: 'A4' });
+
+      const REPORTS_UPLOAD_DIR = '/app/uploads'; // TODO: move to config!!!!
+      const filePath = path.join(REPORTS_UPLOAD_DIR, fileName);
+
+      await page.pdf({ path: filePath, format: 'A4', printBackground: true });
       await browser.close();
-      return filePath;
+      return fileName;
+    } catch (error) {
+      Logger.error(
+        `Failed to generate PDF report: ${error instanceof Error ? error.message : error}`,
+      );
+      throw error;
     } finally {
       await browser.close();
     }
