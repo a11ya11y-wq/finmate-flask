@@ -9,7 +9,7 @@ import * as fs from 'node:fs';
 interface ReportResponse {
   reportId: number;
   fileName?: string;
-  status?: ReportStatus;
+  status: ReportStatus;
   msg?: string;
 }
 
@@ -45,8 +45,9 @@ export class ReportsController {
           `The report: ${existingReport.id} is still being pending for user ${data.userId}`,
         );
         return {
+          // Pending response when an existing report is still being processed
           reportId: existingReport.id,
-          status: ReportStatus.PROCESSED,
+          status: ReportStatus.PENDING,
           msg: 'A report for the specified date range is currently being processed. Please check back later.',
         };
       }
@@ -56,7 +57,9 @@ export class ReportsController {
         if (fs.existsSync(fullPath)) {
           this.logger.log(`Returning existing report ID: ${existingReport.id}`);
           return {
+            // Success response with existing file name
             reportId: existingReport.id,
+            status: ReportStatus.PROCESSED,
             fileName: existingReport.fileName,
             msg: 'A report for the specified date range already exists. Returning the existing report.',
           };
@@ -79,6 +82,7 @@ export class ReportsController {
           null,
         );
         return {
+          // Failure response when no transactions are found
           reportId: report.id,
           status: ReportStatus.FAILED,
           msg: 'No transactions found for the specified date range. Report generation failed.',
@@ -99,7 +103,12 @@ export class ReportsController {
         `Report ID ${report.id} for user ${report.userId} includes ${transactions.length} transactions`,
       );
 
-      return { reportId: report.id, fileName: fileName };
+      return {
+        // Success response with file name
+        reportId: report.id,
+        status: ReportStatus.PROCESSED,
+        fileName: fileName,
+      };
     } catch (error) {
       this.logger.error(
         `Error processing report ID ${currentReportId}:`,
@@ -112,6 +121,7 @@ export class ReportsController {
         );
       }
       return {
+        // Failure response
         reportId: currentReportId,
         status: ReportStatus.FAILED,
         msg: 'An error occurred while processing the report. Please try again later.',

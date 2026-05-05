@@ -2,10 +2,10 @@ services:
   db:
     image: postgres:15
     container_name: finmate_postgres
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+    env_file:
+      - .env
+    ports:
+      - "5432:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
     healthcheck:
@@ -17,6 +17,8 @@ services:
   redis:
     container_name: finmate_redis
     image: redis:latest
+    ports:
+      - "6379:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -29,39 +31,27 @@ services:
     image: nginx:alpine
     container_name: finmate_gateway
     ports:
-      - "80:80" #єдиний вхід у систему
-      - "443:443"
+      - "80:80"
     volumes:
-      - ./gateway/nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      - certbot-etc:/etc/letsencrypt:ro
-      - certbot-var:/var/lib/letsencrypt:ro
-      - webroot:/var/www/certbot:ro
+      - ./gateway/nginx.local.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       - frontend
       - api-main
 
   certbot:
-      image: certbot/certbot
-      container_name: finmate_certbot
-      volumes:
-        - certbot-etc:/etc/letsencrypt
-        - certbot-var:/var/lib/letsencrypt
-        - webroot:/var/www/certbot
-      entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    profiles: [ "debug" ]
+    entrypoint: [ "echo", "Certbot is disabled in dev mode" ]
 
   api-main:
     image: finmate_api_main
     build: api-main
-    working_dir: /app
-    environment:
-      - PYTHONPATH=/app
-      - FLASK_APP=app.py
-    command: >
-      sh -c "PYTHONPATH=. python3 -m flask db upgrade && python3 -m flask run --host=0.0.0.0 --port=5000"
+    ports:
+      - "5000:5000"
     env_file:
-      - api-main/.env
+      - .env
     volumes:
       - ./api-main:/app
+      - ./shared_reports:/app/uploads
     depends_on:
         db:
           condition: service_healthy
@@ -73,21 +63,34 @@ services:
     build: api-main
     command: celery -A celery_worker.celery worker --pool=solo --loglevel=info
     env_file:
-      - api-main/.env
+      - .env
     volumes:
       - ./api-main:/app
     depends_on:
       - api-main
 
+  report-service:
+    build: ./services/report-service
+    container_name: finmate_report_service
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+#        - ./services/report-service:/app
+        - ./shared_reports:/app/uploads
+
   frontend:
     container_name: finmate_frontend
     build: ./frontend_by_copilot
+    ports:
+      - "3000:80"
     depends_on:
       - api-main
 
 volumes:
-  pg_data:
-  redis_data:
-  certbot-etc:
-  certbot-var:
-  webroot:
+   pg_data:
+   redis_data:

@@ -7,12 +7,19 @@ from core_service.uow import UnitOfWork
 import uuid
 import json
 from core_service import extensions
+import os
+from flask import send_from_directory
+
+
 
 logger = logging.getLogger(__name__)
 
 
 
 class ReportService:
+
+    def __init__(self):
+        self.upload_folder = "/app/uploads"
 
     def generate_pdf_report(self, user_id: int, data: dict):
 
@@ -57,9 +64,19 @@ class ReportService:
                     response_payload = json.loads(raw_message['data'])
 
                     if response_payload.get('id') == job_id:
-                        logger.info(f"Successfully received report result for job {job_id}")
 
-                        return response_payload.get('response')
+                        if 'err' in response_payload:
+                            logger.error(f"NestJS returned an error: {response_payload['err']}")
+                            raise BusinessLogicError(f"Microservice error: {response_payload['err']}")
+
+                        data = response_payload.get('response')
+
+                        if data is None:
+                            logger.error(f"Received empty response for job {job_id}")
+                            raise BusinessLogicError("Empty response from report service.")
+
+                        logger.info(f"Successfully received report result for job {job_id}")
+                        return data
 
             logger.error(f"Timeout waiting for NestJS response on job {job_id}")
             raise BusinessLogicError("Report service timeout.")
@@ -73,4 +90,15 @@ class ReportService:
             pubsub.close()
 
 
+    def download_report(self, file_name: str):
+        file_path = os.path.join(self.upload_folder, file_name)
+
+        if not os.path.exists(file_path):
+            raise BusinessLogicError("Report file not found on server.")
+
+        return send_from_directory(
+            self.upload_folder,
+            file_name,
+            as_attachment=True
+        )
 

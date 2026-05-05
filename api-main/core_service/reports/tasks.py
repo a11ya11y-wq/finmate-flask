@@ -13,8 +13,6 @@ logger = get_task_logger(__name__)
     default_retry_delay=60
 )
 def task_generate_report(self, user_id: int, data: dict):
-    logger.info(f"Starting report generation task for user {user_id}")
-
     try:
         service = ReportService()
         result = service.generate_pdf_report(user_id, data)
