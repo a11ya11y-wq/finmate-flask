@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import AppShell from "../components/layout/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import Modal from "../components/ui/modal";
+import { useToast } from "../components/ui/toast";
 import { getBudgets, upsertBudget, deleteBudget } from "../api/budgets";
 import { getCategories } from "../api/categories";
 import type { BudgetWithStats, Category } from "../api/types";
@@ -27,11 +28,12 @@ const formatAmount = (value: number | string | null | undefined) => {
 const BudgetsPage = () => {
   const [budgets, setBudgets] = useState<BudgetWithStats[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({ amount: "", category_id: "", is_recurring: true });
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const prevLoadingRef = useRef(false);
+  const { toast } = useToast();
 
   const maxBudgets = 5;
   const usedBudgets = budgets.length;
@@ -47,14 +49,27 @@ const BudgetsPage = () => {
         setBudgets(budgetsResponse);
         setCategories(categoriesResponse.data);
       } catch (err) {
-        setError(toErrorMessage(err));
+        toast({ variant: "error", message: toErrorMessage(err) });
       } finally {
         setLoading(false);
       }
     };
 
     void load();
-  }, []);
+  }, [toast]);
+
+  useEffect(() => {
+    if (loading && !prevLoadingRef.current) {
+      toast({ variant: "info", message: "Loading budgets...", duration: 1500 });
+    }
+    prevLoadingRef.current = loading;
+  }, [loading, toast]);
+
+  useEffect(() => {
+    if (!loading && budgets.length === 0) {
+      toast({ variant: "info", message: "No budgets created yet." });
+    }
+  }, [budgets.length, loading, toast]);
 
   const handleChange = (field: keyof typeof form) =>
     (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -64,7 +79,6 @@ const BudgetsPage = () => {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    setError(null);
     try {
       const result = await upsertBudget({
         amount: form.amount,
@@ -80,7 +94,7 @@ const BudgetsPage = () => {
       });
       setForm({ amount: "", category_id: "", is_recurring: true });
     } catch (err) {
-      setError(toErrorMessage(err));
+      toast({ variant: "error", message: toErrorMessage(err) });
     }
   };
 
@@ -88,14 +102,13 @@ const BudgetsPage = () => {
     if (!deleteId) {
       return;
     }
-    setError(null);
     try {
       await deleteBudget(deleteId);
       setBudgets((prev) => prev.filter((budget) => budget.id !== deleteId));
       setIsDeleteOpen(false);
       setDeleteId(null);
     } catch (err) {
-      setError(toErrorMessage(err));
+      toast({ variant: "error", message: toErrorMessage(err) });
     }
   };
 
@@ -173,7 +186,6 @@ const BudgetsPage = () => {
                   />
                   Recurring budget
                 </label>
-                {error && <p className="text-sm text-red-400">{error}</p>}
                 <Button type="submit" className="w-full">
                   Save budget
                 </Button>
@@ -181,10 +193,6 @@ const BudgetsPage = () => {
             </CardContent>
           </Card>
           <div className="grid gap-4 md:grid-cols-2">
-            {loading && <p className="text-sm text-slate-400">Loading budgets...</p>}
-            {!loading && budgets.length === 0 && (
-              <p className="text-sm text-slate-400">No budgets created yet.</p>
-            )}
             {budgets.map((budget) => {
               const percent = Math.min(100, Math.max(0, budget.percentage));
               return (

@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import AppShell from "../components/layout/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import Modal from "../components/ui/modal";
+import { useToast } from "../components/ui/toast";
 import { changePassword, removeMonobankToken, setMonobankToken, updateProfile, deleteProfile } from "../api/profile";
 import { createCategory, deleteCategory, getCategories, updateCategory } from "../api/categories";
 import type { Category } from "../api/types";
@@ -50,8 +51,7 @@ const ProfilePage = () => {
     confirm_password: ""
   });
   const [monoToken, setMonoToken] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
+  const { toast } = useToast();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isPasswordOpen, setIsPasswordOpen] = useState(false);
   const [isMonobankOpen, setIsMonobankOpen] = useState(false);
@@ -62,6 +62,7 @@ const ProfilePage = () => {
   const [isEditCategoryOpen, setIsEditCategoryOpen] = useState(false);
   const [deleteCategoryId, setDeleteCategoryId] = useState<number | null>(null);
   const [isDeleteCategoryOpen, setIsDeleteCategoryOpen] = useState(false);
+  const emptyCategoriesRef = useRef(false);
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -69,85 +70,85 @@ const ProfilePage = () => {
         const response = await getCategories();
         setCategories(response.data);
       } catch (err) {
-        setError(toErrorMessage(err));
+        toast({ variant: "error", message: toErrorMessage(err) });
       }
     };
 
     void loadCategories();
-  }, []);
+  }, [toast]);
+
+  useEffect(() => {
+    if (!emptyCategoriesRef.current && categories.length === 0) {
+      toast({ variant: "info", message: "No categories yet. Add your first category above." });
+      emptyCategoriesRef.current = true;
+    }
+    if (categories.length > 0) {
+      emptyCategoriesRef.current = false;
+    }
+  }, [categories.length, toast]);
 
   const handleProfileSubmit = async () => {
-    setError(null);
-    setMessage(null);
     try {
       const updated = await updateProfile(profileDraft);
       setUser(updated);
       setProfileForm(updated);
-      setMessage("Profile updated");
+      toast({ variant: "success", message: "Profile updated" });
       setIsProfileOpen(false);
     } catch (err) {
-      setError(toErrorMessage(err));
+      toast({ variant: "error", message: toErrorMessage(err) });
     }
   };
 
   const handlePasswordSubmit = async () => {
-    setError(null);
-    setMessage(null);
     try {
       const response = await changePassword(passwordForm);
-      setMessage(response.message);
+      toast({ variant: "success", message: response.message });
       setPasswordForm({ old_password: "", new_password: "", confirm_password: "" });
       setIsPasswordOpen(false);
     } catch (err) {
-      setError(toErrorMessage(err));
+      toast({ variant: "error", message: toErrorMessage(err) });
     }
   };
 
   const handleMonobankSubmit = async () => {
-    setError(null);
-    setMessage(null);
     try {
       const updated = await setMonobankToken(monoToken);
       setUser(updated);
-      setMessage("Monobank token saved");
+      toast({ variant: "success", message: "Monobank token saved" });
       setMonoToken("");
       setIsMonobankOpen(false);
     } catch (err) {
-      setError(toErrorMessage(err));
+      toast({ variant: "error", message: toErrorMessage(err) });
     }
   };
 
   const handleRemoveToken = async () => {
-    setError(null);
-    setMessage(null);
     try {
       await removeMonobankToken();
       if (user) {
         setUser({ ...user, monobank_token_is_set: false });
       }
-      setMessage("Monobank token removed");
+      toast({ variant: "success", message: "Monobank token removed" });
     } catch (err) {
-      setError(toErrorMessage(err));
+      toast({ variant: "error", message: toErrorMessage(err) });
     }
   };
 
   const handleAddCategory = async (event: React.FormEvent) => {
     event.preventDefault();
-    setError(null);
     try {
       const created = await createCategory(categoryForm);
       setCategories((prev) => [created, ...prev]);
       setCategoryForm({ name: "", mcc_code: "", icon: "bi-tag-fill" });
     } catch (err) {
-      setError(toErrorMessage(err));
+      toast({ variant: "error", message: toErrorMessage(err) });
     }
   };
 
-  const handleUpdateCategory = async () => {
+  const handleEditCategory = async () => {
     if (!editCategory) {
       return;
     }
-    setError(null);
     try {
       const updated = await updateCategory(editCategory.id, {
         name: editCategory.name,
@@ -158,7 +159,7 @@ const ProfilePage = () => {
       setIsEditCategoryOpen(false);
       setEditCategory(null);
     } catch (err) {
-      setError(toErrorMessage(err));
+      toast({ variant: "error", message: toErrorMessage(err) });
     }
   };
 
@@ -166,24 +167,22 @@ const ProfilePage = () => {
     if (!deleteCategoryId) {
       return;
     }
-    setError(null);
     try {
       await deleteCategory(deleteCategoryId);
       setCategories((prev) => prev.filter((item) => item.id !== deleteCategoryId));
       setIsDeleteCategoryOpen(false);
       setDeleteCategoryId(null);
     } catch (err) {
-      setError(toErrorMessage(err));
+      toast({ variant: "error", message: toErrorMessage(err) });
     }
   };
 
   const handleDeleteAccount = async () => {
-    setError(null);
     try {
       await deleteProfile();
       await logout();
     } catch (err) {
-      setError(toErrorMessage(err));
+      toast({ variant: "error", message: toErrorMessage(err) });
     }
   };
 
@@ -199,12 +198,6 @@ const ProfilePage = () => {
             <p className="text-sm text-slate-400">Manage your account settings</p>
           </div>
         </div>
-
-        {(error || message) && (
-          <div className={`rounded-xl border px-4 py-3 text-sm ${error ? "border-red-500/40 bg-red-500/10 text-red-300" : "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"}`}>
-            {error ?? message}
-          </div>
-        )}
 
         <Card className="surface-card">
           <CardContent>
@@ -328,9 +321,6 @@ const ProfilePage = () => {
             </form>
 
             <div className="mt-6 space-y-3">
-              {categories.length === 0 && (
-                <p className="text-sm text-slate-400">No categories yet. Add your first category above.</p>
-              )}
               {categories.map((category) => (
                 <div key={category.id} className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3">
                   <div className="flex items-center gap-3">
@@ -522,7 +512,7 @@ const ProfilePage = () => {
             <Button variant="secondary" onClick={() => setIsEditCategoryOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleUpdateCategory}>Save</Button>
+            <Button onClick={handleEditCategory}>Save</Button>
           </div>
         }
       >

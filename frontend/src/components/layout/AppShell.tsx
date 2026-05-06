@@ -31,11 +31,10 @@ const AppShell = ({ children }: AppShellProps) => {
 
 	return (
 		<div className="min-h-screen bg-[#0a0e17]">
-			<header className="border-b border-white/10 bg-[#0b0f17]/80 backdrop-blur">
+			<header className="relative z-50 border-b border-white/10 bg-[#0b0f17]/80 backdrop-blur">
 				<div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
 					<Link to="/dashboard" className="flex items-center gap-3">
-						<img src="/img/finmatelogo1.png" alt="FinMate" className="h-8 w-8" />
-						<span className="text-lg font-semibold text-slate-100">FinMate</span>
+						<img src="/img/finmatelogo1.png" alt="FinMate" className="h-24 w-24" />
 					</Link>
 					<div className="relative" ref={menuRef}>
 						<button
@@ -72,6 +71,7 @@ const AppShell = ({ children }: AppShellProps) => {
 										{item.label}
 									</NavLink>
 								))}
+								<div className="my-2 h-px bg-white/10" />
 								<button
 									type="button"
 									className="mt-2 w-full rounded-xl px-3 py-2 text-left text-sm text-red-300 hover:bg-red-500/10"
@@ -90,4 +90,3 @@ const AppShell = ({ children }: AppShellProps) => {
 };
 
 export default AppShell;
-

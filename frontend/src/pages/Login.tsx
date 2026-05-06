@@ -4,6 +4,7 @@ import { useAuthStore } from "../store/authStore";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { useToast } from "../components/ui/toast";
 import { toErrorMessage } from "../api/error";
 
 const LoginPage = () => {
@@ -12,16 +13,15 @@ const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    setError(null);
     try {
       await login(email, password, rememberMe);
       navigate("/dashboard");
     } catch (err) {
-      setError(toErrorMessage(err));
+      toast({ variant: "error", message: toErrorMessage(err) });
     }
   };
 
@@ -71,7 +71,6 @@ const LoginPage = () => {
               />
               Remember me
             </label>
-            {error && <p className="text-sm text-red-400">{error}</p>}
             <Button type="submit" className="w-full" disabled={status === "loading"}>
               {status === "loading" ? "Signing in..." : "Sign in"}
             </Button>

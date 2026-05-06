@@ -6,6 +6,7 @@ import { useAuthStore } from "../store/authStore";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { useToast } from "../components/ui/toast";
 
 const RegisterPage = () => {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ const RegisterPage = () => {
     password: "",
     confirm_password: ""
   });
-  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const handleChange = (field: keyof typeof form) => (event: React.ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({ ...prev, [field]: event.target.value }));
@@ -24,13 +25,12 @@ const RegisterPage = () => {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    setError(null);
     try {
       await registerRequest(form);
       await login(form.email, form.password, false);
       navigate("/dashboard");
     } catch (err) {
-      setError(toErrorMessage(err));
+      toast({ variant: "error", message: toErrorMessage(err) });
     }
   };
 
@@ -77,7 +77,6 @@ const RegisterPage = () => {
                 required
               />
             </div>
-            {error && <p className="text-sm text-red-400">{error}</p>}
             <Button type="submit" className="w-full" disabled={status === "loading"}>
               {status === "loading" ? "Creating..." : "Create account"}
             </Button>
@@ -92,4 +91,3 @@ const RegisterPage = () => {
 };
 
 export default RegisterPage;
-
