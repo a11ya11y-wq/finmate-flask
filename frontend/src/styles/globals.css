@@ -1,0 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: #0a0e17;
+  color: #e9eef2;
+}
+
+input, button, textarea, select {
+  font: inherit;
+}
+
+select option {
+  background: #0b0f17;
+  color: #e2e8f0;
+}
+
+.auth-body {
+  min-height: 100vh;
+  background: #0a0e17;
+}
+
+.auth-background {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.auth-shape {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(0);
+  opacity: 0.6;
+}
+
+.auth-shape-1 {
+  width: 420px;
+  height: 420px;
+  top: -120px;
+  left: -120px;
+  background: radial-gradient(circle, rgba(58, 160, 255, 0.25) 0%, rgba(58, 160, 255, 0) 70%);
+}
+
+.auth-shape-2 {
+  width: 520px;
+  height: 520px;
+  bottom: -200px;
+  right: -180px;
+  background: radial-gradient(circle, rgba(106, 208, 255, 0.2) 0%, rgba(106, 208, 255, 0) 70%);
+}
+
+.auth-shape-3 {
+  width: 360px;
+  height: 360px;
+  top: 40%;
+  right: 10%;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, rgba(168, 85, 247, 0) 70%);
+}
+
+.auth-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 24px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+}
+
+.auth-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.auth-subtitle {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.95rem;
+}
+
+.surface-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+}
+
+.surface-muted {
+  background: rgba(255, 255, 255, 0.02);
+}
