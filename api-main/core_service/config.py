@@ -11,7 +11,7 @@ class Config:
 
 
 class DevelopmentConfig(Config):
-    SQLALCHEMY_DATABASE_URI=os.environ.get('DATABASE_URL')
+    SQLALCHEMY_DATABASE_URI=os.environ.get('API_MAIN_DATABASE_URL')
     DEBUG = True
     REDIS_URL = os.environ.get('REDIS_URL')
 

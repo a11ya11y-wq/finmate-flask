@@ -1,5 +1,3 @@
-
-
 const selectStyles = 
   "w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-100 focus:border-blue-400/60 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
 
@@ -11,7 +9,17 @@ type TransactionFormFieldsProps = {
 };
 
 export const TransactionFormFields = ({ form, setForm, categories, variant = "success" }: TransactionFormFieldsProps) => {
-  const accentClass = variant === "success" ? "emerald" : "blue";
+  
+  // 1. СТАТИЧНІ КЛАСИ (щоб Tailwind їх не видалив)
+  const inactiveBtn = "border-white/10 bg-white/5 text-slate-400 hover:bg-white/10";
+  const inactiveDot = "bg-slate-500";
+
+  // Активна кнопка отримує колір залежно від пропсу variant (emerald або blue)
+  const activeBtn = variant === "success"
+    ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.15)]"
+    : "border-blue-500/50 bg-blue-500/10 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.15)]";
+  
+  const activeDot = variant === "success" ? "bg-emerald-400" : "bg-blue-400";
 
   return (
     <div className="flex flex-col gap-4">
@@ -33,25 +41,22 @@ export const TransactionFormFields = ({ form, setForm, categories, variant = "su
           <button
             type="button"
             className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition-all ${
-              form.transaction_type === "expense"
-                ? `border-${accentClass}-500/50 bg-${accentClass}-500/10 text-${accentClass}-400 shadow-[0_0_15px_rgba(var(--${accentClass}-rgb),0.1)]`
-                : "border-white/10 bg-white/5 text-slate-400 hover:bg-white/10"
+              form.transaction_type === "expense" ? activeBtn : inactiveBtn
             }`}
             onClick={() => setForm((prev: any) => ({ ...prev, transaction_type: "expense" }))}
           >
-            <span className={`h-2.5 w-2.5 rounded-sm ${form.transaction_type === "expense" ? `bg-${accentClass}-400` : "bg-slate-500"}`} />
+            <span className={`h-2.5 w-2.5 rounded-sm ${form.transaction_type === "expense" ? activeDot : inactiveDot}`} />
             Expense
           </button>
+          
           <button
             type="button"
             className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition-all ${
-              form.transaction_type === "income"
-                ? `border-${accentClass}-500/50 bg-${accentClass}-500/10 text-${accentClass}-400 shadow-[0_0_15px_rgba(var(--${accentClass}-rgb),0.1)]`
-                : "border-white/10 bg-white/5 text-slate-400 hover:bg-white/10"
+              form.transaction_type === "income" ? activeBtn : inactiveBtn
             }`}
             onClick={() => setForm((prev: any) => ({ ...prev, transaction_type: "income" }))}
           >
-            <span className={`h-2.5 w-2.5 rounded-sm ${form.transaction_type === "income" ? `bg-${accentClass}-400` : "bg-slate-500"}`} />
+            <span className={`h-2.5 w-2.5 rounded-sm ${form.transaction_type === "income" ? activeDot : inactiveDot}`} />
             Income
           </button>
         </div>

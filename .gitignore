@@ -1,6 +1,7 @@
 api-main/.venv/
 
 api-main/.venv/
+api-main/doc.md
 venv/
 env/
 
