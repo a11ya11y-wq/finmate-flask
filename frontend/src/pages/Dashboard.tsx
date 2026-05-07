@@ -162,6 +162,9 @@ const DashboardPage = () => {
               variant: "success",
               message: result.result?.message ?? "Sync completed"
             });
+
+            void loadDashboard(period);
+            void loadHistory(period, page);
           } else {
             toast({
               variant: "error",
@@ -294,7 +297,6 @@ const DashboardPage = () => {
     try {
       const result = await syncTransactions();
       setTaskId(result.task_id);
-      toast({ variant: "info", message: "Sync started" });
     } catch (err) {
       toast({ variant: "error", message: toErrorMessage(err) });
     }
@@ -464,12 +466,19 @@ const DashboardPage = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-3xl font-black text-blue-200">${formatAmount(data.stats.current_balance)}</p>
-                  <span className="mt-3 inline-flex items-center gap-2 rounded-md bg-black/40 px-2.5 py-1 text-xs font-semibold text-emerald-400">
-                    <i className="bi bi-shield-check" />
-                    Healthy
-                  </span>
-                </CardContent>
+                    {/* Сума тепер стає червоною, якщо баланс від'ємний */}
+                    <p className={`text-3xl font-black ${data.stats.current_balance < 0 ? 'text-rose-500' : 'text-blue-200'}`}>
+                      ${formatAmount(data.stats.current_balance)}
+                    </p>
+
+                    {/* Динамічний статус-бейдж */}
+                    <span className={`mt-3 inline-flex items-center gap-2 rounded-md bg-black/40 px-2.5 py-1 text-xs font-semibold ${
+                      data.stats.current_balance < 0 ? 'text-rose-400' : 'text-emerald-400'
+                    }`}>
+                      <i className={`bi ${data.stats.current_balance < 0 ? 'bi-exclamation-triangle-fill' : 'bi-shield-check'}`} />
+                      {data.stats.current_balance < 0 ? 'Overdrawn' : 'Healthy'}
+                    </span>
+                  </CardContent>
               </Card>
             </div>
             <div className="grid gap-4 lg:grid-cols-3">

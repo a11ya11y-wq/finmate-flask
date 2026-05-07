@@ -3,6 +3,7 @@ import { cn } from "../../lib/utils";
 
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: "primary" | "secondary" | "ghost" | "outline" | "danger" | "success";
+  size?: "sm" | "md" | "lg";  
 };
 
 const variantStyles: Record<NonNullable<ButtonProps["variant"]>, string> = {

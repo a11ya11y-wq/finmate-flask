@@ -4,7 +4,7 @@ import { Button } from "./button";
 type FormModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: () => void;
+  onSubmit: () => void | Promise<void>
   title: string;
   type: "add" | "edit";
   children: React.ReactNode;

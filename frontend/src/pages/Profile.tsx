@@ -4,12 +4,126 @@ import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import Modal from "../components/ui/modal";
+import { FormModal } from "../components/ui/FormModal";
+import { ConfirmDeleteModal } from "../components/ui/ConfirmDeleteModal";
 import { useToast } from "../components/ui/toast";
 import { changePassword, removeMonobankToken, setMonobankToken, updateProfile, deleteProfile } from "../api/profile";
 import { createCategory, deleteCategory, getCategories, updateCategory } from "../api/categories";
 import type { Category } from "../api/types";
 import { toErrorMessage } from "../api/error";
 import { useAuthStore } from "../store/authStore";
+
+
+export const ProfileFormFields = ({ draft, setDraft }: any) => {
+  const avatars = Array.from({ length: 10 }, (_, i) => 
+    `avatars/default/${i === 0 ? "default" : i}.svg`
+  );
+
+  return (
+    <div className="flex flex-col gap-6">
+      {/* Поля Username та Currency залишаємо без змін */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-slate-200">Username</label>
+          <Input
+            value={draft.username}
+            onChange={(e) => setDraft((prev: any) => ({ ...prev, username: e.target.value }))}
+          />
+        </div>
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-slate-200">Preferred Currency</label>
+          <select
+            className={selectStyles}
+            value={draft.currency}
+            onChange={(e) => setDraft((prev: any) => ({ ...prev, currency: e.target.value }))}
+          >
+            <option value="USD">USD - US Dollar</option>
+            <option value="EUR">EUR - Euro</option>
+            <option value="UAH">UAH - Ukrainian Hryvnia</option>
+          </select>
+        </div>
+      </div>
+
+      {/* НОВИЙ ВІЗУАЛЬНИЙ ВИБІР АВАТАРА */}
+      <div>
+        <label className="mb-3 block text-sm font-bold text-slate-200">Choose Avatar</label>
+        <div className="grid h-48 grid-cols-5 gap-3 overflow-y-auto rounded-xl border border-white/5 bg-black/20 p-4 custom-scrollbar">
+          {avatars.map((path) => {
+            const isSelected = draft.avatar === path;
+            return (
+              <button
+                key={path}
+                type="button"
+                onClick={() => setDraft((prev: any) => ({ ...prev, avatar: path }))}
+                className={`group relative flex aspect-square items-center justify-center rounded-xl border-2 transition-all ${
+                  isSelected 
+                    ? "border-blue-500 bg-blue-500/10 shadow-[0_0_15px_rgba(59,130,246,0.2)]" 
+                    : "border-white/5 bg-white/5 hover:border-white/20"
+                }`}
+              >
+                <img 
+                  src={`/${path}`} 
+                  alt="Avatar option" 
+                  className={`h-full w-full p-1 transition-transform duration-300 ${isSelected ? "scale-90" : "group-hover:scale-105"}`} 
+                />
+                
+                {/* Індикатор вибору (маленька синя точка) */}
+                {isSelected && (
+                  <div className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 shadow-lg">
+                    <div className="h-2 w-2 rounded-full bg-white" />
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Поля для категорій
+export const CategoryFormFields = ({ form, setForm, icons }: any) => (
+  <div className="flex flex-col gap-4">
+    <div className="grid gap-4 md:grid-cols-2">
+      <div>
+        <label className="mb-1.5 block text-sm font-medium text-slate-200">Name</label>
+        <Input
+          placeholder="e.g. Food"
+          value={form.name}
+          onChange={(e) => setForm((prev: any) => ({ ...prev, name: e.target.value }))}
+        />
+      </div>
+      <div>
+        <label className="mb-1.5 block text-sm font-medium text-slate-200">MCC Code</label>
+        <Input
+          placeholder="e.g. 5411"
+          value={form.mcc_code}
+          onChange={(e) => setForm((prev: any) => ({ ...prev, mcc_code: e.target.value }))}
+        />
+      </div>
+    </div>
+    <div>
+      <label className="mb-1.5 block text-sm font-medium text-slate-200">Choose Icon</label>
+      <div className="grid grid-cols-5 gap-2">
+        {icons.map((icon: string) => (
+          <button
+            key={icon}
+            type="button"
+            className={`flex h-11 items-center justify-center rounded-xl border transition-all ${
+              form.icon === icon 
+                ? "border-blue-500/50 bg-blue-500/20 text-blue-200 shadow-[0_0_15px_rgba(59,130,246,0.1)]" 
+                : "border-white/10 bg-white/5 text-slate-400 hover:border-white/20"
+            }`}
+            onClick={() => setForm((prev: any) => ({ ...prev, icon }))}
+          >
+            <i className={`bi ${icon} text-lg`} />
+          </button>
+        ))}
+      </div>
+    </div>
+  </div>
+);
 
 const selectStyles =
   "w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-100 focus:border-blue-400/60 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
@@ -38,6 +152,8 @@ const iconOptions = [
 ];
 
 const ProfilePage = () => {
+  const [isConfirmMonoDisconnectOpen, setIsConfirmMonoDisconnectOpen] = useState(false);
+  const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
   const { user, setUser, logout } = useAuthStore();
   const [profileForm, setProfileForm] = useState({
     username: user?.username ?? "",
@@ -62,7 +178,6 @@ const ProfilePage = () => {
   const [isEditCategoryOpen, setIsEditCategoryOpen] = useState(false);
   const [deleteCategoryId, setDeleteCategoryId] = useState<number | null>(null);
   const [isDeleteCategoryOpen, setIsDeleteCategoryOpen] = useState(false);
-  const emptyCategoriesRef = useRef(false);
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -76,16 +191,6 @@ const ProfilePage = () => {
 
     void loadCategories();
   }, [toast]);
-
-  useEffect(() => {
-    if (!emptyCategoriesRef.current && categories.length === 0) {
-      toast({ variant: "info", message: "No categories yet. Add your first category above." });
-      emptyCategoriesRef.current = true;
-    }
-    if (categories.length > 0) {
-      emptyCategoriesRef.current = false;
-    }
-  }, [categories.length, toast]);
 
   const handleProfileSubmit = async () => {
     try {
@@ -123,27 +228,32 @@ const ProfilePage = () => {
   };
 
   const handleRemoveToken = async () => {
-    try {
-      await removeMonobankToken();
-      if (user) {
-        setUser({ ...user, monobank_token_is_set: false });
-      }
-      toast({ variant: "success", message: "Monobank token removed" });
-    } catch (err) {
-      toast({ variant: "error", message: toErrorMessage(err) });
+  try {
+    await removeMonobankToken();
+    if (user) {
+      setUser({ ...user, monobank_token_is_set: false });
     }
-  };
+    toast({ variant: "success", message: "Monobank token removed" });
+    
+    // Закриваємо обидві модалки
+    setIsConfirmMonoDisconnectOpen(false);
+    setIsMonobankOpen(false);
+  } catch (err) {
+    toast({ variant: "error", message: toErrorMessage(err) });
+  }
+};
 
-  const handleAddCategory = async (event: React.FormEvent) => {
-    event.preventDefault();
-    try {
-      const created = await createCategory(categoryForm);
-      setCategories((prev) => [created, ...prev]);
-      setCategoryForm({ name: "", mcc_code: "", icon: "bi-tag-fill" });
-    } catch (err) {
-      toast({ variant: "error", message: toErrorMessage(err) });
-    }
-  };
+ const handleAddCategory = async () => {
+  try {
+    const created = await createCategory(categoryForm);
+    setCategories((prev) => [created, ...prev]);
+    setCategoryForm({ name: "", mcc_code: "", icon: "bi-tag-fill" });
+    setIsAddCategoryOpen(false); // ДОДАНО: закриваємо модалку
+    toast({ variant: "success", message: "Category added!" });
+  } catch (err) {
+    toast({ variant: "error", message: toErrorMessage(err) });
+  }
+};
 
   const handleEditCategory = async () => {
     if (!editCategory) {
@@ -158,6 +268,9 @@ const ProfilePage = () => {
       setCategories((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
       setIsEditCategoryOpen(false);
       setEditCategory(null);
+      
+      // ДОДАНО: Повідомлення про успішне редагування
+      toast({ variant: "success", message: "Category updated successfully!" });
     } catch (err) {
       toast({ variant: "error", message: toErrorMessage(err) });
     }
@@ -172,6 +285,9 @@ const ProfilePage = () => {
       setCategories((prev) => prev.filter((item) => item.id !== deleteCategoryId));
       setIsDeleteCategoryOpen(false);
       setDeleteCategoryId(null);
+      
+      // ДОДАНО: Повідомлення про успішне видалення
+      toast({ variant: "success", message: "Category deleted successfully!" });
     } catch (err) {
       toast({ variant: "error", message: toErrorMessage(err) });
     }
@@ -188,416 +304,235 @@ const ProfilePage = () => {
 
   return (
     <AppShell>
-      <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-500/15 text-blue-300">
-            <i className="bi bi-person-circle text-xl" />
-          </span>
+      <div className="mx-auto max-w-5xl space-y-8">
+        {/* HEADER */}
+        <div className="flex items-center gap-4">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-400 shadow-inner">
+            <i className="bi bi-person-gear text-2xl" />
+          </div>
           <div>
-            <h1 className="text-3xl font-semibold text-slate-100">Profile</h1>
-            <p className="text-sm text-slate-400">Manage your account settings</p>
+            <h1 className="text-3xl font-black tracking-tight text-white">Profile</h1>
+            <p className="text-slate-400 font-medium">Manage your personal experience and security</p>
           </div>
         </div>
 
-        <Card className="surface-card">
-          <CardContent>
-            <div className="flex flex-col gap-6 md:flex-row md:items-center">
-              <div className="relative">
+        {/* USER PROFILE INFO */}
+        <Card className="surface-card border-blue-500/20 bg-gradient-to-r from-[#0b0f17] to-[#121826]">
+          <CardContent className="py-8">
+            <div className="flex flex-col gap-8 md:flex-row md:items-center">
+              <div className="relative group">
+                <div className="absolute -inset-1 rounded-3xl bg-blue-500/20 opacity-0 blur transition duration-500 group-hover:opacity-100"></div>
                 <img
                   src={`/${profileForm.avatar}`}
                   alt="Avatar"
-                  className="h-24 w-24 rounded-2xl border border-blue-500/30"
+                  className="relative h-28 w-28 rounded-2xl border-2 border-white/10 object-cover shadow-2xl"
                 />
-                <span
-                  className={`absolute -bottom-2 -right-2 flex h-9 w-9 items-center justify-center rounded-full border border-[#0a0e17] ${
-                    user?.monobank_token_is_set ? "bg-emerald-500 text-white" : "bg-slate-700 text-slate-200"
-                  }`}
-                >
-                  <i className="bi bi-credit-card" />
-                </span>
+                <div className={`absolute -bottom-2 -right-2 flex h-10 w-10 items-center justify-center rounded-full border-4 border-[#0b0f17] shadow-xl ${
+                    user?.monobank_token_is_set ? "bg-emerald-500 text-white" : "bg-slate-700 text-slate-300"
+                  }`}>
+                  <i className={`bi ${user?.monobank_token_is_set ? "bi-check-circle-fill" : "bi-bank"}`} />
+                </div>
               </div>
-              <div className="flex-1">
-                <h2 className="text-2xl font-semibold text-slate-100">{user?.username ?? "User"}</h2>
-                <p className="text-sm text-slate-400">{user?.email ?? ""}</p>
-                <div className="mt-3 flex flex-wrap gap-4 text-sm text-slate-400">
-                  <span>
-                    Currency: <strong className="text-slate-100">{user?.currency ?? "USD"}</strong>
+              <div className="flex-1 space-y-2">
+                <h2 className="text-3xl font-bold text-white">{user?.username}</h2>
+                <div className="flex flex-wrap gap-4 text-slate-400">
+                  <span className="flex items-center gap-2 rounded-lg bg-white/5 px-3 py-1 text-sm border border-white/5">
+                    <i className="bi bi-envelope text-blue-400" /> {user?.email}
                   </span>
-                  <span>{user?.monobank_token_is_set ? "Monobank connected" : "Monobank not connected"}</span>
+                  <span className="flex items-center gap-2 rounded-lg bg-white/5 px-3 py-1 text-sm border border-white/5">
+                    <i className="bi bi-currency-exchange text-emerald-400" /> {user?.currency}
+                  </span>
                 </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          <button
-            type="button"
-            className="surface-card flex items-center gap-4 rounded-2xl border border-white/10 p-5 text-left transition hover:border-blue-500/30"
-            onClick={() => {
-              setProfileDraft(profileForm);
-              setIsProfileOpen(true);
-            }}
-          >
-            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-500/20 text-blue-300">
-              <i className="bi bi-person-circle" />
-            </span>
-            <div>
-              <p className="text-base font-semibold text-slate-100">Edit Profile</p>
-              <p className="text-sm text-slate-400">Update avatar, name & currency</p>
-            </div>
-          </button>
-          <button
-            type="button"
-            className="surface-card flex items-center gap-4 rounded-2xl border border-white/10 p-5 text-left transition hover:border-purple-500/30"
-            onClick={() => setIsPasswordOpen(true)}
-          >
-            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-500/20 text-purple-300">
-              <i className="bi bi-shield-lock" />
-            </span>
-            <div>
-              <p className="text-base font-semibold text-slate-100">Security</p>
-              <p className="text-sm text-slate-400">Change your password</p>
-            </div>
-          </button>
-          <button
-            type="button"
-            className="surface-card flex items-center gap-4 rounded-2xl border border-white/10 p-5 text-left transition hover:border-emerald-500/30"
-            onClick={() => setIsMonobankOpen(true)}
-          >
-            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-300">
-              <i className="bi bi-bank2" />
-            </span>
-            <div>
-              <p className="text-base font-semibold text-slate-100">Monobank</p>
-              <p className="text-sm text-slate-400">Connect your bank account</p>
-            </div>
-          </button>
+        {/* QUICK ACTIONS GRID */}
+        <div className="grid gap-4 sm:grid-cols-3">
+          {[
+            { title: "Edit Profile", desc: "Identity & Currency", icon: "bi-person-vcard", color: "blue", onClick: () => { setProfileDraft(profileForm); setIsProfileOpen(true); } },
+            { title: "Security", desc: "Password & Protection", icon: "bi-shield-lock", color: "purple", onClick: () => setIsPasswordOpen(true) },
+            { title: "Monobank", desc: "Bank Integration", icon: "bi-wallet2", color: "emerald", onClick: () => setIsMonobankOpen(true) }
+          ].map((item) => (
+            <button
+              key={item.title}
+              onClick={item.onClick}
+              className="group surface-card flex flex-col gap-4 rounded-2xl border border-white/5 p-6 text-left transition-all hover:-translate-y-1 hover:border-white/20 hover:bg-white/5"
+            >
+              <div className={`flex h-12 w-12 items-center justify-center rounded-xl bg-${item.color}-500/10 text-${item.color}-400 group-hover:scale-110 transition-transform`}>
+                <i className={`bi ${item.icon} text-xl`} />
+              </div>
+              <div>
+                <p className="font-bold text-white">{item.title}</p>
+                <p className="text-xs text-slate-500">{item.desc}</p>
+              </div>
+            </button>
+          ))}
         </div>
 
+        {/* CATEGORIES SECTION */}
         <Card className="surface-card">
-          <CardHeader>
-            <CardTitle>Manage Categories</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Categories</CardTitle>
+            <Button 
+  variant="success" 
+  size="sm" 
+  onClick={() => {
+    setCategoryForm({ name: "", mcc_code: "", icon: "bi-tag-fill" });
+    setIsAddCategoryOpen(true); // Тепер вона відкриває модалку
+  }}
+>
+  <i className="bi bi-plus-lg mr-2" /> Add New
+</Button>
           </CardHeader>
           <CardContent>
-            <form className="space-y-4" onSubmit={handleAddCategory}>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <label className="text-sm font-medium text-slate-200">Name</label>
-                  <Input
-                    value={categoryForm.name}
-                    onChange={(event) => setCategoryForm((prev) => ({ ...prev, name: event.target.value }))}
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-slate-200">MCC codes</label>
-                  <Input
-                    value={categoryForm.mcc_code}
-                    onChange={(event) => setCategoryForm((prev) => ({ ...prev, mcc_code: event.target.value }))}
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-slate-200">Icon</label>
-                <div className="mt-2 grid grid-cols-5 gap-2">
-                  {iconOptions.map((icon) => (
-                    <button
-                      type="button"
-                      key={icon}
-                      className={
-                        categoryForm.icon === icon
-                          ? "flex h-10 w-10 items-center justify-center rounded-lg border border-blue-500/50 bg-blue-500/20 text-blue-200"
-                          : "flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-slate-400 hover:border-blue-500/40"
-                      }
-                      onClick={() => setCategoryForm((prev) => ({ ...prev, icon }))}
-                    >
-                      <i className={`bi ${icon}`} />
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <Button type="submit">Add category</Button>
-            </form>
-
-            <div className="mt-6 space-y-3">
-              {categories.map((category) => (
-                <div key={category.id} className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-lg border border-blue-500/30 bg-blue-500/10 text-blue-200">
-                      <i className={`bi ${category.icon}`} />
-                    </span>
-                    <div>
-                      <p className="text-sm font-semibold text-slate-100">{category.name}</p>
-                      <p className="text-xs text-slate-400">{category.mcc_code || "No MCC"}</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="secondary"
-                      onClick={() => {
-                        setEditCategory(category);
-                        setIsEditCategoryOpen(true);
-                      }}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="border-red-500/40 text-red-300 hover:bg-red-500/10"
-                      onClick={() => {
-                        setDeleteCategoryId(category.id);
-                        setIsDeleteCategoryOpen(true);
-                      }}
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
+             {/* Замість великої форми - акуратний список */}
+             <div className="grid gap-3 sm:grid-cols-2">
+               {categories.map((cat) => (
+                 <div key={cat.id} className="group flex items-center justify-between rounded-2xl border border-white/5 bg-[#0f172a]/40 p-4 transition-all hover:bg-[#121a2b] hover:border-blue-500/30">
+                   <div className="flex items-center gap-4">
+                     <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-500/10 text-blue-400">
+                       <i className={`bi ${cat.icon} text-lg`} />
+                     </div>
+                     <div>
+                       <p className="text-sm font-bold text-white">{cat.name}</p>
+                       <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500">{cat.mcc_code || "No MCC"}</p>
+                     </div>
+                   </div>
+                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                     <button onClick={() => { setEditCategory(cat); setIsEditCategoryOpen(true); }} className="h-8 w-8 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors">
+                       <i className="bi bi-pencil-fill text-xs" />
+                     </button>
+                     <button onClick={() => { setDeleteCategoryId(cat.id); setIsDeleteCategoryOpen(true); }} className="h-8 w-8 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-colors">
+                       <i className="bi bi-trash-fill text-xs" />
+                     </button>
+                   </div>
+                 </div>
+               ))}
+             </div>
           </CardContent>
         </Card>
 
-        <Card className="surface-card border border-red-500/30">
-          <CardContent>
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-red-300">Danger Zone</h3>
-                <p className="text-sm text-slate-400">
-                  Permanently delete your account and all associated data.
-                </p>
-              </div>
-              <Button variant="danger" onClick={() => setIsDeleteOpen(true)}>
-                Delete account
-              </Button>
+        {/* DANGER ZONE */}
+        <div className="rounded-2xl border border-rose-500/20 bg-rose-500/5 p-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h3 className="text-lg font-bold text-rose-400">Danger Zone</h3>
+              <p className="text-sm text-slate-400">Permanently delete your account and all data. This is irreversible.</p>
             </div>
-          </CardContent>
-        </Card>
+            <Button variant="danger" className="bg-rose-500/10 text-white border-rose-500/30 hover:bg-rose-600 hover:text-white" onClick={() => setIsDeleteOpen(true)}>
+              Delete Account
+            </Button>
+          </div>
+        </div>
       </div>
 
-      <Modal
+      {/* УСІ МОДАЛКИ ПЕРЕВЕДЕНІ НА FormModal ТА ConfirmDeleteModal */}
+      
+      <FormModal
         isOpen={isProfileOpen}
         onClose={() => setIsProfileOpen(false)}
+        onSubmit={handleProfileSubmit}
         title="Edit Profile"
-        footer={
-          <div className="flex justify-end gap-2">
-            <Button variant="secondary" onClick={() => setIsProfileOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleProfileSubmit}>Save</Button>
-          </div>
-        }
+        type="edit"
       >
-        <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label className="text-sm font-medium text-slate-200">Username</label>
-            <Input
-              value={profileDraft.username}
-              onChange={(event) => setProfileDraft((prev) => ({ ...prev, username: event.target.value }))}
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium text-slate-200">Currency</label>
-            <select
-              className={selectStyles}
-              value={profileDraft.currency}
-              onChange={(event) => setProfileDraft((prev) => ({ ...prev, currency: event.target.value }))}
-            >
-              <option value="USD">USD</option>
-              <option value="EUR">EUR</option>
-              <option value="UAH">UAH</option>
-            </select>
-          </div>
-          <div className="md:col-span-2">
-            <label className="text-sm font-medium text-slate-200">Avatar</label>
-            <select
-              className={selectStyles}
-              value={profileDraft.avatar}
-              onChange={(event) => setProfileDraft((prev) => ({ ...prev, avatar: event.target.value }))}
-            >
-              {Array.from({ length: 10 }, (_, index) => {
-                const name = index === 0 ? "default" : String(index);
-                const path = `avatars/default/${name}.svg`;
-                return (
-                  <option key={path} value={path}>
-                    {path}
-                  </option>
-                );
-              })}
-            </select>
-          </div>
-        </div>
-      </Modal>
+        <ProfileFormFields draft={profileDraft} setDraft={setProfileDraft} />
+      </FormModal>
 
-      <Modal
+      <FormModal
         isOpen={isPasswordOpen}
         onClose={() => setIsPasswordOpen(false)}
-        title="Security"
-        footer={
-          <div className="flex justify-end gap-2">
-            <Button variant="secondary" onClick={() => setIsPasswordOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handlePasswordSubmit}>Update</Button>
-          </div>
-        }
+        onSubmit={handlePasswordSubmit}
+        title="Change Password"
+        type="edit"
       >
-        <div className="grid gap-4 md:grid-cols-3">
-          <div>
-            <label className="text-sm font-medium text-slate-200">Current password</label>
-            <Input
-              type="password"
-              autoComplete="current-password"
-              value={passwordForm.old_password}
-              onChange={(event) => setPasswordForm((prev) => ({ ...prev, old_password: event.target.value }))}
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium text-slate-200">New password</label>
-            <Input
-              type="password"
-              autoComplete="new-password"
-              value={passwordForm.new_password}
-              onChange={(event) => setPasswordForm((prev) => ({ ...prev, new_password: event.target.value }))}
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium text-slate-200">Confirm password</label>
-            <Input
-              type="password"
-              autoComplete="new-password"
-              value={passwordForm.confirm_password}
-              onChange={(event) => setPasswordForm((prev) => ({ ...prev, confirm_password: event.target.value }))}
-            />
-          </div>
+        <div className="flex flex-col gap-4">
+          <Input type="password" placeholder="Current Password" value={passwordForm.old_password} onChange={(e) => setPasswordForm(p => ({...p, old_password: e.target.value}))} />
+          <Input type="password" placeholder="New Password" value={passwordForm.new_password} onChange={(e) => setPasswordForm(p => ({...p, new_password: e.target.value}))} />
+          <Input type="password" placeholder="Confirm New Password" value={passwordForm.confirm_password} onChange={(e) => setPasswordForm(p => ({...p, confirm_password: e.target.value}))} />
         </div>
-      </Modal>
+      </FormModal>
 
-      <Modal
-        isOpen={isMonobankOpen}
-        onClose={() => setIsMonobankOpen(false)}
-        title="Monobank Integration"
-        footer={
-          <div className="flex justify-end gap-2">
-            <Button variant="secondary" onClick={() => setIsMonobankOpen(false)}>
-              Close
-            </Button>
-            <Button onClick={handleMonobankSubmit}>Save</Button>
-          </div>
-        }
-      >
-        <div className="space-y-4">
-          <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 px-4 py-3 text-sm text-slate-300">
-            Get your API token from the Monobank app: api.monobank.ua
-          </div>
-          <div>
-            <label className="text-sm font-medium text-slate-200">API Token</label>
-            <Input value={monoToken} onChange={(event) => setMonoToken(event.target.value)} />
-          </div>
-          {user?.monobank_token_is_set && (
-            <Button variant="outline" className="border-red-500/40 text-red-300 hover:bg-red-500/10" onClick={handleRemoveToken}>
-              Remove token
-            </Button>
-          )}
-        </div>
-      </Modal>
-
-      <Modal
+      <FormModal
         isOpen={isEditCategoryOpen}
         onClose={() => setIsEditCategoryOpen(false)}
+        onSubmit={handleEditCategory}
         title="Edit Category"
-        footer={
-          <div className="flex justify-end gap-2">
-            <Button variant="secondary" onClick={() => setIsEditCategoryOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleEditCategory}>Save</Button>
-          </div>
-        }
+        type="edit"
       >
-        {editCategory && (
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium text-slate-200">Name</label>
-              <Input
-                value={editCategory.name}
-                onChange={(event) =>
-                  setEditCategory((prev) => (prev ? { ...prev, name: event.target.value } : prev))
-                }
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium text-slate-200">MCC codes</label>
-              <Input
-                value={editCategory.mcc_code ?? ""}
-                onChange={(event) =>
-                  setEditCategory((prev) => (prev ? { ...prev, mcc_code: event.target.value } : prev))
-                }
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium text-slate-200">Icon</label>
-              <div className="mt-2 grid grid-cols-5 gap-2">
-                {iconOptions.map((icon) => (
-                  <button
-                    type="button"
-                    key={icon}
-                    className={
-                      editCategory.icon === icon
-                        ? "flex h-10 w-10 items-center justify-center rounded-lg border border-blue-500/50 bg-blue-500/20 text-blue-200"
-                        : "flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-slate-400 hover:border-blue-500/40"
-                    }
-                    onClick={() =>
-                      setEditCategory((prev) => (prev ? { ...prev, icon } : prev))
-                    }
-                  >
-                    <i className={`bi ${icon}`} />
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-      </Modal>
+        {editCategory && <CategoryFormFields form={editCategory} setForm={setEditCategory} icons={iconOptions} />}
+      </FormModal>
 
-      <Modal
+      <ConfirmDeleteModal
         isOpen={isDeleteCategoryOpen}
         onClose={() => setIsDeleteCategoryOpen(false)}
-        title="Delete Category"
-        footer={
-          <div className="flex justify-end gap-2">
-            <Button variant="secondary" onClick={() => setIsDeleteCategoryOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="danger" onClick={handleDeleteCategory}>
-              Delete
-            </Button>
-          </div>
-        }
-      >
-        <p className="text-sm text-slate-300">Are you sure you want to delete this category?</p>
-      </Modal>
+        onConfirm={handleDeleteCategory}
+        description="Are you sure? All transactions in this category will become 'Uncategorized'."
+      />
 
-      <Modal
+      <ConfirmDeleteModal
         isOpen={isDeleteOpen}
         onClose={() => setIsDeleteOpen(false)}
-        title="Delete account"
-        footer={
-          <div className="flex justify-end gap-2">
-            <Button variant="secondary" onClick={() => setIsDeleteOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="danger" onClick={handleDeleteAccount}>
-              Delete
-            </Button>
-          </div>
-        }
-      >
-        <p className="text-sm text-slate-300">
-          This action cannot be undone. Your account and all associated data will be removed.
-        </p>
-      </Modal>
+        onConfirm={handleDeleteAccount}
+        title="Delete Account"
+        description="Everything will be gone forever. Are you absolutely sure?"
+      />
+      {/* МОДАЛКА МОНОБАНКУ */}
+<FormModal
+  isOpen={isMonobankOpen}
+  onClose={() => setIsMonobankOpen(false)}
+  onSubmit={handleMonobankSubmit}
+  title="Monobank Integration"
+  type="edit"
+  
+>
+  <div className="space-y-4">
+    <div className="rounded-xl border border-blue-500/20 bg-blue-500/10 p-4 text-xs leading-relaxed text-blue-200">
+      <i className="bi bi-info-circle-fill mr-2" />
+      Get your Personal Access Token from <strong>api.monobank.ua</strong>. It allows us to sync your transactions automatically.
+    </div>
+    <div>
+      <label className="mb-1.5 block text-sm font-medium text-slate-200">API Token</label>
+      <Input 
+        placeholder="Paste your token here..." 
+        value={monoToken} 
+        onChange={(e) => setMonoToken(e.target.value)} 
+      />
+    </div>
+    {user?.monobank_token_is_set && (
+    <button 
+      type="button"
+      onClick={() => setIsConfirmMonoDisconnectOpen(true)} // ТЕПЕР ВІДКРИВАЄ ПІДТВЕРДЖЕННЯ
+      className="text-xs font-bold text-rose-400 hover:text-rose-300 transition-colors mt-2"
+    >
+      <i className="bi bi-trash3 mr-1" /> Disconnect Monobank
+    </button>
+  )}
+  </div>
+</FormModal>
+<ConfirmDeleteModal
+  isOpen={isConfirmMonoDisconnectOpen}
+  onClose={() => setIsConfirmMonoDisconnectOpen(false)}
+  onConfirm={handleRemoveToken}
+  title="Disconnect Monobank"
+  description="Are you sure you want to remove your Monobank integration? You will no longer be able to sync your transactions automatically."
+/>
+
+{/* МОДАЛКА ДОДАВАННЯ КАТЕГОРІЇ */}
+<FormModal
+  isOpen={isAddCategoryOpen}
+  onClose={() => setIsAddCategoryOpen(false)}
+  onSubmit={handleAddCategory}
+  title="New Category"
+  type="add"
+>
+  <CategoryFormFields 
+    form={categoryForm} 
+    setForm={setCategoryForm} 
+    icons={iconOptions} 
+  />
+</FormModal>
     </AppShell>
   );
 };
