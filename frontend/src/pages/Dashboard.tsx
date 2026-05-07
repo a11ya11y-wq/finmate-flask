@@ -13,14 +13,12 @@ import {
   Area,
   AreaChart,
   Cell,
-  Legend,
   Pie,
   PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
-  Sector
 } from "recharts";
 import { useToast } from "../components/ui/toast";
 
@@ -66,15 +64,6 @@ const formatShortDate = (value: string) => {
   }
   return date.toLocaleDateString("en-US", { month: "short", day: "2-digit" });
 };
-
-const tooltipContentStyle = {
-  backgroundColor: "rgba(11, 15, 23, 0.9)",
-  borderRadius: "12px",
-  border: "1px solid rgba(255,255,255,0.1)",
-  color: "#f1f5f9"
-};
-
-const tooltipLabelStyle = { color: "#94a3b8" };
 
 const DashboardPage = () => {
   const [activeIndex, setActiveIndex] = useState<number | undefined>(undefined);
@@ -265,9 +254,13 @@ const DashboardPage = () => {
       if (editTx) {
         await updateTransaction(editTx.id, payload);
         setIsEditOpen(false);
+        // ДОДАНО: Тоаст про успішне оновлення
+        toast({ variant: "success", message: "Transaction updated successfully!" });
       } else {
         await createTransaction(payload);
         setIsAddOpen(false);
+        // ДОДАНО: Тоаст про успішне створення
+        toast({ variant: "success", message: "Transaction added successfully!" });
       }
       await Promise.all([loadDashboard(period), loadHistory(period, page)]);
     } catch (err) {
@@ -284,6 +277,9 @@ const DashboardPage = () => {
       setIsDeleteOpen(false);
       setDeleteTx(null);
       await Promise.all([loadDashboard(period), loadHistory(period, page)]);
+
+      // ДОДАНО: Тоаст про успішне видалення
+      toast({ variant: "success", message: "Transaction deleted successfully!" });
     } catch (err) {
       toast({ variant: "error", message: toErrorMessage(err) });
     }
@@ -398,11 +394,13 @@ const DashboardPage = () => {
 
               <Button
                   variant="primary"
-                  className="flex items-center gap-1.5 px-5 font-bold uppercase tracking-wide"
+                  className="flex items-center gap-1.5 px-5 font-bold uppercase tracking-wide transition-all"
                   onClick={triggerSync}
-               >
-                 <i className="bi bi-arrow-repeat" /> SYNC
-               </Button>
+                  disabled={!!taskId} // Блокуємо кнопку від повторних кліків під час процесу
+              >
+                <i className={`bi bi-arrow-repeat ${taskId ? "animate-spin" : ""}`} />
+                {taskId ? "SYNCING..." : "SYNC"}
+              </Button>
             </div>
 
           </div>
