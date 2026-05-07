@@ -9,6 +9,8 @@ import { getBudgets, upsertBudget, deleteBudget } from "../api/budgets";
 import { getCategories } from "../api/categories";
 import type { BudgetWithStats, Category } from "../api/types";
 import { toErrorMessage } from "../api/error";
+import { ConfirmDeleteModal } from "../components/ui/ConfirmDeleteModal";
+
 
 const selectStyles =
     "w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-100 focus:border-blue-400/60 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
@@ -275,22 +277,12 @@ const BudgetsPage = () => {
           </div>
         </div>
 
-        <Modal
-            isOpen={isDeleteOpen}
-            onClose={() => setIsDeleteOpen(false)}
-            title="Delete Budget"
-            footer={
-              <div className="flex justify-end gap-2">
-                <Button variant="secondary" onClick={() => setIsDeleteOpen(false)}>Cancel</Button>
-                <Button variant="danger" onClick={handleDelete}><i className="bi bi-trash mr-1.5" /> Delete</Button>
-              </div>
-            }
-        >
-          <div className="flex items-center gap-4 rounded-xl border border-rose-500/20 bg-rose-500/10 p-4 text-rose-200">
-            <i className="bi bi-exclamation-triangle-fill text-2xl" />
-            <p className="text-sm font-medium">Are you sure you want to delete this budget? This action cannot be undone.</p>
-          </div>
-        </Modal>
+        <ConfirmDeleteModal
+          isOpen={isDeleteOpen}
+          onClose={() => setIsDeleteOpen(false)}
+          onConfirm={handleDelete}
+          description="Are you sure you want to delete this budget? This action cannot be undone."
+        />
       </AppShell>
   );
 };

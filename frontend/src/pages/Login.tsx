@@ -35,7 +35,7 @@ const LoginPage = () => {
       <Card className="auth-card w-full max-w-md">
         <CardHeader>
           <div className="flex flex-col items-center gap-3 text-center">
-            <img src="/img/finmatelogo1.png" alt="FinMate" className="h-16 w-16" />
+            <img src="/img/finmatelogo1.png" alt="FinMate" className="h-24 w-24" />
             <CardTitle className="auth-title">Welcome Back</CardTitle>
             <p className="auth-subtitle">Sign in to your account to continue</p>
           </div>

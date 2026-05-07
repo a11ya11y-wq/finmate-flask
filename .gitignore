@@ -19,6 +19,10 @@ api-main/.idea/
 
 frontend_by_copilot/node_modules
 node_modules/
+.vite
+frontend/.vite
+frontend/dist
+frontend/node_modules
 
 dist/
 build/

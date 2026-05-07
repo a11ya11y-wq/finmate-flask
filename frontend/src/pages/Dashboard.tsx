@@ -21,6 +21,11 @@ import {
   YAxis,
 } from "recharts";
 import { useToast } from "../components/ui/toast";
+import { FormModal } from "../components/ui/FormModal";
+import { TransactionFormFields } from "../components/ui/TransactionFormFields";
+import { ConfirmDeleteModal } from "../components/ui/ConfirmDeleteModal";
+
+
 
 const COLORS = ["#10b981", "#3b82f6", "#f43f5e", "#f59e0b", "#8b5cf6"];
 const periodOptions = [
@@ -853,185 +858,45 @@ const DashboardPage = () => {
         )}
       </div>
 
-      <Modal
-        isOpen={isAddOpen}
-        onClose={() => setIsAddOpen(false)}
-        title="Add Transaction"
-        footer={
-          <div className="flex justify-end gap-2">
-            <Button variant="secondary" onClick={() => setIsAddOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={submitTransaction}>Save</Button>
-          </div>
-        }
-      >
-        <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label className="text-sm font-medium text-slate-200">Title</label>
-            <input
-              className={selectStyles}
-              value={form.title}
-              onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium text-slate-200">Amount</label>
-            <input
-              type="number"
-              step="0.01"
-              className={selectStyles}
-              value={form.amount}
-              onChange={(event) => setForm((prev) => ({ ...prev, amount: event.target.value }))}
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium text-slate-200">Type</label>
-            <select
-              className={selectStyles}
-              value={form.transaction_type}
-              onChange={(event) => setForm((prev) => ({ ...prev, transaction_type: event.target.value }))}
-            >
-              <option value="expense">Expense</option>
-              <option value="income">Income</option>
-            </select>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-slate-200">Category</label>
-            <select
-              className={selectStyles}
-              value={form.category_id}
-              onChange={(event) => setForm((prev) => ({ ...prev, category_id: event.target.value }))}
-            >
-              <option value="" disabled>
-                Select category
-              </option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-slate-200">Date</label>
-            <input
-              type="date"
-              className={selectStyles}
-              value={form.created_at}
-              onChange={(event) => setForm((prev) => ({ ...prev, created_at: event.target.value }))}
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium text-slate-200">Note</label>
-            <input
-              className={selectStyles}
-              value={form.note}
-              onChange={(event) => setForm((prev) => ({ ...prev, note: event.target.value }))}
-            />
-          </div>
-        </div>
-      </Modal>
+      <FormModal
+  type="add"
+  isOpen={isAddOpen}
+  onClose={() => setIsAddOpen(false)}
+  onSubmit={submitTransaction}
+  title="Add New Transaction"
+>
+  <TransactionFormFields 
+    form={form} 
+    setForm={setForm} 
+    categories={categories} 
+    variant="success" 
+  />
+</FormModal>
 
-      <Modal
-        isOpen={isEditOpen}
-        onClose={() => setIsEditOpen(false)}
-        title="Edit Transaction"
-        footer={
-          <div className="flex justify-end gap-2">
-            <Button variant="secondary" onClick={() => setIsEditOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={submitTransaction}>Save</Button>
-          </div>
-        }
-      >
-        <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label className="text-sm font-medium text-slate-200">Title</label>
-            <input
-              className={selectStyles}
-              value={form.title}
-              onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium text-slate-200">Amount</label>
-            <input
-              type="number"
-              step="0.01"
-              className={selectStyles}
-              value={form.amount}
-              onChange={(event) => setForm((prev) => ({ ...prev, amount: event.target.value }))}
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium text-slate-200">Type</label>
-            <select
-              className={selectStyles}
-              value={form.transaction_type}
-              onChange={(event) => setForm((prev) => ({ ...prev, transaction_type: event.target.value }))}
-            >
-              <option value="expense">Expense</option>
-              <option value="income">Income</option>
-            </select>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-slate-200">Category</label>
-            <select
-              className={selectStyles}
-              value={form.category_id}
-              onChange={(event) => setForm((prev) => ({ ...prev, category_id: event.target.value }))}
-            >
-              <option value="" disabled>
-                Select category
-              </option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-slate-200">Date</label>
-            <input
-              type="date"
-              className={selectStyles}
-              value={form.created_at}
-              onChange={(event) => setForm((prev) => ({ ...prev, created_at: event.target.value }))}
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium text-slate-200">Note</label>
-            <input
-              className={selectStyles}
-              value={form.note}
-              onChange={(event) => setForm((prev) => ({ ...prev, note: event.target.value }))}
-            />
-          </div>
-        </div>
-      </Modal>
 
-      <Modal
-        isOpen={isDeleteOpen}
-        onClose={() => setIsDeleteOpen(false)}
-        title="Delete Transaction"
-        footer={
-          <div className="flex justify-end gap-2">
-            <Button variant="secondary" onClick={() => setIsDeleteOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="danger" onClick={confirmDelete}>
-              Delete
-            </Button>
-          </div>
-        }
-      >
-        <p className="text-sm text-slate-300">
-          Are you sure you want to delete <span className="font-semibold text-slate-100">{deleteTx?.title}</span>?
-        </p>
-      </Modal>
+<FormModal
+  type="edit"
+  isOpen={isEditOpen}
+  onClose={() => setIsEditOpen(false)}
+  onSubmit={submitTransaction}
+  title="Edit Transaction"
+>
+  <TransactionFormFields 
+    form={form} 
+    setForm={setForm} 
+    categories={categories} 
+    variant="primary" 
+  />
+</FormModal>
+
+        <ConfirmDeleteModal
+  isOpen={isDeleteOpen}
+  onClose={() => setIsDeleteOpen(false)}
+  onConfirm={confirmDelete}
+  // Якщо хочеш залишити саме той текст, що був у тебе:
+  description="Are you sure you want to delete this transaction?"
+/>
+        
     </AppShell>
   );
 };
