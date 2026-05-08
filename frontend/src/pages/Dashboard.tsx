@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import AppShell from "../components/layout/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
-import Modal from "../components/ui/modal";
 import { getDashboard, getDashboardHistory } from "../api/dashboard";
 import { createTransaction, deleteTransaction, updateTransaction } from "../api/transactions";
 import { getCategories } from "../api/categories";
@@ -342,13 +341,15 @@ const DashboardPage = () => {
     }
   }, [history.length, tableLoading, toast]);
 
+  const unusedVariable = 123;
+
   return (
     <AppShell>
       <div className="space-y-6">
         <div className="sticky top-4 z-30 mb-8 flex w-full justify-center">
 
           {/* Сам хедер, який динамічно змінює ширину */}
-          <div
+          <div data-testid="dashboard-toolbar"
               className={`flex w-full flex-col gap-4 rounded-2xl border px-6 py-4 transition-all duration-500 lg:flex-row lg:items-center lg:justify-between ${
                   isSticky
                       ? "max-w-[95%] lg:max-w-5xl border-blue-500/70 bg-[#0b0f17]/95 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.7)] backdrop-blur-xl"
@@ -872,19 +873,20 @@ const DashboardPage = () => {
       </div>
 
       <FormModal
-  type="add"
-  isOpen={isAddOpen}
-  onClose={() => setIsAddOpen(false)}
-  onSubmit={submitTransaction}
-  title="Add New Transaction"
->
-  <TransactionFormFields 
-    form={form} 
-    setForm={setForm} 
-    categories={categories} 
-    variant="success" 
-  />
-</FormModal>
+        type="add"
+        isOpen={isAddOpen}
+        onClose={() => setIsAddOpen(false)}
+        onSubmit={submitTransaction}
+        title="Add New Transaction"
+        data-testid="add-transaction-modal"
+      >
+      <TransactionFormFields 
+        form={form} 
+        setForm={setForm} 
+        categories={categories} 
+        variant="success" 
+      />
+    </FormModal>
 
 
 <FormModal

@@ -26,11 +26,12 @@ export const TransactionFormFields = ({ form, setForm, categories, variant = "su
   const activeDot = variant === "success" ? "bg-emerald-400" : "bg-blue-400";
 
   return (
-    <div className="flex flex-col gap-4">
+    <div data-testid="transaction-form-fields" className="flex flex-col gap-4">
       {/* Title */}
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-slate-200">Title</label>
+        <label htmlFor="title-input" className="mb-1.5 block text-sm font-medium text-slate-200">Title</label>
         <input
+          id="title-input"
           className={selectStyles}
           placeholder="E.g. Grocery shopping"
           value={form.title}
@@ -68,10 +69,11 @@ export const TransactionFormFields = ({ form, setForm, categories, variant = "su
 
       {/* Amount */}
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-slate-200">Amount</label>
+        <label htmlFor="amount-input" className="mb-1.5 block text-sm font-medium text-slate-200">Amount</label>
         <div className="relative">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">{currencySymbol}</span>
           <input
+            id="amount-input"
             type="number"
             step="0.01"
             className={`${selectStyles} pl-7`}
@@ -84,8 +86,9 @@ export const TransactionFormFields = ({ form, setForm, categories, variant = "su
 
       {/* Category Dropdown */}
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-slate-200">Category</label>
+        <label htmlFor="category-select" className="mb-1.5 block text-sm font-medium text-slate-200">Category</label>
         <select
+          id="category-select"
           className={selectStyles}
           value={form.category_id}
           onChange={(e) => setForm((prev: any) => ({ ...prev, category_id: e.target.value }))}
@@ -110,8 +113,9 @@ export const TransactionFormFields = ({ form, setForm, categories, variant = "su
 
       {/* Note Field */}
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-slate-200">Note (optional)</label>
+        <label htmlFor="note-textarea" className="mb-1.5 block text-sm font-medium text-slate-200">Note (optional)</label>
         <textarea
+          id="note-textarea"
           rows={2}
           className={`${selectStyles} resize-none py-3`}
           placeholder="Add some details..."

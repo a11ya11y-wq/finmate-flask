@@ -1,4 +1,7 @@
 
+tests/.auth/user.json
+tests/.auth
+
 # Playwright
 node_modules/
 /test-results/
