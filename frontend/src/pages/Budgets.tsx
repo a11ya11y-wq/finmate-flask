@@ -10,22 +10,11 @@ import { getCategories } from "../api/categories";
 import type { BudgetWithStats, Category } from "../api/types";
 import { toErrorMessage } from "../api/error";
 import { ConfirmDeleteModal } from "../components/ui/ConfirmDeleteModal";
-
+// Імпортуємо наш новий хук валюти
+import { useCurrency } from "../hooks/useCurrency";
 
 const selectStyles =
     "w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-100 focus:border-blue-400/60 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
-
-const toNumber = (value: number | string | null | undefined) => {
-  if (value === null || value === undefined) {
-    return 0;
-  }
-  return typeof value === "number" ? value : Number(value);
-};
-
-const formatAmount = (value: number | string | null | undefined) => {
-  const numeric = toNumber(value);
-  return Number.isFinite(numeric) ? numeric.toFixed(2) : "0.00";
-};
 
 const getProgressColor = (percent: number) => {
   if (percent >= 100) return "bg-rose-500";
@@ -35,6 +24,9 @@ const getProgressColor = (percent: number) => {
 };
 
 const BudgetsPage = () => {
+  // Викликаємо хук на початку компонента
+  const { currencySymbol, formatWithSymbol } = useCurrency();
+
   const [budgets, setBudgets] = useState<BudgetWithStats[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -171,14 +163,19 @@ const BudgetsPage = () => {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-sm font-medium text-slate-300">Amount</label>
-                    <Input
-                        type="number"
-                        step="0.01"
-                        placeholder="0.00"
-                        value={form.amount}
-                        onChange={handleChange("amount")}
-                        required
-                    />
+                    <div className="relative">
+                      {/* ВИКОРИСТАНО currencySymbol */}
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">{currencySymbol}</span>
+                      <Input
+                          type="number"
+                          step="0.01"
+                          className="pl-7"
+                          placeholder="0.00"
+                          value={form.amount}
+                          onChange={handleChange("amount")}
+                          required
+                      />
+                    </div>
                   </div>
 
                   {/* СЕКЦІЯ З ДИНАМІЧНИМ НОУТОМ */}
@@ -246,7 +243,8 @@ const BudgetsPage = () => {
                       <CardContent>
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-slate-400">Spent</span>
-                          <span className="font-semibold text-slate-100">${formatAmount(budget.total_spent)}</span>
+                          {/* ВИКОРИСТАНО formatWithSymbol */}
+                          <span className="font-semibold text-slate-100">{formatWithSymbol(budget.total_spent)}</span>
                         </div>
                         <div className="mt-3 h-2.5 rounded-full bg-black/40 overflow-hidden">
                           <div className={`h-full rounded-full transition-all duration-700 ${colorClass}`} style={{ width: `${percent}%` }} />
@@ -254,12 +252,14 @@ const BudgetsPage = () => {
                         <div className="mt-3 flex items-center justify-between text-sm">
                           <span className="text-slate-500">{percent.toFixed(1)}% used</span>
                           <span className={`font-bold ${isOverBudget ? 'text-rose-400' : 'text-emerald-400'}`}>
-                        {isOverBudget ? 'Over budget!' : `$${formatAmount(budget.remaining)} left`}
+                        {/* ВИКОРИСТАНО formatWithSymbol */}
+                        {isOverBudget ? 'Over budget!' : `${formatWithSymbol(budget.remaining)} left`}
                       </span>
                         </div>
                         <div className="mt-4 pt-4 flex items-center justify-between border-t border-white/5">
                           <div className="flex flex-col">
-                            <span className="text-xs font-medium text-slate-500">Limit: ${formatAmount(budget.amount)}</span>
+                            {/* ВИКОРИСТАНО formatWithSymbol */}
+                            <span className="text-xs font-medium text-slate-500">Limit: {formatWithSymbol(budget.amount)}</span>
                             {budget.deadline_info && <span className="text-xs text-slate-600">{budget.deadline_info}</span>}
                           </div>
                           <button

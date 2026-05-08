@@ -13,7 +13,6 @@ import type { Category } from "../api/types";
 import { toErrorMessage } from "../api/error";
 import { useAuthStore } from "../store/authStore";
 
-
 export const ProfileFormFields = ({ draft, setDraft }: any) => {
   const avatars = Array.from({ length: 10 }, (_, i) => 
     `avatars/default/${i === 0 ? "default" : i}.svg`
@@ -538,4 +537,3 @@ const ProfilePage = () => {
 };
 
 export default ProfilePage;
-

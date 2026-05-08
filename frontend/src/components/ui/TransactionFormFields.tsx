@@ -1,4 +1,6 @@
-const selectStyles = 
+import { useCurrency } from "../../hooks/useCurrency";
+
+const selectStyles =
   "w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-100 focus:border-blue-400/60 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
 
 type TransactionFormFieldsProps = {
@@ -9,16 +11,18 @@ type TransactionFormFieldsProps = {
 };
 
 export const TransactionFormFields = ({ form, setForm, categories, variant = "success" }: TransactionFormFieldsProps) => {
-  
   // 1. СТАТИЧНІ КЛАСИ (щоб Tailwind їх не видалив)
   const inactiveBtn = "border-white/10 bg-white/5 text-slate-400 hover:bg-white/10";
   const inactiveDot = "bg-slate-500";
+
+  // Використовуємо наш новий хук замість authStore та ручного словника
+  const { currencySymbol } = useCurrency();
 
   // Активна кнопка отримує колір залежно від пропсу variant (emerald або blue)
   const activeBtn = variant === "success"
     ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.15)]"
     : "border-blue-500/50 bg-blue-500/10 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.15)]";
-  
+
   const activeDot = variant === "success" ? "bg-emerald-400" : "bg-blue-400";
 
   return (
@@ -48,7 +52,7 @@ export const TransactionFormFields = ({ form, setForm, categories, variant = "su
             <span className={`h-2.5 w-2.5 rounded-sm ${form.transaction_type === "expense" ? activeDot : inactiveDot}`} />
             Expense
           </button>
-          
+
           <button
             type="button"
             className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition-all ${
@@ -66,7 +70,7 @@ export const TransactionFormFields = ({ form, setForm, categories, variant = "su
       <div>
         <label className="mb-1.5 block text-sm font-medium text-slate-200">Amount</label>
         <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">{currencySymbol}</span>
           <input
             type="number"
             step="0.01"

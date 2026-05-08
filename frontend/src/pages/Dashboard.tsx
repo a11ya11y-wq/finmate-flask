@@ -24,8 +24,8 @@ import { useToast } from "../components/ui/toast";
 import { FormModal } from "../components/ui/FormModal";
 import { TransactionFormFields } from "../components/ui/TransactionFormFields";
 import { ConfirmDeleteModal } from "../components/ui/ConfirmDeleteModal";
-
-
+// Імпортуємо наш новий хук валюти
+import { useCurrency } from "../hooks/useCurrency";
 
 const COLORS = ["#10b981", "#3b82f6", "#f43f5e", "#f59e0b", "#8b5cf6"];
 const periodOptions = [
@@ -44,11 +44,6 @@ const toNumber = (value: number | string | null | undefined) => {
     return 0;
   }
   return typeof value === "number" ? value : Number(value);
-};
-
-const formatAmount = (value: number | string | null | undefined) => {
-  const numeric = toNumber(value);
-  return Number.isFinite(numeric) ? numeric.toFixed(2) : "0.00";
 };
 
 const toDateInput = (value?: string) => {
@@ -71,6 +66,9 @@ const formatShortDate = (value: string) => {
 };
 
 const DashboardPage = () => {
+  // Викликаємо хук на початку компонента
+  const { formatWithSymbol } = useCurrency();
+
   const [activeIndex, setActiveIndex] = useState<number | undefined>(undefined);
   const [hiddenCategories, setHiddenCategories] = useState<string[]>([]);
   const [data, setData] = useState<DashboardResponse | null>(null);
@@ -428,7 +426,8 @@ const DashboardPage = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-3xl font-black text-emerald-500">${formatAmount(data.stats.current_income)}</p>
+                  {/* ВИКОРИСТАНО formatWithSymbol */}
+                  <p className="text-3xl font-black text-emerald-500">{formatWithSymbol(data.stats.current_income)}</p>
                   <span className="mt-3 inline-flex items-center gap-2 rounded-md bg-black/40 px-2.5 py-1 text-xs font-semibold text-emerald-400">
                     <i className="bi bi-arrow-up" />
                     {data.stats.income_percentage_change}%
@@ -447,7 +446,8 @@ const DashboardPage = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-3xl font-black text-rose-500">${formatAmount(data.stats.current_expense)}</p>
+                  {/* ВИКОРИСТАНО formatWithSymbol */}
+                  <p className="text-3xl font-black text-rose-500">{formatWithSymbol(data.stats.current_expense)}</p>
                   <span className="mt-3 inline-flex items-center gap-2 rounded-md bg-black/40 px-2.5 py-1 text-xs font-semibold text-rose-400">
                     <i className="bi bi-arrow-down" />
                     {data.stats.expense_percentage_change}%
@@ -467,8 +467,9 @@ const DashboardPage = () => {
                 </CardHeader>
                 <CardContent>
                     {/* Сума тепер стає червоною, якщо баланс від'ємний */}
+                    {/* ВИКОРИСТАНО formatWithSymbol */}
                     <p className={`text-3xl font-black ${data.stats.current_balance < 0 ? 'text-rose-500' : 'text-blue-200'}`}>
-                      ${formatAmount(data.stats.current_balance)}
+                      {formatWithSymbol(data.stats.current_balance)}
                     </p>
 
                     {/* Динамічний статус-бейдж */}
@@ -558,7 +559,8 @@ const DashboardPage = () => {
                     style={{ backgroundColor: data.fill, boxShadow: `0 0 10px ${data.fill}80` }}
                 />
                                 <span className="text-sm font-medium text-emerald-400">
-                  ${formatAmount(data.value)}
+                  {/* ВИКОРИСТАНО formatWithSymbol */}
+                  {formatWithSymbol(data.value)}
                 </span>
                                 <span className="text-sm font-semibold text-slate-400">
                   ({percent}%)
@@ -697,7 +699,8 @@ const DashboardPage = () => {
                   Balance:
                 </span>
                                 <span className="text-sm font-bold text-blue-400">
-                  ${formatAmount(data.value)}
+                  {/* ВИКОРИСТАНО formatWithSymbol */}
+                  {formatWithSymbol(data.value)}
                 </span>
                               </div>
                             </div>
@@ -807,7 +810,8 @@ const DashboardPage = () => {
                       tx.transaction_type === "income" ? "text-emerald-400" : "text-rose-500"
                   }`}
               >
-                {tx.transaction_type === "income" ? "+" : "-"}${formatAmount(tx.amount)}
+                {/* ВИКОРИСТАНО formatWithSymbol */}
+                {tx.transaction_type === "income" ? "+" : "-"}{formatWithSymbol(tx.amount)}
               </span>
                           </div>
 
@@ -911,4 +915,3 @@ const DashboardPage = () => {
 };
 
 export default DashboardPage;
-
