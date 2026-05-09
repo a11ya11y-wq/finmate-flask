@@ -1,14 +1,26 @@
 import { test, expect } from '@playwright/test';
 import { LoginPage } from '../pages/LoginPage';
 import { DashboardPage } from '../pages/DashboardPage';
+import dotenv from 'dotenv';
 
+dotenv.config();
 
 const email = process.env.USER_EMAIL || 'testemail@gmail.com';
 const password = process.env.USER_PASSWORD || 'Test123123';
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
-test.describe('Authentication', () => {
+
+test.describe('Login Page Visuals', () => {
+    test('Login page should display title correctly', async ({ page }) => {
+        const loginPage = new LoginPage(page);
+        await loginPage.goto();
+        await expect(loginPage.title).toBeVisible();
+        await expect(loginPage.title).toHaveText('Welcome Back');
+    });
+});
+
+test.describe('Login Actions', () => {
     test('User can login with valid credentials', async ({ page }) => {
         // Arrange
         const loginPage = new LoginPage(page);
@@ -43,14 +55,14 @@ test.describe('Authentication', () => {
             await loginPage.toast.expectError(data.error);
         });
     }
-    const validLoginCases = [
+    const invalidFormatCases = [
         { desc: 'Empty email', field: 'email', email: '', pass: '', expectedMsg: 'Please fill out this field.' },
         { desc: 'Empty password', field: 'password', email: email, pass: '', expectedMsg: 'Please fill out this field.' },
         { desc: 'Invalid email format without @', field: 'email', email: 'invalidemail', pass: password, expectedMsg: 'Please include an \'@\' in the email address. \'invalidemail\' is missing an \'@\'.' },
         { desc: 'Invalid email format without domain', field: 'email', email: 'invalid@', pass: password, expectedMsg: 'Please enter a part following \'@\'. \'invalid@\' is incomplete.' },
         // { desc: 'Short password', field: 'password', email: email, pass: 'shrt', expectedMsg: 'Password must be at least 8 characters long' }, // TODO: Implement password length validation in the frontend and update this test case accordingly
     ];
-    for (const data of validLoginCases) {
+    for (const data of invalidFormatCases) {
         test('User cannot login with ' + data.desc, async ({ page }) => {
             const loginPage = new LoginPage(page);
             await loginPage.goto();
@@ -60,10 +72,7 @@ test.describe('Authentication', () => {
                 data.pass
             );
             await expect(loginPage.page).toHaveURL(/.*\/login/);
-
-            const input = data.field === 'email' ? loginPage.emailInput : loginPage.passwordInput;
-            const validationMessage = await input.evaluate((el: HTMLInputElement) => el.validationMessage);
-
+            const validationMessage = await loginPage.getValidationMessage(data.field as 'email' | 'password');
             expect(validationMessage).toBe(data.expectedMsg);
             });
     }

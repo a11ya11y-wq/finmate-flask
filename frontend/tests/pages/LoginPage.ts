@@ -10,6 +10,7 @@ export class LoginPage {
     readonly rememberMeCheckbox: Locator;
     readonly toast: Toast;
     readonly createOneLink: Locator;
+    readonly title: Locator;
 
     constructor(page: Page) {
         this.page = page;
@@ -19,6 +20,7 @@ export class LoginPage {
         this.rememberMeCheckbox = page.getByRole('checkbox', { name: 'Remember me' });
         this.toast = new Toast(page);
         this.createOneLink = page.getByRole('link', { name: 'Create one' });
+        this.title = page.getByRole('heading', { name: 'Welcome Back' });
     }
 
     async goto() {
@@ -32,5 +34,18 @@ export class LoginPage {
             await this.rememberMeCheckbox.check();
         }
         await this.submitButton.click();
+    }
+    
+    async getValidationMessage(fieldName: 'email' | 'password'): Promise<string | false> {
+        const inputs: Record<typeof fieldName, Locator> = {
+            email: this.emailInput,
+            password: this.passwordInput
+        };
+        const inputLocator = inputs[fieldName];
+        const validationMessage = await inputLocator.evaluate((el: HTMLInputElement) => el.validationMessage);
+        if (!validationMessage) {
+            return false;
+        }
+        return validationMessage;
     }
 }

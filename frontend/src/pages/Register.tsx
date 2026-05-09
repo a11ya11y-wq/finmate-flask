@@ -52,16 +52,17 @@ const RegisterPage = () => {
         <CardContent>
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div>
-              <label className="text-sm font-medium text-slate-200">Username</label>
-              <Input value={form.username} onChange={handleChange("username")} required />
+              <label htmlFor="Username" className="text-sm font-medium text-slate-200">Username</label>
+              <Input id="Username" value={form.username} onChange={handleChange("username")} required />
             </div>
             <div>
-              <label className="text-sm font-medium text-slate-200">Email</label>
-              <Input type="email" value={form.email} onChange={handleChange("email")} required />
+              <label htmlFor="Email" className="text-sm font-medium text-slate-200">Email</label>
+              <Input id="Email" type="email" value={form.email} onChange={handleChange("email")} required />
             </div>
             <div>
-              <label className="text-sm font-medium text-slate-200">Password</label>
+              <label htmlFor="Password" className="text-sm font-medium text-slate-200">Password</label>
               <Input
+                id="Password"
                 type="password"
                 value={form.password}
                 onChange={handleChange("password")}
@@ -69,8 +70,9 @@ const RegisterPage = () => {
               />
             </div>
             <div>
-              <label className="text-sm font-medium text-slate-200">Confirm password</label>
+              <label htmlFor="ConfirmPassword" className="text-sm font-medium text-slate-200">Confirm password</label>
               <Input
+                id="ConfirmPassword"
                 type="password"
                 value={form.confirm_password}
                 onChange={handleChange("confirm_password")}
