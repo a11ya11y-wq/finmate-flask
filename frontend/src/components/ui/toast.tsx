@@ -79,13 +79,15 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
           return (
             <div
               key={item.id}
+              data-testid="toast-item"
+              data-variant={item.variant}
               className={cn(
                 "relative rounded-2xl border px-4 py-3 text-slate-100 shadow-[0_20px_40px_rgba(0,0,0,0.45)] backdrop-blur",
                 config.wrapper
               )}
             >
               <div className="flex items-start gap-3">
-                <span className={cn("text-lg", config.iconColor)}>
+                <span data-testid="toast-icon" className={cn("text-lg", config.iconColor)}>
                   <i className={`bi ${config.icon}`} />
                 </span>
                 <div className="flex-1">

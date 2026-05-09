@@ -755,7 +755,7 @@ const DashboardPage = () => {
                 </CardContent>
               </Card>
             </div>
-            <Card className="surface-card">
+            <Card data-testid="transactions-table" className="surface-card">
               <CardHeader>
                 <CardTitle>Transactions</CardTitle>
               </CardHeader>
@@ -780,6 +780,7 @@ const DashboardPage = () => {
                     return (
                         <div
                             key={tx.id}
+                            data-testid="transaction-row"
                             // Використовуємо inset тіні для ідеально рівних смужок по краях, які не ламають заокруглення
                             className="group relative flex flex-wrap items-center justify-between rounded-xl border border-white/5 bg-[#0f172a]/40 p-4 transition-all duration-300 hover:-translate-y-[1px] hover:border-blue-500/50 hover:bg-[#121a2b] hover:shadow-[inset_3px_0_0_#3b82f6,inset_-3px_0_0_#3b82f6,0_8px_20px_rgba(0,0,0,0.3)]"
                         >

@@ -9,3 +9,12 @@ export interface AddTransactionFormData {
     date?: string; // ISO format
     note?: string;
 }
+
+export interface CreateTransactionRequest {
+    title: string;
+    transaction_type: 'income' | 'expense';
+    amount: number;
+    category_id: number;
+    created_at?: string; // ISO format
+    note?: string;
+}
