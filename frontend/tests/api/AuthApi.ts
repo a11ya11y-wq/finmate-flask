@@ -2,6 +2,19 @@ import { expect } from '@playwright/test';
 import { BaseApi } from './BaseApi';
 import { RegisterRequest } from '../interfaces/auth';
 
+
+export interface AuthCookie {
+    name: string;
+    value: string;
+    url?: string;
+    domain?: string;
+    path?: string;
+    expires?: number;
+    httpOnly?: boolean;
+    secure?: boolean;
+    sameSite?: 'Strict' | 'Lax' | 'None';
+}
+
 export class AuthApi extends BaseApi {
 
     async register(payload: RegisterRequest) {
@@ -16,7 +29,7 @@ export class AuthApi extends BaseApi {
         expect(response.ok(), `Registration failed: ${await response.text()}`).toBeTruthy();
     }
 
-    async loginAndGetCookies(email: string, password: string): Promise<any[]> {
+    async loginAndGetCookies(email: string, password: string): Promise<AuthCookie[]> {
         const response = await this.request.post(`${this.baseUrl}/auth/login`, {
             data: {
                 email,

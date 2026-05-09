@@ -2,7 +2,7 @@ import { Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 import { DashboardToolBar } from './components/DashboardToolBar';
 import { AddTransactionModal } from './components/AddTransactionModal';
-import { TransactionsTable } from './components/TramsactionsTable';
+import { TransactionsTable } from './components/TransactionsTable';
 import { ConfirmDeleteModal } from './components/ConfirmDeleteModal';
 
 

@@ -15,9 +15,6 @@ export class TransactionsApi extends BaseApi {
             data: payload
         });
 
-        console.log('🔥 Response status from API (Create tx):', response.status());
-        console.log('📦 Response from API (Create tx):', await response.text());
-
         expect(response.ok()).toBeTruthy();
         return await response.json();
     }

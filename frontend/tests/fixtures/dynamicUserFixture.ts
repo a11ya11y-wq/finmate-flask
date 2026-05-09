@@ -8,7 +8,8 @@ type DynamicUserFixtures = {
 export const test = baseTest.extend<DynamicUserFixtures>({
 
     // Clear cookies and local storage before each test to ensure a clean state
-    storageState: async (options, use) => {
+    // eslint-disable-next-line no-empty-pattern
+    storageState: async ({}, use) => {
         await use({ cookies: [], origins: [] });
     },
 
@@ -32,7 +33,10 @@ export const test = baseTest.extend<DynamicUserFixtures>({
         // Log in and get cookies
         const cookies = await api.auth.loginAndGetCookies(uniqueEmail, 'TestPassword123');
         await page.context().addCookies(cookies);
-        api.setToken(api.auth.apiToken!);
+        if (!api.auth.apiToken) {
+            throw new Error('API token is not set after login');
+        }
+        api.setToken(api.auth.apiToken);
         
         // Get the page ready for the test (with authenticated user)
         await use(page);

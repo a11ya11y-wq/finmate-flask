@@ -1,4 +1,5 @@
 import { Page, Locator } from '@playwright/test'
+import { Toast } from './components/Toast';
 
 
 export class LoginPage {
@@ -7,6 +8,8 @@ export class LoginPage {
     readonly passwordInput: Locator;
     readonly submitButton: Locator;
     readonly rememberMeCheckbox: Locator;
+    readonly toast: Toast;
+    readonly createOneLink: Locator;
 
     constructor(page: Page) {
         this.page = page;
@@ -14,6 +17,8 @@ export class LoginPage {
         this.passwordInput = page.getByRole('textbox', { name: 'Password' });
         this.submitButton = page.getByRole('button', { name: 'Sign in' });
         this.rememberMeCheckbox = page.getByRole('checkbox', { name: 'Remember me' });
+        this.toast = new Toast(page);
+        this.createOneLink = page.getByRole('link', { name: 'Create one' });
     }
 
     async goto() {

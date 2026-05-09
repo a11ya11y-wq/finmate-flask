@@ -1,5 +1,6 @@
 import { expect } from "@playwright/test";
 import { BaseApi } from "./BaseApi";
+import { CategoryResponse } from "../interfaces/categories";
 
 export class CategoriesApi extends BaseApi {
     
@@ -16,12 +17,12 @@ export class CategoriesApi extends BaseApi {
         const body = await response.json();
         const categories = body.data;
 
-        const category = categories.find((cat: any) => cat.name === name);
+        const category = categories.find((cat: CategoryResponse) => cat.name === name);
 
         if (!category) {
             throw new Error(`Category with name '${name}' not found`);
         }
-        console.log(`🔍 Знайдена категорія: ${category.name} (ID: ${category.id})`);
+
         return category.id;
     }
 }
