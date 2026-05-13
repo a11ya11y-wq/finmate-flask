@@ -13,15 +13,23 @@ export class Header {
     readonly profileOption: Locator;
     readonly logoutOption: Locator;
 
+    readonly userAvatar: Locator;
+
+    readonly logo: Locator;
+
     constructor(page: Page) {
         this.page = page;
         this.container = page.getByRole('banner'); //banner = header
         
-        this.userMenuToggle = page.locator('button').filter({ has: page.locator('img[alt="Avatar"]') });
-        this.dashboardOption = page.getByRole('button', { name: 'Dashboard' });
-        this.budgetOption = page.getByRole('button', { name: 'Budgets' });
-        this.profileOption = page.getByRole('button', { name: 'Profile' });
-        this.logoutOption = page.getByRole('button', { name: 'Logout' });
+        this.userMenuToggle = this.container.locator('button').filter({ has: page.locator('img[alt="Avatar"]') });
+        this.dashboardOption = this.container.getByRole('button', { name: 'Dashboard' });
+        this.budgetOption = this.container.getByRole('button', { name: 'Budgets' });
+        this.profileOption = this.container.getByRole('button', { name: 'Profile' });
+        this.logoutOption = this.container.getByRole('button', { name: 'Logout' });
+
+        this.userAvatar = this.container.getByAltText('Avatar');
+
+        this.logo = this.container.getByAltText('FinMate');
     }
 
     async logout() {

@@ -8,9 +8,10 @@ type TransactionFormFieldsProps = {
   setForm: React.Dispatch<React.SetStateAction<any>>;
   categories: any[];
   variant?: "success" | "primary";
+  datatestid?: string;
 };
 
-export const TransactionFormFields = ({ form, setForm, categories, variant = "success" }: TransactionFormFieldsProps) => {
+export const TransactionFormFields = ({ form, setForm, categories, variant = "success", "datatestid": testId }: TransactionFormFieldsProps) => {
   // 1. СТАТИЧНІ КЛАСИ (щоб Tailwind їх не видалив)
   const inactiveBtn = "border-white/10 bg-white/5 text-slate-400 hover:bg-white/10";
   const inactiveDot = "bg-slate-500";
@@ -26,7 +27,7 @@ export const TransactionFormFields = ({ form, setForm, categories, variant = "su
   const activeDot = variant === "success" ? "bg-emerald-400" : "bg-blue-400";
 
   return (
-    <div data-testid="transaction-form-fields" className="flex flex-col gap-4">
+    <div data-testid={testId || "transaction-form-fields"} className="flex flex-col gap-4">
       {/* Title */}
       <div>
         <label htmlFor="title-input" className="mb-1.5 block text-sm font-medium text-slate-200">Title</label>
@@ -102,8 +103,9 @@ export const TransactionFormFields = ({ form, setForm, categories, variant = "su
 
       {/* Date Picker */}
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-slate-200">Date</label>
+        <label htmlFor="date-field" className="mb-1.5 block text-sm font-medium text-slate-200">Date</label>
         <input
+          id="date-field"
           type="date"
           className={selectStyles}
           value={form.created_at}

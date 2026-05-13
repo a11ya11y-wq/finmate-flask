@@ -36,7 +36,10 @@ export const useCurrency = () => {
     // Перевірка на випадок, якщо прийшов невалідний рядок
     if (isNaN(numeric)) return `${currencySymbol}0.00`;
 
-    return `${currencySymbol}${numeric.toFixed(2)}`;
+    const isNegative = numeric < 0;
+    const absoluteValue = Math.abs(numeric).toFixed(2);
+
+    return `${isNegative ? "-" : ""}${currencySymbol}${absoluteValue}`;
   };
 
   return { 

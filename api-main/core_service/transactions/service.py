@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, time
+from datetime import datetime, time, date
 
 from core_service.exceptions import ResourceNotFound, BusinessLogicError
 from core_service.models.transaction_model import Transactions
@@ -77,11 +77,36 @@ class TransactionService:
                 forbidden_fields = ['amount', 'transaction_type', 'created_at']
 
                 for field in forbidden_fields:
-                    update_payload.pop(field, None)
+                    if field in update_payload:
+                        new_value = update_payload[field]
+                        old_value = getattr(tx_to_update, field)
+                        
+                        is_changed = False
 
-                if not update_payload:
-                    raise BusinessLogicError("You can only change the category and notes for a bank transaction.")
+                        if field == 'amount':
+                            if float(new_value) != float(old_value):
+                                is_changed = True
+                                
+                        elif field == 'transaction_type':
+                            old_str = old_value.value if hasattr(old_value, 'value') else str(old_value)
+                            new_str = new_value.value if hasattr(new_value, 'value') else str(new_value)
+                            if str(new_str).lower() != str(old_str).lower():
+                                is_changed = True
+                                
+                        elif field == 'created_at':
+                            new_date = new_value.date() if isinstance(new_value, datetime) else new_value
+                            old_date = old_value.date() if isinstance(old_value, datetime) else old_value
+                            if new_date != old_date:
+                                is_changed = True
 
+                        if is_changed:
+                            raise BusinessLogicError("You can only change the category and notes for a bank transaction.")
+                        else:
+                            update_payload.pop(field, None)
+
+            if not update_payload:
+                    raise BusinessLogicError("No valid changes detected.")
+                
             if 'category_id' in update_payload:
                 new_cat_id = update_payload['category_id']
                 cat_obj = uow.categories.get_cat_by_id_and_user(new_cat_id, user_id)
