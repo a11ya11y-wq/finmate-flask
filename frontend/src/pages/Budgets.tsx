@@ -122,7 +122,7 @@ const BudgetsPage = () => {
 
           {/* Шкала ліміту бюджетів */}
           <Card className="surface-card">
-            <CardContent className="pt-6">
+            <CardContent data-testid="budgets-limit-container" className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-slate-400">Budget limit</p>
@@ -141,15 +141,16 @@ const BudgetsPage = () => {
 
           <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
             {/* ФОРМА */}
-            <Card className="surface-card h-fit sticky top-24">
+            <Card data-testid="budgets-form-container" className="surface-card h-fit sticky top-24">
               <CardHeader>
                 <CardTitle>Create budget</CardTitle>
               </CardHeader>
               <CardContent>
                 <form className="space-y-5" onSubmit={handleSubmit}>
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-slate-300">Category</label>
+                    <label htmlFor="category-label" className="text-sm font-medium text-slate-300">Category</label>
                     <select
+                        id="category-label"
                         className={selectStyles}
                         value={form.category_id}
                         onChange={handleChange("category_id")}
@@ -162,11 +163,12 @@ const BudgetsPage = () => {
                     </select>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-slate-300">Amount</label>
+                    <label htmlFor="amount-input" className="text-sm font-medium text-slate-300">Amount</label>
                     <div className="relative">
                       {/* ВИКОРИСТАНО currencySymbol */}
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">{currencySymbol}</span>
                       <Input
+                          id="amount-input"
                           type="number"
                           step="0.01"
                           className="pl-7"
@@ -180,8 +182,9 @@ const BudgetsPage = () => {
 
                   {/* СЕКЦІЯ З ДИНАМІЧНИМ НОУТОМ */}
                   <div className="space-y-3">
-                    <label className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/5 p-3 cursor-pointer transition-colors hover:bg-white/10">
+                    <label htmlFor="recurring-checkbox" className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/5 p-3 cursor-pointer transition-colors hover:bg-white/10">
                       <input
+                          id="recurring-checkbox"
                           type="checkbox"
                           className="h-4 w-4 rounded border-white/10 bg-black/50 accent-blue-500"
                           checked={form.is_recurring}

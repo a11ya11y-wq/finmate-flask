@@ -38,22 +38,24 @@ const AppShell = ({ children }: AppShellProps) => {
 					</Link>
 					<div className="relative" ref={menuRef}>
 						<button
+							data-testid="user-menu-toggle"
 							type="button"
 							className="flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-200"
 							onClick={() => setOpen((prev) => !prev)}
 						>
 							<img
+								data-testid="user-avatar"
 								src={`/${user?.avatar ?? "avatars/default/default.svg"}`}
 								alt="Avatar"
 								className="h-9 w-9 rounded-full border border-blue-500/30"
 							/>
-							<span className="hidden text-sm font-medium text-slate-100 sm:block">
+							<span data-testid="user-name" className="hidden text-sm font-medium text-slate-100 sm:block">
 								{user?.username ?? "User"}
 							</span>
 							<i className="bi bi-chevron-down text-slate-400" />
 						</button>
 						{open && (
-							<div className="absolute right-0 mt-3 w-48 rounded-2xl border border-white/10 bg-[#0b0f17] p-2 shadow-[0_20px_40px_rgba(0,0,0,0.4)]">
+							<div data-testid="user-menu-container" className="absolute right-0 mt-3 w-48 rounded-2xl border border-white/10 bg-[#0b0f17] p-2 shadow-[0_20px_40px_rgba(0,0,0,0.4)]">
 								{navItems.map((item) => (
 									<NavLink
 										key={item.to}
@@ -75,6 +77,7 @@ const AppShell = ({ children }: AppShellProps) => {
 								<button
 									type="button"
 									className="mt-2 w-full rounded-xl px-3 py-2 text-left text-sm text-red-300 hover:bg-red-500/10"
+									data-testid="logout-button"
 									onClick={logout}
 								>
 									Logout

@@ -8,6 +8,8 @@ export class Header {
 
     // Dropdown Menu:
     readonly userMenuToggle: Locator;
+    readonly userMenuContainer: Locator;
+
     readonly dashboardOption: Locator;
     readonly budgetOption: Locator;
     readonly profileOption: Locator;
@@ -21,11 +23,13 @@ export class Header {
         this.page = page;
         this.container = page.getByRole('banner'); //banner = header
         
-        this.userMenuToggle = this.container.locator('button').filter({ has: page.locator('img[alt="Avatar"]') });
-        this.dashboardOption = this.container.getByRole('button', { name: 'Dashboard' });
-        this.budgetOption = this.container.getByRole('button', { name: 'Budgets' });
-        this.profileOption = this.container.getByRole('button', { name: 'Profile' });
-        this.logoutOption = this.container.getByRole('button', { name: 'Logout' });
+        this.userMenuToggle = this.container.getByTestId('user-menu-toggle');
+        this.userMenuContainer = this.page.getByTestId('user-menu-container');
+
+        this.dashboardOption = this.userMenuContainer.getByRole('link', { name: 'Dashboard' });
+        this.budgetOption = this.userMenuContainer.getByRole('link', { name: 'Budgets' });
+        this.profileOption = this.userMenuContainer.getByRole('link', { name: 'Profile' });
+        this.logoutOption = this.userMenuContainer.getByTestId('logout-button');
 
         this.userAvatar = this.container.getByAltText('Avatar');
 
