@@ -65,6 +65,7 @@ const LoginPage = () => {
             <div>
               <label className="text-sm font-medium text-slate-200">Email</label>
               <Input
+              id="email-input"
                 type="email"
                 value={email}
                 onChange={(event) => {
@@ -72,15 +73,15 @@ const LoginPage = () => {
                   clearFieldError("email");
                 }}
                 placeholder="your.email@example.com"
-                required
                 aria-invalid={!!errors.email}
                 className={errors.email ? "border-rose-500/60 focus:border-rose-400/80 focus:ring-rose-500/20" : undefined}
               />
-              {errors.email && <p className="mt-1 text-xs text-rose-400">{errors.email}</p>}
+              {errors.email && <p data-testid="email-error" className="mt-1 text-xs text-rose-400">{errors.email}</p>}
             </div>
             <div>
               <label className="text-sm font-medium text-slate-200">Password</label>
               <Input
+              id="password-input"
                 type="password"
                 value={password}
                 onChange={(event) => {
@@ -88,11 +89,10 @@ const LoginPage = () => {
                   clearFieldError("password");
                 }}
                 placeholder="Enter your password"
-                required
                 aria-invalid={!!errors.password}
                 className={errors.password ? "border-rose-500/60 focus:border-rose-400/80 focus:ring-rose-500/20" : undefined}
               />
-              {errors.password && <p className="mt-1 text-xs text-rose-400">{errors.password}</p>}
+              {errors.password && <p data-testid="password-error" className="mt-1 text-xs text-rose-400">{errors.password}</p>}
             </div>
             <label className="flex items-center gap-2 text-sm text-slate-400">
               <input

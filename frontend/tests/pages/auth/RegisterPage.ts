@@ -1,10 +1,9 @@
 import { Page, Locator } from "@playwright/test";
-import { Toast } from "../common/components/Toast";
-import { RegisterField, RegisterRequest } from "../../interfaces/auth";
+import { RegisterRequest } from "../../interfaces/auth";
+import { BasePage } from "../common/BasePage";
 
+export class RegisterPage extends BasePage {
 
-export class RegisterPage {
-    readonly page: Page;
     readonly title: Locator;
     // Form fields
     readonly usernameInput: Locator;
@@ -12,21 +11,19 @@ export class RegisterPage {
     readonly passwordInput: Locator;
     readonly confirmPasswordInput: Locator;
     readonly submitButton: Locator;
-    
-    readonly toast: Toast;
+
     readonly signInLink: Locator;
 
 
 
     constructor(page: Page) {
-        this.page = page;
+        super(page);
         this.title = page.getByRole('heading', { name: 'Create Account' });
         this.usernameInput = page.getByLabel('Username');
         this.emailInput = page.getByLabel('Email');
         this.passwordInput = page.getByLabel('Password', { exact: true });
         this.confirmPasswordInput = page.getByLabel('Confirm password');
         this.submitButton = page.getByRole('button', { name: 'Create account' });
-        this.toast = new Toast(page);
         this.signInLink = page.getByRole('link', { name: 'Sign in' });
     }
 
@@ -48,20 +45,5 @@ export class RegisterPage {
 
     async goto() {
         await this.page.goto('/register');
-    }
-
-    async getValidationMessage(fieldName: RegisterField['name']): Promise<boolean | string> {
-        const inputs: Record<typeof fieldName, Locator> = {
-            username: this.usernameInput,
-            email: this.emailInput,
-            password: this.passwordInput,
-            confirmPassword: this.confirmPasswordInput
-        };
-        const inputLocator = inputs[fieldName];
-        const validationMessage = await inputLocator.evaluate((el: HTMLInputElement) => el.validationMessage);
-        if (!validationMessage) {
-            return false;
-        }
-        return validationMessage;
     }
 }

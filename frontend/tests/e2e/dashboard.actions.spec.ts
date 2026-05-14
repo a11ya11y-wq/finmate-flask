@@ -62,7 +62,10 @@ test.describe('Dashboard Actions', () => {
         await dashboardPage.toolbar.addTransactionButton.click();
         await dashboardPage.addTransactionModal.submit();
 
-        await dashboardPage.toast.expectError('Input should be greater than 0');
+        await dashboardPage.expectFieldError('title', 'Enter a transaction title');
+        await dashboardPage.expectFieldError('amount', 'Enter a valid amount');
+
+        
         await expect(dashboardPage.addTransactionModal.modalFieldsContainer).toBeVisible();
     });
 

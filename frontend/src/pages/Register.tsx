@@ -74,11 +74,10 @@ const RegisterPage = () => {
                 id="Username"
                 value={form.username}
                 onChange={handleChange("username")}
-                required
                 aria-invalid={!!errors.username}
                 className={errors.username ? "border-rose-500/60 focus:border-rose-400/80 focus:ring-rose-500/20" : undefined}
               />
-              {errors.username && <p className="mt-1 text-xs text-rose-400">{errors.username}</p>}
+              {errors.username && <p data-testid="username-error" className="mt-1 text-xs text-rose-400">{errors.username}</p>}
             </div>
             <div>
               <label htmlFor="Email" className="text-sm font-medium text-slate-200">Email</label>
@@ -87,11 +86,10 @@ const RegisterPage = () => {
                 type="email"
                 value={form.email}
                 onChange={handleChange("email")}
-                required
                 aria-invalid={!!errors.email}
                 className={errors.email ? "border-rose-500/60 focus:border-rose-400/80 focus:ring-rose-500/20" : undefined}
               />
-              {errors.email && <p className="mt-1 text-xs text-rose-400">{errors.email}</p>}
+              {errors.email && <p data-testid="email-error" className="mt-1 text-xs text-rose-400">{errors.email}</p>}
             </div>
             <div>
               <label htmlFor="Password" className="text-sm font-medium text-slate-200">Password</label>
@@ -100,11 +98,10 @@ const RegisterPage = () => {
                 type="password"
                 value={form.password}
                 onChange={handleChange("password")}
-                required
                 aria-invalid={!!errors.password}
                 className={errors.password ? "border-rose-500/60 focus:border-rose-400/80 focus:ring-rose-500/20" : undefined}
               />
-              {errors.password && <p className="mt-1 text-xs text-rose-400">{errors.password}</p>}
+              {errors.password && <p data-testid="password-error" className="mt-1 text-xs text-rose-400">{errors.password}</p>}
             </div>
             <div>
               <label htmlFor="ConfirmPassword" className="text-sm font-medium text-slate-200">Confirm password</label>
@@ -113,11 +110,10 @@ const RegisterPage = () => {
                 type="password"
                 value={form.confirm_password}
                 onChange={handleChange("confirm_password")}
-                required
                 aria-invalid={!!errors.confirm_password}
                 className={errors.confirm_password ? "border-rose-500/60 focus:border-rose-400/80 focus:ring-rose-500/20" : undefined}
               />
-              {errors.confirm_password && <p className="mt-1 text-xs text-rose-400">{errors.confirm_password}</p>}
+              {errors.confirm_password && <p data-testid="confirm-password-error" className="mt-1 text-xs text-rose-400">{errors.confirm_password}</p>}
             </div>
             <Button type="submit" className="w-full" disabled={status === "loading"}>
               {status === "loading" ? "Creating..." : "Create account"}

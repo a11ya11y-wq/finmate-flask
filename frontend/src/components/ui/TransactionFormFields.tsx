@@ -56,7 +56,7 @@ export const TransactionFormFields = ({
           }}
           aria-invalid={!!errors.title}
         />
-        {errors.title && <p className="mt-1 text-xs text-rose-400">{errors.title}</p>}
+        {errors.title && <p data-testid="title-error" className="mt-1 text-xs text-rose-400">{errors.title}</p>}
       </div>
 
       {/* Transaction Type Buttons */}
@@ -91,7 +91,7 @@ export const TransactionFormFields = ({
             Income
           </button>
         </div>
-        {errors.transaction_type && <p className="mt-1 text-xs text-rose-400">{errors.transaction_type}</p>}
+        {errors.transaction_type && <p data-testid="transaction-type-error" className="mt-1 text-xs text-rose-400">{errors.transaction_type}</p>}
       </div>
 
       {/* Amount */}
@@ -117,7 +117,7 @@ export const TransactionFormFields = ({
             aria-invalid={!!errors.amount}
           />
         </div>
-        {errors.amount && <p className="mt-1 text-xs text-rose-400">{errors.amount}</p>}
+        {errors.amount && <p data-testid="amount-error" className="mt-1 text-xs text-rose-400">{errors.amount}</p>}
       </div>
 
       {/* Category Dropdown */}
@@ -141,7 +141,7 @@ export const TransactionFormFields = ({
             <option key={category.id} value={category.id}>{category.name}</option>
           ))}
         </select>
-        {errors.category_id && <p className="mt-1 text-xs text-rose-400">{errors.category_id}</p>}
+        {errors.category_id && <p data-testid="category-id-error" className="mt-1 text-xs text-rose-400">{errors.category_id}</p>}
       </div>
 
       {/* Date Picker */}
@@ -161,7 +161,7 @@ export const TransactionFormFields = ({
           }}
           aria-invalid={!!errors.created_at}
         />
-        {errors.created_at && <p className="mt-1 text-xs text-rose-400">{errors.created_at}</p>}
+        {errors.created_at && <p data-testid="created-at-error" className="mt-1 text-xs text-rose-400">{errors.created_at}</p>}
       </div>
 
       {/* Note Field */}
@@ -183,7 +183,7 @@ export const TransactionFormFields = ({
           }}
           aria-invalid={!!errors.note}
         />
-        {errors.note && <p className="mt-1 text-xs text-rose-400">{errors.note}</p>}
+        {errors.note && <p data-testid="note-error" className="mt-1 text-xs text-rose-400">{errors.note}</p>}
       </div>
     </div>
   );

@@ -219,7 +219,6 @@ const BudgetsPage = () => {
                         )}
                         value={form.category_id}
                         onChange={handleChange("category_id")}
-                        required
                       aria-invalid={!!errors.category_id}
                     >
                       <option value="" disabled>Select category...</option>
@@ -227,7 +226,7 @@ const BudgetsPage = () => {
                           <option key={category.id} value={category.id}>{category.name}</option>
                       ))}
                     </select>
-                    {errors.category_id && <p className="text-xs text-rose-400">{errors.category_id}</p>}
+                    {errors.category_id && <p data-testid="category-id-error" className="text-xs text-rose-400">{errors.category_id}</p>}
                   </div>
                   <div className="space-y-1.5">
                     <label htmlFor="amount-input" className="text-sm font-medium text-slate-300">Amount</label>
@@ -245,11 +244,10 @@ const BudgetsPage = () => {
                           placeholder="0.00"
                           value={form.amount}
                           onChange={handleChange("amount")}
-                          required
                           aria-invalid={!!errors.amount}
                       />
                     </div>
-                    {errors.amount && <p className="text-xs text-rose-400">{errors.amount}</p>}
+                    {errors.amount && <p data-testid="amount-error" className="text-xs text-rose-400">{errors.amount}</p>}
                   </div>
 
                   {/* СЕКЦІЯ З ДИНАМІЧНИМ НОУТОМ */}

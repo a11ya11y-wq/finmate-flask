@@ -56,11 +56,10 @@ test.describe('Login Actions', () => {
         });
     }
     const invalidFormatCases = [
-        { desc: 'Empty email', field: 'email', email: '', pass: '', expectedMsg: 'Please fill out this field.' },
-        { desc: 'Empty password', field: 'password', email: email, pass: '', expectedMsg: 'Please fill out this field.' },
-        { desc: 'Invalid email format without @', field: 'email', email: 'invalidemail', pass: password, expectedMsg: 'Please include an \'@\' in the email address. \'invalidemail\' is missing an \'@\'.' },
-        { desc: 'Invalid email format without domain', field: 'email', email: 'invalid@', pass: password, expectedMsg: 'Please enter a part following \'@\'. \'invalid@\' is incomplete.' },
-        // { desc: 'Short password', field: 'password', email: email, pass: 'shrt', expectedMsg: 'Password must be at least 8 characters long' }, // TODO: Implement password length validation in the frontend and update this test case accordingly
+        { desc: 'Empty email', field: 'email', email: '', pass: '', expectedMsg: 'Email cannot be empty' },
+        { desc: 'Empty password', field: 'password', email: email, pass: '', expectedMsg: 'Password cannot be empty' },
+        { desc: 'Invalid email format without @', field: 'email', email: 'invalidemail', pass: password, expectedMsg: 'Enter a valid email' },
+        { desc: 'Invalid email format without domain', field: 'email', email: 'invalid@', pass: password, expectedMsg: 'Enter a valid email' },
     ];
     for (const data of invalidFormatCases) {
         test('User cannot login with ' + data.desc, async ({ page }) => {
@@ -72,8 +71,7 @@ test.describe('Login Actions', () => {
                 data.pass
             );
             await expect(loginPage.page).toHaveURL(/.*\/login/);
-            const validationMessage = await loginPage.getValidationMessage(data.field as 'email' | 'password');
-            expect(validationMessage).toBe(data.expectedMsg);
+            await loginPage.expectFieldError(data.field, data.expectedMsg);
             });
     }
     const rememberMeCases = [

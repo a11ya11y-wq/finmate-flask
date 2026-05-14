@@ -53,7 +53,9 @@ test.describe('Profile Page', () => {
             await expect(profilePage.changePasswordModal.container).toBeVisible();
 
             await profilePage.changePasswordModal.saveButton.click();
-            await profilePage.toast.expectError('String should have at least 1 character');
+            await profilePage.expectFieldError('old-password', 'Enter your current password');
+            await profilePage.expectFieldError('new-password', 'New password cannot be empty');
+            await profilePage.expectFieldError('confirm-password', 'Confirm your new password');
         });
 
         test('User sees validation error when new password and confirm password do not match', async ({ page }) => {
@@ -67,7 +69,7 @@ test.describe('Profile Page', () => {
             await profilePage.changePasswordModal.confirmNewPasswordInput.fill('differentpassword123');
 
             await profilePage.changePasswordModal.saveButton.click();
-            await profilePage.toast.expectError('Value error, New password and confirmation do not match');
+            await profilePage.expectFieldError('confirm-password', 'Passwords do not match');
         });
 
         test('User sees error when current password match with new password', async ({ page }) => {
@@ -80,7 +82,7 @@ test.describe('Profile Page', () => {
             await profilePage.changePasswordModal.confirmNewPasswordInput.fill('TestPassword123');
             
             await profilePage.changePasswordModal.saveButton.click();
-            await profilePage.toast.expectError('Value error, New password cannot be the same as old password');
+            await profilePage.expectFieldError('new-password', 'New password cannot be the same as current password');
         });
 
         test('User sees error when current password is incorrect', async ({ page }) => {
@@ -138,7 +140,7 @@ test.describe('Profile Page', () => {
             await profilePage.monobankIntegrationModal.apiKeyInput.fill('123');
             await profilePage.monobankIntegrationModal.saveButton.click();
 
-            await profilePage.toast.expectError('String should have at least 10 characters');
+            await profilePage.toast.expectError('Token must be at least 10 characters');
         })
     });
     test('User can delete their account', async ({ page }) => {
@@ -176,7 +178,7 @@ test.describe('Profile Page', () => {
             await profilePage.categoriesSection.addNewButton.click();
             await profilePage.createCategoryModal.addCategoryButton.click();
 
-            await profilePage.toast.expectError('String should have at least 1 character');
+            await profilePage.expectFieldError('name', 'Enter a category name');
         });
 
         test('User can delete a category', async ({ page }) => {

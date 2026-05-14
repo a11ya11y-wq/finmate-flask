@@ -42,7 +42,7 @@ export const ProfileFormFields = ({ draft, setDraft, errors, onFieldChange }: an
             aria-invalid={!!errors?.username}
             className={errors?.username ? "border-rose-500/60 focus:border-rose-400/80 focus:ring-rose-500/20" : undefined}
           />
-          {errors?.username && <p className="mt-1 text-xs text-rose-400">{errors.username}</p>}
+          {errors?.username && <p data-testid="username-error" className="mt-1 text-xs text-rose-400">{errors.username}</p>}
         </div>
         <div>
           <label htmlFor="currency" className="mb-1.5 block text-sm font-medium text-slate-200">Preferred Currency</label>
@@ -63,7 +63,7 @@ export const ProfileFormFields = ({ draft, setDraft, errors, onFieldChange }: an
             <option value="EUR">EUR - Euro</option>
             <option value="UAH">UAH - Ukrainian Hryvnia</option>
           </select>
-          {errors?.currency && <p className="mt-1 text-xs text-rose-400">{errors.currency}</p>}
+          {errors?.currency && <p data-testid="currency-error" className="mt-1 text-xs text-rose-400">{errors.currency}</p>}
         </div>
       </div>
 
@@ -103,7 +103,7 @@ export const ProfileFormFields = ({ draft, setDraft, errors, onFieldChange }: an
             );
           })}
         </div>
-        {errors?.avatar && <p className="mt-2 text-xs text-rose-400">{errors.avatar}</p>}
+        {errors?.avatar && <p data-testid="avatar-error" className="mt-2 text-xs text-rose-400">{errors.avatar}</p>}
       </div>
     </div>
   );
@@ -126,7 +126,7 @@ export const CategoryFormFields = ({ form, setForm, icons, errors, onFieldChange
           aria-invalid={!!errors?.name}
           className={errors?.name ? "border-rose-500/60 focus:border-rose-400/80 focus:ring-rose-500/20" : undefined}
         />
-        {errors?.name && <p className="mt-1 text-xs text-rose-400">{errors.name}</p>}
+        {errors?.name && <p data-testid="name-error" className="mt-1 text-xs text-rose-400">{errors.name}</p>}
       </div>
       <div>
         <label htmlFor="category-mcc-code" className="mb-1.5 block text-sm font-medium text-slate-200">MCC Code</label>
@@ -141,7 +141,7 @@ export const CategoryFormFields = ({ form, setForm, icons, errors, onFieldChange
           aria-invalid={!!errors?.mcc_code}
           className={errors?.mcc_code ? "border-rose-500/60 focus:border-rose-400/80 focus:ring-rose-500/20" : undefined}
         />
-        {errors?.mcc_code && <p className="mt-1 text-xs text-rose-400">{errors.mcc_code}</p>}
+        {errors?.mcc_code && <p data-testid="mcc-code-error" className="mt-1 text-xs text-rose-400">{errors.mcc_code}</p>}
       </div>
     </div>
     <div>
@@ -165,7 +165,7 @@ export const CategoryFormFields = ({ form, setForm, icons, errors, onFieldChange
           </button>
         ))}
       </div>
-      {errors?.icon && <p className="mt-1 text-xs text-rose-400">{errors.icon}</p>}
+      {errors?.icon && <p data-testid="icon-error" className="mt-1 text-xs text-rose-400">{errors.icon}</p>}
     </div>
   </div>
 );
@@ -607,7 +607,7 @@ const ProfilePage = () => {
               aria-invalid={!!passwordErrors.old_password}
               className={passwordErrors.old_password ? "border-rose-500/60 focus:border-rose-400/80 focus:ring-rose-500/20" : undefined}
             />
-            {passwordErrors.old_password && <p className="mt-1 text-xs text-rose-400">{passwordErrors.old_password}</p>}
+            {passwordErrors.old_password && <p data-testid="old-password-error" className="mt-1 text-xs text-rose-400">{passwordErrors.old_password}</p>}
           </div>
           <div>
             <Input
@@ -629,7 +629,7 @@ const ProfilePage = () => {
               aria-invalid={!!passwordErrors.new_password}
               className={passwordErrors.new_password ? "border-rose-500/60 focus:border-rose-400/80 focus:ring-rose-500/20" : undefined}
             />
-            {passwordErrors.new_password && <p className="mt-1 text-xs text-rose-400">{passwordErrors.new_password}</p>}
+            {passwordErrors.new_password && <p data-testid="new-password-error" className="mt-1 text-xs text-rose-400">{passwordErrors.new_password}</p>}
           </div>
           <div>
             <Input
@@ -651,7 +651,7 @@ const ProfilePage = () => {
               aria-invalid={!!passwordErrors.confirm_password}
               className={passwordErrors.confirm_password ? "border-rose-500/60 focus:border-rose-400/80 focus:ring-rose-500/20" : undefined}
             />
-            {passwordErrors.confirm_password && <p className="mt-1 text-xs text-rose-400">{passwordErrors.confirm_password}</p>}
+            {passwordErrors.confirm_password && <p data-testid="confirm-password-error" className="mt-1 text-xs text-rose-400">{passwordErrors.confirm_password}</p>}
           </div>
         </div>
       </FormModal>
@@ -731,7 +731,7 @@ const ProfilePage = () => {
         aria-invalid={!!monoErrors.token}
         className={monoErrors.token ? "border-rose-500/60 focus:border-rose-400/80 focus:ring-rose-500/20" : undefined}
       />
-      {monoErrors.token && <p className="mt-1 text-xs text-rose-400">{monoErrors.token}</p>}
+      {monoErrors.token && <p data-testid="token-error" className="mt-1 text-xs text-rose-400">{monoErrors.token}</p>}
     </div>
     {user?.monobank_token_is_set && (
     <button 

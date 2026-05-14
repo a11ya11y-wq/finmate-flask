@@ -1,6 +1,5 @@
 import { test, expect } from '@playwright/test';
 import { RegisterPage } from '../pages/auth/RegisterPage';
-import { RegisterField } from '../interfaces/auth';
 import { ApiClient } from '../api/ApiClient';
 
 test.use({ storageState: { cookies: [], origins: [] } });
@@ -37,11 +36,16 @@ test.describe('Register Actions', () => {
     });
 
     const clientValidationCases = [
-        { desc: 'Invalid email format', field: 'email', username: 'user', email: 'invalidemail', password: 'P123123', confirmPassword: 'P123123', expectedMsg: 'Please include an \'@\' in the email address. \'invalidemail\' is missing an \'@\'.' },
-        { desc: 'Empty username', field: 'username', username: '', email: 'newuser@example.com', password: 'P123123', confirmPassword: 'P123123', expectedMsg: 'Please fill out this field.' },
-        { desc: 'Empty email', field: 'email', username: 'user', email: '', password: 'P123123', confirmPassword: 'P123123', expectedMsg: 'Please fill out this field.' },
-        { desc: 'Empty password', field: 'password', username: 'user', email: 'newuser@example.com', password: '', confirmPassword: '', expectedMsg: 'Please fill out this field.' },
-        { desc: 'Empty confirm password', field: 'confirmPassword', username: 'user', email: 'newuser@example.com', password: 'P123123', confirmPassword: '', expectedMsg: 'Please fill out this field.' },
+        { desc: 'Invalid email format', field: 'email', username: 'user', email: 'invalidemail', password: 'P123123', confirmPassword: 'P123123', expectedMsg: 'Enter a valid email' },
+        { desc: 'Empty username', field: 'username', username: '', email: 'newuser@example.com', password: 'P123123', confirmPassword: 'P123123', expectedMsg: 'Username cannot be empty' },
+        { desc: 'Empty email', field: 'email', username: 'user', email: '', password: 'P123123', confirmPassword: 'P123123', expectedMsg: 'Email cannot be empty' },
+        { desc: 'Empty password', field: 'password', username: 'user', email: 'newuser@example.com', password: '', confirmPassword: '', expectedMsg: 'Password cannot be empty' },
+        { desc: 'Empty confirm password', field: 'confirm-password', username: 'user', email: 'newuser@example.com', password: 'P123123', confirmPassword: '', expectedMsg: 'Confirm password cannot be empty' },
+        { desc: 'Pass & conf_pass do not match', field: 'confirm-password', username: 'user', email: 'newuser@example.com', password: 'P123123', confirmPassword: 'P1231234', expectedMsg: 'Passwords do not match' },
+        { desc: 'Short password', field: 'password', username: 'user', email: 'newuser@example.com', password: 'P123', confirmPassword: 'P123', expectedMsg: 'Password must be at least 6 characters' },
+        { desc: 'Username too short', field: 'username', username: 'usr', email: 'newuser@example.com', password: 'P123123', confirmPassword: 'P123123', expectedMsg: 'Username must be at least 4 characters' },
+        { desc: 'Username too long', field: 'username', username: 'u'.repeat(33), email: 'newuser@example.com', password: 'P123123', confirmPassword: 'P123123', expectedMsg: 'Username must be at most 32 characters' },
+        { desc: 'Password too long', field: 'password', username: 'user', email: 'newuser@example.com', password: 'P'.repeat(33), confirmPassword: 'P'.repeat(33), expectedMsg: 'Password must be at most 32 characters' },
     ];
     
     for (const data of clientValidationCases) {
@@ -58,33 +62,7 @@ test.describe('Register Actions', () => {
 
             await expect(registerPage.page).toHaveURL(/.*\/register/);
 
-            const validationMessage = await registerPage.getValidationMessage(data.field as RegisterField['name']);
-            expect(validationMessage).toBe(data.expectedMsg);
-        });
-    }
-
-    const serverValidationCases = [
-        { desc: 'Pass & conf_pass do not match', field: 'confirmPassword', username: 'user', email: 'newuser@example.com', password: 'P123123', confirmPassword: 'P1231234', expectedMsg: 'Passwords do not match.' },
-        { desc: 'Short password', field: 'password', username: 'user', email: 'newuser@example.com', password: 'P123', confirmPassword: 'P123', expectedMsg: 'String should have at least 6 characters' },
-        { desc: 'Username too short', field: 'username', username: 'usr', email: 'newuser@example.com', password: 'P123123', confirmPassword: 'P123123', expectedMsg: 'String should have at least 4 characters' },
-        { desc: 'Username too long', field: 'username', username: 'u'.repeat(33), email: 'newuser@example.com', password: 'P123123', confirmPassword: 'P123123', expectedMsg: 'String should have at most 32 characters' },
-        { desc: 'Password too long', field: 'password', username: 'user', email: 'newuser@example.com', password: 'P'.repeat(33), confirmPassword: 'P'.repeat(33), expectedMsg: 'String should have at most 32 characters' },
-    ];
-    
-    for (const data of serverValidationCases) {
-        test('(Server Validation) User cannot register with ' + data.desc, async ({ page }) => {
-            const registerPage = new RegisterPage(page);
-            await registerPage.goto();
-
-            await registerPage.register({
-                username: data.username,
-                email: data.email,
-                password: data.password,
-                confirmPassword: data.confirmPassword
-            });
-
-            await expect(registerPage.page).toHaveURL(/.*\/register/);
-            await registerPage.toast.expectError(data.expectedMsg!);
+            await registerPage.expectFieldError(data.field, data.expectedMsg);
         });
     }
 
