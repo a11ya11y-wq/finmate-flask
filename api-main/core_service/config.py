@@ -15,18 +15,23 @@ class DevelopmentConfig(Config):
     DEBUG = True
     REDIS_URL = os.environ.get('REDIS_URL')
 
-
 class TestingConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL')
-    TESTING = True
     REDIS_URL = None
+    TESTING = True
+    DEBUG = True
+
     RATELIMIT_STORAGE_URI = "memory://"
     RATELIMIT_ENABLED = False
-    CELERY_BROKER_URL = None
-    CELERY_RESULT_BACKEND = None
+
+class ProductionConfig(Config):
+    SQLALCHEMY_DATABASE_URI=os.environ.get('API_MAIN_DATABASE_URL')
+    DEBUG = False
+    REDIS_URL = os.environ.get('REDIS_URL')
 
 config = {
     'development': DevelopmentConfig,
     'testing': TestingConfig,
-    'default': DevelopmentConfig
+    'default': DevelopmentConfig,
+    'production': ProductionConfig
 }

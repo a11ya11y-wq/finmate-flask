@@ -123,6 +123,9 @@ test.describe('Budgets Page', () => {
             category_id: categoryId,
         });
         await page.reload();
+
+        await page.waitForLoadState('networkidle');
+
         await expect(budgetCard).toBeVisible();
         await expect(budgetCard).toContainText('$800.00 left');
     });

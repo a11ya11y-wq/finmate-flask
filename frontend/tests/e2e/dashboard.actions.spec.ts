@@ -21,6 +21,8 @@ test.describe('Dashboard Actions', () => {
         test(`User can add a new ${data.desc} transaction`, async ({ page }) => {
             const dashboardPage = new DashboardPage(page);
             await dashboardPage.goto();
+            
+            await page.waitForLoadState('networkidle');
 
             await dashboardPage.toolbar.addTransactionButton.click();
             

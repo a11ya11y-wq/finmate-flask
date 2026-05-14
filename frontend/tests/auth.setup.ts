@@ -1,25 +1,27 @@
-import { test as setup, expect } from '@playwright/test';
-import { LoginPage } from './pages/auth/LoginPage';
+import { test as setup } from '@playwright/test';
+import fs from 'fs';
+import path from 'path';
 import dotenv from 'dotenv';
 
 dotenv.config();
-
 const authFile = 'tests/.auth/user.json';
 
-setup('authenticate', async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    
-    await loginPage.goto();
-
+setup('authenticate API only', async ({ request }) => {
     const email = process.env.USER_EMAIL;
     const password = process.env.USER_PASSWORD;
+    const apiUrl = process.env.VITE_API_URL || 'http://localhost:5000';
 
-    if (!email || !password) {
-        throw new Error('USER_EMAIL or USER_PASSWORD is not defined in .env');
+    await request.post(`${apiUrl}/api/v1/auth/register`, {
+        data: { email, password, username: 'test_setup', confirm_password: password }
+    });
+
+    const loginResponse = await request.post(`${apiUrl}/api/v1/auth/login`, {
+        data: { email, password }
+    });
+
+    if (!loginResponse.ok()) {
+        throw new Error(`API Login failed: ${await loginResponse.text()}`);
     }
 
-    await loginPage.login(email, password);
-    await expect(page).toHaveURL(/.*\/dashboard/);
-
-    await page.context().storageState({ path: authFile });
+    await request.storageState({ path: authFile });
 });

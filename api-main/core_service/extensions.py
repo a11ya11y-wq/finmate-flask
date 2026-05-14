@@ -20,9 +20,11 @@ limiter = Limiter(
     default_limits=["2000 per day", "500 per hour"]
 )
 
+    
 def init_limiter(app):
     if app.config.get("TESTING"):
         app.config["RATELIMIT_STORAGE_URI"] = "memory://"
+        limiter.enabled = False
     else:
         app.config["RATELIMIT_STORAGE_URI"] = app.config["REDIS_URL"]
 
