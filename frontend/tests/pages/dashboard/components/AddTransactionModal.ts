@@ -1,5 +1,5 @@
 import { Page } from "@playwright/test";
-import { AddTransactionFormData } from "../../interfaces/transaction";
+import { AddTransactionFormData } from "../../../interfaces/transaction";
 import { BaseTransactionModal } from "./BaseTransactionModal";
 
 

@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures/dynamicUserFixture';
-import { ProfilePage } from '../pages/ProfilePage';
+import { ProfilePage } from '../pages/profile/ProfilePage';
 
 
 

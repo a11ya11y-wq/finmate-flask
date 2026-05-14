@@ -235,7 +235,11 @@ const BudgetsPage = () => {
                 const isOverBudget = Number(budget.remaining) < 0;
 
                 return (
-                    <Card key={budget.id} className="surface-card hover:-translate-y-1 transition-all duration-300">
+                    <Card
+                      key={budget.id}
+                      data-testid="budget-card"
+                      className="surface-card hover:-translate-y-1 transition-all duration-300"
+                    >
                       <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
                         <CardTitle className="text-lg">{budget.category_name}</CardTitle>
                         <span className={`inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wider ${budget.is_recurring ? 'bg-blue-500/20 text-blue-300' : 'bg-slate-500/20 text-slate-300'}`}>

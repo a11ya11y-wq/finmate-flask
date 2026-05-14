@@ -1,5 +1,5 @@
 import { Page, Locator } from "@playwright/test";
-import { BudgetFormData } from "../../interfaces/budget";
+import { BudgetFormData } from "../../../interfaces/budget";
 
 
 export class BudgetForm {

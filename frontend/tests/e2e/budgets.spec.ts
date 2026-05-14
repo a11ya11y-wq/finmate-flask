@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures/dynamicUserFixture';
-import { BudgetsPage } from '../pages/BudgetsPage';
+import { BudgetsPage } from '../pages/budgets/BudgetsPage';
 
 
 test.describe('Budgets Page', () => {
@@ -88,6 +88,9 @@ test.describe('Budgets Page', () => {
             });
         }
         await budgetsPage.goto();
+
+        await page.waitForLoadState('networkidle');
+        
         await expect(budgetsPage.budgetLimitContainer).toBeVisible();
         await expect(budgetsPage.budgetLimitContainer).toContainText('5 / 5 used');
 

@@ -1,10 +1,10 @@
 import { Locator, Page } from '@playwright/test';
-import { BasePage } from './BasePage';
+import { BasePage } from '../common/BasePage';
 import { DashboardToolBar } from './components/DashboardToolBar';
 import { AddTransactionModal } from './components/AddTransactionModal';
 import { EditTransactionModal } from './components/EditTransactionModal';
 import { TransactionsTable } from './components/TransactionsTable';
-import { ConfirmDeleteModal } from './components/ConfirmDeleteModal';
+import { ConfirmDeleteModal } from '../common/components/ConfirmDeleteModal';
 import { StatsCard } from './components/StatsCard';
 import { DashboardCategoryChart } from './components/DashboardCategoryChart';
 

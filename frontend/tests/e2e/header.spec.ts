@@ -1,11 +1,14 @@
 import { test, expect } from '../fixtures/dynamicUserFixture';
-import { DashboardPage } from '../pages/DashboardPage';
-
+import { DashboardPage } from '../pages/dashboard/DashboardPage';
 
 test.describe('Header Navigation', () => {
     test.beforeEach(async ({ page }) => {
         const dashboardPage = new DashboardPage(page);
         await dashboardPage.goto();
+        await expect(page).toHaveURL(/.*\/dashboard/);
+
+        await page.waitForLoadState('networkidle'); // Ensure all network requests are finished and the page is fully loaded
+        
         await dashboardPage.header.userMenuToggle.click();
     });
 
@@ -29,9 +32,11 @@ test.describe('Header Navigation', () => {
 
     test('Navigate to Dashboard from header', async ({ page }) => {
         const dashboardPage = new DashboardPage(page);
-        // First navigate away 
+        
         await dashboardPage.header.budgetOption.click();
         await expect(page).toHaveURL(/.*\/budgets/);
+
+        await page.waitForLoadState('networkidle');
 
         await dashboardPage.header.userMenuToggle.click();
         await dashboardPage.header.dashboardOption.click();

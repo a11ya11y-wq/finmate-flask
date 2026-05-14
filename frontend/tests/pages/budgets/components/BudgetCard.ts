@@ -9,10 +9,10 @@ export class BudgetCard {
     constructor(page: Page) {
         this.page = page;
 
-        this.budgetCards = page.locator('.grid > div:nth-child(2) .surface-card');
+        this.budgetCards = page.getByTestId('budget-card');
     }
 
-    async getBudgetCardByCategory(category: string): Promise<Locator> {
+    getBudgetCardByCategory(category: string): Locator {
         return this.budgetCards.filter({ hasText: category });
     }
 

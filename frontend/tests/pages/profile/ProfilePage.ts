@@ -1,10 +1,10 @@
 import { Page, Locator } from '@playwright/test';
-import { BasePage } from './BasePage';
+import { BasePage } from '../common/BasePage';
 import { EditProfileModal } from './components/EditProfileModal';
 import { ProfileUserInfo } from './components/ProfileUserInfo';
 import { ProfileChangePasswordModal } from './components/ProfileChangePasswordModal';
 import { MonobankIntegrationModal } from './components/MonobankIntegrationModal';
-import { ConfirmDeleteModal } from './components/ConfirmDeleteModal';
+import { ConfirmDeleteModal } from '../common/components/ConfirmDeleteModal';
 import { ProfileCategoriesSection } from './components/ProfileCategoriesSection';
 import { CreateCategoryModal } from './components/CreateCategoryModal';
 import { EditCategoryModal } from './components/EditCategoryModal';

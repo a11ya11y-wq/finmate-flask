@@ -1,8 +1,8 @@
 import { Locator, Page } from '@playwright/test';
-import { BasePage } from './BasePage';
+import { BasePage } from '../common/BasePage';
 import { BudgetForm } from './components/BudgetForm';
 import { BudgetCard } from './components/BudgetCard';
-import { ConfirmDeleteModal } from './components/ConfirmDeleteModal';
+import { ConfirmDeleteModal } from '../common/components/ConfirmDeleteModal';
 
 export class BudgetsPage extends BasePage {
     readonly budgetLimitContainer: Locator

@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures/dynamicUserFixture'; 
-import { DashboardPage } from '../pages/DashboardPage';
+import { DashboardPage } from '../pages/dashboard/DashboardPage';
 
 
 

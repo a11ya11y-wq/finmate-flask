@@ -1,5 +1,5 @@
 import { Page, Locator } from '@playwright/test'
-import { Toast } from './components/Toast';
+import { Toast } from '../common/components/Toast';
 
 
 export class LoginPage {

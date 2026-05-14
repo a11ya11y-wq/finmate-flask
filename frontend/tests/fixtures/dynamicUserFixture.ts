@@ -19,12 +19,14 @@ export const test = baseTest.extend<DynamicUserFixtures>({
         await use(apiInstance);
     },
 
-    page: async ({ page, api }, use) => {
-        // Before each test, register a new user and log in to get cookies
-        const uniqueEmail = `testuser_${Date.now()}@example.com`;
+    page: async ({ page, api }, use, testInfo) => {
+        const uniqueSuffix = Date.now().toString(36) + Math.random().toString(36).substring(2, 5) + `w${testInfo.workerIndex}`;
+
+        const uniqueEmail = `test_${uniqueSuffix}@example.com`;
+        const uniqueUsername = `usr_${uniqueSuffix}`;
         
         await api.auth.register({
-            username: 'testuser_' + Date.now(),
+            username: uniqueUsername,
             email: uniqueEmail,
             password: 'TestPassword123',
             confirmPassword: 'TestPassword123'

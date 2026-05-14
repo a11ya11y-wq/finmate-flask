@@ -1,6 +1,6 @@
 import { Page, Locator } from "@playwright/test";
-import { Toast } from "./components/Toast";
-import { RegisterField, RegisterRequest } from "../interfaces/auth";
+import { Toast } from "../common/components/Toast";
+import { RegisterField, RegisterRequest } from "../../interfaces/auth";
 
 
 export class RegisterPage {

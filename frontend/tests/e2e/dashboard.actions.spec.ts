@@ -1,4 +1,4 @@
-import { DashboardPage } from '../pages/DashboardPage';
+import { DashboardPage } from '../pages/dashboard/DashboardPage';
 import { AddTransactionFormData } from '../interfaces/transaction';
 import { test, expect } from '../fixtures/dynamicUserFixture'; 
 
