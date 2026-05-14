@@ -19,19 +19,21 @@ export const ProfileFormFields = ({ draft, setDraft }: any) => {
   );
 
   return (
-    <div className="flex flex-col gap-6">
+    <div data-testid="edit-profile-form" className="flex flex-col gap-6">
       {/* Поля Username та Currency залишаємо без змін */}
       <div className="grid gap-4 md:grid-cols-2">
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-slate-200">Username</label>
+          <label htmlFor="username" className="mb-1.5 block text-sm font-medium text-slate-200">Username</label>
           <Input
+            id="username"
             value={draft.username}
             onChange={(e) => setDraft((prev: any) => ({ ...prev, username: e.target.value }))}
           />
         </div>
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-slate-200">Preferred Currency</label>
+          <label htmlFor="currency" className="mb-1.5 block text-sm font-medium text-slate-200">Preferred Currency</label>
           <select
+            id="currency"
             className={selectStyles}
             value={draft.currency}
             onChange={(e) => setDraft((prev: any) => ({ ...prev, currency: e.target.value }))}
@@ -83,19 +85,21 @@ export const ProfileFormFields = ({ draft, setDraft }: any) => {
 
 // Поля для категорій
 export const CategoryFormFields = ({ form, setForm, icons }: any) => (
-  <div className="flex flex-col gap-4">
+  <div data-testid="category-form" className="flex flex-col gap-4">
     <div className="grid gap-4 md:grid-cols-2">
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-slate-200">Name</label>
+        <label htmlFor="category-name" className="mb-1.5 block text-sm font-medium text-slate-200">Name</label>
         <Input
+          id="category-name"
           placeholder="e.g. Food"
           value={form.name}
           onChange={(e) => setForm((prev: any) => ({ ...prev, name: e.target.value }))}
         />
       </div>
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-slate-200">MCC Code</label>
+        <label htmlFor="category-mcc-code" className="mb-1.5 block text-sm font-medium text-slate-200">MCC Code</label>
         <Input
+          id="category-mcc-code"
           placeholder="e.g. 5411"
           value={form.mcc_code}
           onChange={(e) => setForm((prev: any) => ({ ...prev, mcc_code: e.target.value }))}
@@ -318,7 +322,7 @@ const ProfilePage = () => {
         {/* USER PROFILE INFO */}
         <Card className="surface-card border-blue-500/20 bg-gradient-to-r from-[#0b0f17] to-[#121826]">
           <CardContent className="py-8">
-            <div className="flex flex-col gap-8 md:flex-row md:items-center">
+            <div data-testid="profile-user-info-container" className="flex flex-col gap-8 md:flex-row md:items-center">
               <div className="relative group">
                 <div className="absolute -inset-1 rounded-3xl bg-blue-500/20 opacity-0 blur transition duration-500 group-hover:opacity-100"></div>
                 <img
@@ -333,12 +337,12 @@ const ProfilePage = () => {
                 </div>
               </div>
               <div className="flex-1 space-y-2">
-                <h2 className="text-3xl font-bold text-white">{user?.username}</h2>
+                <h2 data-testid="profile-username" className="text-3xl font-bold text-white">{user?.username}</h2>
                 <div className="flex flex-wrap gap-4 text-slate-400">
-                  <span className="flex items-center gap-2 rounded-lg bg-white/5 px-3 py-1 text-sm border border-white/5">
+                  <span data-testid="profile-email" className="flex items-center gap-2 rounded-lg bg-white/5 px-3 py-1 text-sm border border-white/5">
                     <i className="bi bi-envelope text-blue-400" /> {user?.email}
                   </span>
-                  <span className="flex items-center gap-2 rounded-lg bg-white/5 px-3 py-1 text-sm border border-white/5">
+                  <span data-testid="profile-currency" className="flex items-center gap-2 rounded-lg bg-white/5 px-3 py-1 text-sm border border-white/5">
                     <i className="bi bi-currency-exchange text-emerald-400" /> {user?.currency}
                   </span>
                 </div>
@@ -355,6 +359,7 @@ const ProfilePage = () => {
             { title: "Monobank", desc: "Bank Integration", icon: "bi-wallet2", color: "emerald", onClick: () => setIsMonobankOpen(true) }
           ].map((item) => (
             <button
+              data-testid={`quick-action-${item.title.toLowerCase().replace(" ", "-")}`}
               key={item.title}
               onClick={item.onClick}
               className="group surface-card flex flex-col gap-4 rounded-2xl border border-white/5 p-6 text-left transition-all hover:-translate-y-1 hover:border-white/20 hover:bg-white/5"
@@ -371,7 +376,7 @@ const ProfilePage = () => {
         </div>
 
         {/* CATEGORIES SECTION */}
-        <Card className="surface-card">
+        <Card data-testid="categories-section" className="surface-card">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Categories</CardTitle>
             <Button 
@@ -400,10 +405,10 @@ const ProfilePage = () => {
                      </div>
                    </div>
                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                     <button onClick={() => { setEditCategory(cat); setIsEditCategoryOpen(true); }} className="h-8 w-8 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors">
+                     <button onClick={() => { setEditCategory(cat); setIsEditCategoryOpen(true); }} data-testid="edit-category-button" className="h-8 w-8 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors">
                        <i className="bi bi-pencil-fill text-xs" />
                      </button>
-                     <button onClick={() => { setDeleteCategoryId(cat.id); setIsDeleteCategoryOpen(true); }} className="h-8 w-8 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-colors">
+                     <button onClick={() => { setDeleteCategoryId(cat.id); setIsDeleteCategoryOpen(true); }} data-testid="delete-category-button" className="h-8 w-8 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-colors">
                        <i className="bi bi-trash-fill text-xs" />
                      </button>
                    </div>
@@ -446,10 +451,10 @@ const ProfilePage = () => {
         title="Change Password"
         type="edit"
       >
-        <div className="flex flex-col gap-4">
-          <Input type="password" placeholder="Current Password" value={passwordForm.old_password} onChange={(e) => setPasswordForm(p => ({...p, old_password: e.target.value}))} />
-          <Input type="password" placeholder="New Password" value={passwordForm.new_password} onChange={(e) => setPasswordForm(p => ({...p, new_password: e.target.value}))} />
-          <Input type="password" placeholder="Confirm New Password" value={passwordForm.confirm_password} onChange={(e) => setPasswordForm(p => ({...p, confirm_password: e.target.value}))} />
+        <div data-testid="password-form" className="flex flex-col gap-4">
+          <Input data-testid="current-password-input" type="password" placeholder="Current Password" value={passwordForm.old_password} onChange={(e) => setPasswordForm(p => ({...p, old_password: e.target.value}))} />
+          <Input data-testid="new-password-input" type="password" placeholder="New Password" value={passwordForm.new_password} onChange={(e) => setPasswordForm(p => ({...p, new_password: e.target.value}))} />
+          <Input data-testid="confirm-password-input" type="password" placeholder="Confirm New Password" value={passwordForm.confirm_password} onChange={(e) => setPasswordForm(p => ({...p, confirm_password: e.target.value}))} />
         </div>
       </FormModal>
 
@@ -492,8 +497,9 @@ const ProfilePage = () => {
       Get your Personal Access Token from <strong>api.monobank.ua</strong>. It allows us to sync your transactions automatically.
     </div>
     <div>
-      <label className="mb-1.5 block text-sm font-medium text-slate-200">API Token</label>
+      <label  htmlFor="api-token-input" className="mb-1.5 block text-sm font-medium text-slate-200">API Token</label>
       <Input 
+        id="api-token-input"
         placeholder="Paste your token here..." 
         value={monoToken} 
         onChange={(e) => setMonoToken(e.target.value)} 
@@ -525,6 +531,7 @@ const ProfilePage = () => {
   onSubmit={handleAddCategory}
   title="New Category"
   type="add"
+  submitLabel="Add Category"
 >
   <CategoryFormFields 
     form={categoryForm} 

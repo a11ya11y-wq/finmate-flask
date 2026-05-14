@@ -9,9 +9,11 @@ type FormModalProps = {
   type: "add" | "edit";
   children: React.ReactNode;
   isLoading?: boolean;
+  submitLabel?: string;
 };
 
-export const FormModal = ({ isOpen, onClose, onSubmit, title, type, children, isLoading }: FormModalProps) => {
+export const FormModal = ({ isOpen, onClose, onSubmit, title, type, children, isLoading, submitLabel }: FormModalProps) => {
+  const actionLabel = submitLabel ?? (type === "add" ? "Add Transaction" : "Save Changes");
   return (
     <Modal
       isOpen={isOpen}
@@ -29,7 +31,7 @@ export const FormModal = ({ isOpen, onClose, onSubmit, title, type, children, is
             onClick={onSubmit}
             disabled={isLoading}
           >
-            {type === "add" ? "Add Transaction" : "Save Changes"}
+            {actionLabel}
           </Button>
         </div>
       }

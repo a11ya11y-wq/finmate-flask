@@ -10,7 +10,7 @@ export class ConfirmDeleteModal {
 
     constructor(page: Page) {
         this.page = page;
-        this.deleteButton = page.getByRole('button', { name: /delete/i });
-        this.cancelButton = page.getByRole('button', { name: /cancel/i });
+        this.deleteButton = page.getByRole('button', { name: 'Delete', exact: true });
+        this.cancelButton = page.getByRole('button', { name: 'Cancel', exact: true });
     }
 }

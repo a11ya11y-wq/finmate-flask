@@ -141,13 +141,21 @@ test.describe('Dashboard View', () => {
 });
 
     test('User can filter transactions', async ({ page, api }) => {
-        await page.clock.setFixedTime(new Date('2026-05-11T10:00:00Z'));
+        
+        const now = new Date();
+
+        const getDaysAgo = (days: number) => {
+            const d = new Date(now);
+            d.setDate(d.getDate() - days);
+            return d.toISOString().split('T')[0]; // YYYY-MM-DD
+        };
+
         const dashboardPage = new DashboardPage(page);
         const titleYesterday = 'Filter Test Transaction yesterday';
         await api.transactions.createTransaction({
             title: titleYesterday,
             transaction_type: 'expense',
-            created_at: '2026-05-10', // Yesterday
+            created_at: getDaysAgo(1), // Yesterday
             amount: 150,
             category_id: await api.categories.getCategoryIdByName('Uncategorized'),
         });
@@ -155,7 +163,7 @@ test.describe('Dashboard View', () => {
         await api.transactions.createTransaction({
             title: title7DaysAgo,
             transaction_type: 'income',
-            created_at: '2026-05-06', // 4 days ago
+            created_at: getDaysAgo(4), // 4 days ago
             amount: 300,
             category_id: await api.categories.getCategoryIdByName('Food'),
         });
@@ -163,7 +171,7 @@ test.describe('Dashboard View', () => {
         await api.transactions.createTransaction({
             title: title8DaysAgo,
             transaction_type: 'expense',
-            created_at: '2026-05-01', // 10 days ago
+            created_at: getDaysAgo(8), // 8 days ago
             amount: 100,
             category_id: await api.categories.getCategoryIdByName('Transport'),
         });
@@ -171,7 +179,7 @@ test.describe('Dashboard View', () => {
         await api.transactions.createTransaction({
             title: title31DaysAgo,
             transaction_type: 'income',
-            created_at: '2026-04-01', // 31 days ago
+            created_at: getDaysAgo(31), // 31 days ago
             amount: 200,
             category_id: await api.categories.getCategoryIdByName('Salary'),
         });

@@ -35,7 +35,6 @@ export class DashboardPage extends BasePage {
 
         this.transactionsTable = new TransactionsTable(page);
 
-
         this.expenseByCategoryChart = new DashboardCategoryChart(page);
         
         this.balanceDynamicsChartContainer = this.page.getByTestId('dashboard-balance-dynamics');

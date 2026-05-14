@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "../../lib/utils";
 
 type ToastVariant = "info" | "success" | "warning" | "error";
@@ -73,40 +74,43 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
   return (
     <ToastContext.Provider value={value}>
       {children}
-      <div className="fixed right-6 top-32 z-40 flex w-[320px] max-w-[calc(100vw-3rem)] flex-col gap-3">
-        {toasts.map((item) => {
-          const config = variantStyles[item.variant];
-          return (
-            <div
-              key={item.id}
-              data-testid="toast-item"
-              data-variant={item.variant}
-              className={cn(
-                "relative rounded-2xl border px-4 py-3 text-slate-100 shadow-[0_20px_40px_rgba(0,0,0,0.45)] backdrop-blur",
-                config.wrapper
-              )}
-            >
-              <div className="flex items-start gap-3">
-                <span data-testid="toast-icon" className={cn("text-lg", config.iconColor)}>
-                  <i className={`bi ${config.icon}`} />
-                </span>
-                <div className="flex-1">
-                  {item.title && <p className="text-sm font-semibold text-slate-100">{item.title}</p>}
-                  <p className="text-sm text-slate-200">{item.message}</p>
+      {createPortal(
+        <div className="fixed right-6 top-36 z-[100] flex w-[320px] max-w-[calc(100vw-3rem)] flex-col gap-3">
+          {toasts.map((item) => {
+            const config = variantStyles[item.variant];
+            return (
+              <div
+                key={item.id}
+                data-testid="toast-item"
+                data-variant={item.variant}
+                className={cn(
+                  "relative rounded-2xl border px-4 py-3 text-slate-100 shadow-[0_20px_40px_rgba(0,0,0,0.45)] backdrop-blur",
+                  config.wrapper
+                )}
+              >
+                <div className="flex items-start gap-3">
+                  <span data-testid="toast-icon" className={cn("text-lg", config.iconColor)}>
+                    <i className={`bi ${config.icon}`} />
+                  </span>
+                  <div className="flex-1">
+                    {item.title && <p className="text-sm font-semibold text-slate-100">{item.title}</p>}
+                    <p className="text-sm text-slate-200">{item.message}</p>
+                  </div>
+                  <button
+                    type="button"
+                    className="text-slate-500 transition hover:text-slate-200"
+                    onClick={() => removeToast(item.id)}
+                    aria-label="Close notification"
+                  >
+                    <i className="bi bi-x-lg" />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  className="text-slate-500 transition hover:text-slate-200"
-                  onClick={() => removeToast(item.id)}
-                  aria-label="Close notification"
-                >
-                  <i className="bi bi-x-lg" />
-                </button>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>,
+        document.body
+      )}
     </ToastContext.Provider>
   );
 };
