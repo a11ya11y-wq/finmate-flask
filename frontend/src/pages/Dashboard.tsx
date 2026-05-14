@@ -25,6 +25,8 @@ import { TransactionFormFields } from "../components/ui/TransactionFormFields";
 import { ConfirmDeleteModal } from "../components/ui/ConfirmDeleteModal";
 // Імпортуємо наш новий хук валюти
 import { useCurrency } from "../hooks/useCurrency";
+import { transactionSchema } from "../validation/schemas";
+import { validateForm } from "../validation/validate";
 
 const COLORS = ["#10b981", "#3b82f6", "#f43f5e", "#f59e0b", "#8b5cf6"];
 const periodOptions = [
@@ -83,6 +85,15 @@ const DashboardPage = () => {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [editTx, setEditTx] = useState<Transaction | null>(null);
   const [deleteTx, setDeleteTx] = useState<Transaction | null>(null);
+  const [editTxSnapshot, setEditTxSnapshot] = useState<{
+    title: string;
+    amount: string;
+    transaction_type: "income" | "expense";
+    category_id: string;
+    created_at: string;
+    note: string;
+  } | null>(null);
+  const [txErrors, setTxErrors] = useState<Record<string, string>>({});
   const [taskId, setTaskId] = useState<string | null>(null);
   const [isSticky, setIsSticky] = useState(false);
   const pollRef = useRef<number | null>(null);
@@ -237,39 +248,84 @@ const DashboardPage = () => {
       created_at: "",
       note: ""
     });
+    setTxErrors({});
   };
 
   const openAddModal = () => {
     resetForm();
     setEditTx(null);
+    setEditTxSnapshot(null);
     setIsAddOpen(true);
   };
 
   const openEditModal = (tx: Transaction) => {
-    setEditTx(tx);
-    setForm({
+    const snapshot = {
       title: tx.title,
       amount: String(tx.amount),
       transaction_type: tx.transaction_type,
       category_id: String(tx.category_id),
       created_at: toDateInput(tx.created_at),
       note: tx.note ?? ""
-    });
+    };
+    setEditTx(tx);
+    setForm(snapshot);
+    setEditTxSnapshot(snapshot);
+    setTxErrors({});
     setIsEditOpen(true);
   };
 
+  const normalizeTxCompare = (value: {
+    title: string;
+    amount: string | number;
+    transaction_type: "income" | "expense";
+    category_id: string | number;
+    created_at?: string;
+    note?: string | null;
+  }) => {
+    return {
+      title: value.title.trim(),
+      amount: Number(value.amount),
+      transaction_type: value.transaction_type,
+      category_id: String(value.category_id),
+      created_at: value.created_at ? value.created_at : "",
+      note: value.note ? String(value.note).trim() : ""
+    };
+  };
+
   const submitTransaction = async () => {
+    const validation = validateForm(transactionSchema, form);
+    if (!validation.success) {
+      setTxErrors(validation.fieldErrors ?? {});
+      return;
+    }
     const payload = {
-      title: form.title,
-      amount: Number(form.amount),
-      transaction_type: form.transaction_type as "income" | "expense",
-      category_id: Number(form.category_id),
-      created_at: form.created_at ? new Date(form.created_at).toISOString() : undefined,
-      note: form.note || undefined
+      title: validation.data.title,
+      amount: validation.data.amount,
+      transaction_type: validation.data.transaction_type,
+      category_id: Number(validation.data.category_id),
+      created_at: validation.data.created_at ? new Date(validation.data.created_at).toISOString() : undefined,
+      note: validation.data.note
     };
 
     try {
+      setTxErrors({});
       if (editTx) {
+        if (editTxSnapshot) {
+          const currentComparable = normalizeTxCompare({
+            ...validation.data,
+            category_id: validation.data.category_id,
+            created_at: validation.data.created_at ?? "",
+            note: validation.data.note ?? ""
+          });
+          const snapshotComparable = normalizeTxCompare(editTxSnapshot);
+          const isDirty = Object.keys(snapshotComparable).some((key) => {
+            return snapshotComparable[key as keyof typeof snapshotComparable] !== currentComparable[key as keyof typeof currentComparable];
+          });
+          if (!isDirty) {
+            setIsEditOpen(false);
+            return;
+          }
+        }
         await updateTransaction(editTx.id, payload);
         setIsEditOpen(false);
         // ДОДАНО: Тоаст про успішне оновлення
@@ -899,6 +955,17 @@ const DashboardPage = () => {
         setForm={setForm} 
         categories={categories} 
         variant="success" 
+        errors={txErrors}
+        onFieldChange={(field) => {
+          setTxErrors((prev) => {
+            if (!prev[field]) {
+              return prev;
+            }
+            const next = { ...prev };
+            delete next[field];
+            return next;
+          });
+        }}
       />
     </FormModal>
 
@@ -915,6 +982,17 @@ const DashboardPage = () => {
     setForm={setForm} 
     categories={categories} 
     variant="primary" 
+    errors={txErrors}
+    onFieldChange={(field) => {
+      setTxErrors((prev) => {
+        if (!prev[field]) {
+          return prev;
+        }
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }}
   />
 </FormModal>
 

@@ -10,6 +10,9 @@ import { getCategories } from "../api/categories";
 import type { BudgetWithStats, Category } from "../api/types";
 import { toErrorMessage } from "../api/error";
 import { ConfirmDeleteModal } from "../components/ui/ConfirmDeleteModal";
+import { budgetSchema } from "../validation/schemas";
+import { validateForm } from "../validation/validate";
+import { cn } from "../lib/utils";
 // Імпортуємо наш новий хук валюти
 import { useCurrency } from "../hooks/useCurrency";
 
@@ -31,6 +34,7 @@ const BudgetsPage = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({ amount: "", category_id: "", is_recurring: true });
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const { toast } = useToast();
@@ -60,18 +64,76 @@ const BudgetsPage = () => {
   const handleChange = (field: keyof typeof form) =>
       (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const value = field === "is_recurring" ? (event.target as HTMLInputElement).checked : event.target.value;
+        if (field === "category_id") {
+          const selectedBudget = budgets.find((budget) => String(budget.category_id) === String(value));
+          setForm((prev) => ({
+            ...prev,
+            category_id: String(value),
+            amount: selectedBudget ? String(selectedBudget.amount) : "",
+            is_recurring: selectedBudget ? selectedBudget.is_recurring : true
+          }));
+          setErrors((prev) => {
+            if (!prev.category_id && !prev.amount) {
+              return prev;
+            }
+            const next = { ...prev };
+            delete next.category_id;
+            delete next.amount;
+            return next;
+          });
+          return;
+        }
+
         setForm((prev) => ({ ...prev, [field]: value }));
+        setErrors((prev) => {
+          if (!prev[field]) {
+            return prev;
+          }
+          const next = { ...prev };
+          delete next[field];
+          return next;
+        });
       };
+
+  const normalizeBudgetCompare = (value: { amount: number; is_recurring: boolean }) => {
+    return {
+      amount: Math.round(value.amount * 100) / 100,
+      is_recurring: value.is_recurring
+    };
+  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    const validation = validateForm(budgetSchema, form);
+    if (!validation.success) {
+      setErrors(validation.fieldErrors ?? {});
+      return;
+    }
     try {
-      const isUpdate = budgets.some((b) => Number(b.category_id) === Number(form.category_id));
+      setErrors({});
+      const selectedBudget = budgets.find((b) => Number(b.category_id) === Number(form.category_id));
+      const isUpdate = !!selectedBudget;
+      if (selectedBudget) {
+        const currentComparable = normalizeBudgetCompare({
+          amount: validation.data.amount,
+          is_recurring: validation.data.is_recurring
+        });
+        const snapshotComparable = normalizeBudgetCompare({
+          amount: Number(selectedBudget.amount),
+          is_recurring: selectedBudget.is_recurring
+        });
+        const isDirty = Object.keys(snapshotComparable).some((key) => {
+          return snapshotComparable[key as keyof typeof snapshotComparable] !== currentComparable[key as keyof typeof currentComparable];
+        });
+        if (!isDirty) {
+          return;
+        }
+      }
 
       await upsertBudget({
-        amount: Number(form.amount),
-        category_id: Number(form.category_id),
-        is_recurring: form.is_recurring
+        amount: validation.data.amount,
+        category_id: Number(validation.data.category_id),
+        is_recurring: validation.data.is_recurring
       });
 
       // Оновлюємо дані з сервера без перезавантаження
@@ -146,21 +208,26 @@ const BudgetsPage = () => {
                 <CardTitle>Create budget</CardTitle>
               </CardHeader>
               <CardContent>
-                <form className="space-y-5" onSubmit={handleSubmit}>
+                <form className="space-y-5" onSubmit={handleSubmit} noValidate>
                   <div className="space-y-1.5">
                     <label htmlFor="category-label" className="text-sm font-medium text-slate-300">Category</label>
                     <select
                         id="category-label"
-                        className={selectStyles}
+                        className={cn(
+                          selectStyles,
+                          errors.category_id && "border-rose-500/60 focus:border-rose-400/80 focus:ring-rose-500/20"
+                        )}
                         value={form.category_id}
                         onChange={handleChange("category_id")}
                         required
+                      aria-invalid={!!errors.category_id}
                     >
                       <option value="" disabled>Select category...</option>
                       {categories.map((category) => (
                           <option key={category.id} value={category.id}>{category.name}</option>
                       ))}
                     </select>
+                    {errors.category_id && <p className="text-xs text-rose-400">{errors.category_id}</p>}
                   </div>
                   <div className="space-y-1.5">
                     <label htmlFor="amount-input" className="text-sm font-medium text-slate-300">Amount</label>
@@ -171,13 +238,18 @@ const BudgetsPage = () => {
                           id="amount-input"
                           type="number"
                           step="0.01"
-                          className="pl-7"
+                          className={cn(
+                            "pl-7",
+                            errors.amount && "border-rose-500/60 focus:border-rose-400/80 focus:ring-rose-500/20"
+                          )}
                           placeholder="0.00"
                           value={form.amount}
                           onChange={handleChange("amount")}
                           required
+                          aria-invalid={!!errors.amount}
                       />
                     </div>
+                    {errors.amount && <p className="text-xs text-rose-400">{errors.amount}</p>}
                   </div>
 
                   {/* СЕКЦІЯ З ДИНАМІЧНИМ НОУТОМ */}

@@ -78,6 +78,10 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
         <div className="fixed right-6 top-36 z-[100] flex w-[320px] max-w-[calc(100vw-3rem)] flex-col gap-3">
           {toasts.map((item) => {
             const config = variantStyles[item.variant];
+            const messageLines = item.message
+              .split("\n")
+              .map((line) => line.trim())
+              .filter(Boolean);
             return (
               <div
                 key={item.id}
@@ -94,7 +98,15 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
                   </span>
                   <div className="flex-1">
                     {item.title && <p className="text-sm font-semibold text-slate-100">{item.title}</p>}
-                    <p className="text-sm text-slate-200">{item.message}</p>
+                    {messageLines.length > 1 ? (
+                      <div className="space-y-1 text-sm text-slate-200">
+                        {messageLines.map((line, index) => (
+                          <p key={`${item.id}-${index}`}>{line}</p>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-slate-200">{item.message}</p>
+                    )}
                   </div>
                   <button
                     type="button"

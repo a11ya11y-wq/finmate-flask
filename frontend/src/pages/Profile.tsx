@@ -12,9 +12,17 @@ import { createCategory, deleteCategory, getCategories, updateCategory } from ".
 import type { Category } from "../api/types";
 import { toErrorMessage } from "../api/error";
 import { useAuthStore } from "../store/authStore";
+import { cn } from "../lib/utils";
+import {
+  categorySchema,
+  monobankTokenSchema,
+  passwordChangeSchema,
+  profileSchema
+} from "../validation/schemas";
+import { validateForm } from "../validation/validate";
 
-export const ProfileFormFields = ({ draft, setDraft }: any) => {
-  const avatars = Array.from({ length: 10 }, (_, i) => 
+export const ProfileFormFields = ({ draft, setDraft, errors, onFieldChange }: any) => {
+  const avatars = Array.from({ length: 10 }, (_, i) =>
     `avatars/default/${i === 0 ? "default" : i}.svg`
   );
 
@@ -27,21 +35,35 @@ export const ProfileFormFields = ({ draft, setDraft }: any) => {
           <Input
             id="username"
             value={draft.username}
-            onChange={(e) => setDraft((prev: any) => ({ ...prev, username: e.target.value }))}
+            onChange={(e) => {
+              setDraft((prev: any) => ({ ...prev, username: e.target.value }));
+              onFieldChange?.("username");
+            }}
+            aria-invalid={!!errors?.username}
+            className={errors?.username ? "border-rose-500/60 focus:border-rose-400/80 focus:ring-rose-500/20" : undefined}
           />
+          {errors?.username && <p className="mt-1 text-xs text-rose-400">{errors.username}</p>}
         </div>
         <div>
           <label htmlFor="currency" className="mb-1.5 block text-sm font-medium text-slate-200">Preferred Currency</label>
           <select
             id="currency"
-            className={selectStyles}
+            className={cn(
+              selectStyles,
+              errors?.currency && "border-rose-500/60 focus:border-rose-400/80 focus:ring-rose-500/20"
+            )}
             value={draft.currency}
-            onChange={(e) => setDraft((prev: any) => ({ ...prev, currency: e.target.value }))}
+            onChange={(e) => {
+              setDraft((prev: any) => ({ ...prev, currency: e.target.value }));
+              onFieldChange?.("currency");
+            }}
+            aria-invalid={!!errors?.currency}
           >
             <option value="USD">USD - US Dollar</option>
             <option value="EUR">EUR - Euro</option>
             <option value="UAH">UAH - Ukrainian Hryvnia</option>
           </select>
+          {errors?.currency && <p className="mt-1 text-xs text-rose-400">{errors.currency}</p>}
         </div>
       </div>
 
@@ -55,7 +77,10 @@ export const ProfileFormFields = ({ draft, setDraft }: any) => {
               <button
                 key={path}
                 type="button"
-                onClick={() => setDraft((prev: any) => ({ ...prev, avatar: path }))}
+                onClick={() => {
+                  setDraft((prev: any) => ({ ...prev, avatar: path }));
+                  onFieldChange?.("avatar");
+                }}
                 className={`group relative flex aspect-square items-center justify-center rounded-xl border-2 transition-all ${
                   isSelected 
                     ? "border-blue-500 bg-blue-500/10 shadow-[0_0_15px_rgba(59,130,246,0.2)]" 
@@ -78,13 +103,14 @@ export const ProfileFormFields = ({ draft, setDraft }: any) => {
             );
           })}
         </div>
+        {errors?.avatar && <p className="mt-2 text-xs text-rose-400">{errors.avatar}</p>}
       </div>
     </div>
   );
 };
 
 // Поля для категорій
-export const CategoryFormFields = ({ form, setForm, icons }: any) => (
+export const CategoryFormFields = ({ form, setForm, icons, errors, onFieldChange }: any) => (
   <div data-testid="category-form" className="flex flex-col gap-4">
     <div className="grid gap-4 md:grid-cols-2">
       <div>
@@ -93,8 +119,14 @@ export const CategoryFormFields = ({ form, setForm, icons }: any) => (
           id="category-name"
           placeholder="e.g. Food"
           value={form.name}
-          onChange={(e) => setForm((prev: any) => ({ ...prev, name: e.target.value }))}
+          onChange={(e) => {
+            setForm((prev: any) => ({ ...prev, name: e.target.value }));
+            onFieldChange?.("name");
+          }}
+          aria-invalid={!!errors?.name}
+          className={errors?.name ? "border-rose-500/60 focus:border-rose-400/80 focus:ring-rose-500/20" : undefined}
         />
+        {errors?.name && <p className="mt-1 text-xs text-rose-400">{errors.name}</p>}
       </div>
       <div>
         <label htmlFor="category-mcc-code" className="mb-1.5 block text-sm font-medium text-slate-200">MCC Code</label>
@@ -102,8 +134,14 @@ export const CategoryFormFields = ({ form, setForm, icons }: any) => (
           id="category-mcc-code"
           placeholder="e.g. 5411"
           value={form.mcc_code}
-          onChange={(e) => setForm((prev: any) => ({ ...prev, mcc_code: e.target.value }))}
+          onChange={(e) => {
+            setForm((prev: any) => ({ ...prev, mcc_code: e.target.value }));
+            onFieldChange?.("mcc_code");
+          }}
+          aria-invalid={!!errors?.mcc_code}
+          className={errors?.mcc_code ? "border-rose-500/60 focus:border-rose-400/80 focus:ring-rose-500/20" : undefined}
         />
+        {errors?.mcc_code && <p className="mt-1 text-xs text-rose-400">{errors.mcc_code}</p>}
       </div>
     </div>
     <div>
@@ -118,12 +156,16 @@ export const CategoryFormFields = ({ form, setForm, icons }: any) => (
                 ? "border-blue-500/50 bg-blue-500/20 text-blue-200 shadow-[0_0_15px_rgba(59,130,246,0.1)]" 
                 : "border-white/10 bg-white/5 text-slate-400 hover:border-white/20"
             }`}
-            onClick={() => setForm((prev: any) => ({ ...prev, icon }))}
+            onClick={() => {
+              setForm((prev: any) => ({ ...prev, icon }));
+              onFieldChange?.("icon");
+            }}
           >
             <i className={`bi ${icon} text-lg`} />
           </button>
         ))}
       </div>
+      {errors?.icon && <p className="mt-1 text-xs text-rose-400">{errors.icon}</p>}
     </div>
   </div>
 );
@@ -169,6 +211,10 @@ const ProfilePage = () => {
     new_password: "",
     confirm_password: ""
   });
+  const [profileErrors, setProfileErrors] = useState<Record<string, string>>({});
+  const [passwordErrors, setPasswordErrors] = useState<Record<string, string>>({});
+  const [monoErrors, setMonoErrors] = useState<Record<string, string>>({});
+  const [categoryErrors, setCategoryErrors] = useState<Record<string, string>>({});
   const [monoToken, setMonoToken] = useState("");
   const { toast } = useToast();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -178,6 +224,7 @@ const ProfilePage = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoryForm, setCategoryForm] = useState({ name: "", mcc_code: "", icon: "bi-tag-fill" });
   const [editCategory, setEditCategory] = useState<Category | null>(null);
+  const [editCategorySnapshot, setEditCategorySnapshot] = useState<Category | null>(null);
   const [isEditCategoryOpen, setIsEditCategoryOpen] = useState(false);
   const [deleteCategoryId, setDeleteCategoryId] = useState<number | null>(null);
   const [isDeleteCategoryOpen, setIsDeleteCategoryOpen] = useState(false);
@@ -196,8 +243,31 @@ const ProfilePage = () => {
   }, [toast]);
 
   const handleProfileSubmit = async () => {
+    const validation = validateForm(profileSchema, profileDraft);
+    if (!validation.success) {
+      setProfileErrors(validation.fieldErrors ?? {});
+      return;
+    }
     try {
-      const updated = await updateProfile(profileDraft);
+      setProfileErrors({});
+      const profileComparable = {
+        username: validation.data.username.trim(),
+        currency: validation.data.currency,
+        avatar: validation.data.avatar
+      };
+      const currentComparable = {
+        username: profileForm.username.trim(),
+        currency: profileForm.currency,
+        avatar: profileForm.avatar
+      };
+      const isDirty = Object.keys(currentComparable).some((key) => {
+        return currentComparable[key as keyof typeof currentComparable] !== profileComparable[key as keyof typeof profileComparable];
+      });
+      if (!isDirty) {
+        setIsProfileOpen(false);
+        return;
+      }
+      const updated = await updateProfile(validation.data);
       setUser(updated);
       setProfileForm(updated);
       toast({ variant: "success", message: "Profile updated" });
@@ -208,8 +278,14 @@ const ProfilePage = () => {
   };
 
   const handlePasswordSubmit = async () => {
+    const validation = validateForm(passwordChangeSchema, passwordForm);
+    if (!validation.success) {
+      setPasswordErrors(validation.fieldErrors ?? {});
+      return;
+    }
     try {
-      const response = await changePassword(passwordForm);
+      setPasswordErrors({});
+      const response = await changePassword(validation.data);
       toast({ variant: "success", message: response.message });
       setPasswordForm({ old_password: "", new_password: "", confirm_password: "" });
       setIsPasswordOpen(false);
@@ -219,8 +295,14 @@ const ProfilePage = () => {
   };
 
   const handleMonobankSubmit = async () => {
+    const validation = validateForm(monobankTokenSchema, { token: monoToken });
+    if (!validation.success) {
+      setMonoErrors(validation.fieldErrors ?? {});
+      return;
+    }
     try {
-      const updated = await setMonobankToken(monoToken);
+      setMonoErrors({});
+      const updated = await setMonobankToken(validation.data.token);
       setUser(updated);
       toast({ variant: "success", message: "Monobank token saved" });
       setMonoToken("");
@@ -247,8 +329,19 @@ const ProfilePage = () => {
 };
 
  const handleAddCategory = async () => {
+  const validation = validateForm(categorySchema, categoryForm);
+  if (!validation.success) {
+    setCategoryErrors(validation.fieldErrors ?? {});
+    return;
+  }
   try {
-    const created = await createCategory(categoryForm);
+    setCategoryErrors({});
+    const created = await createCategory({
+      ...categoryForm,
+      name: validation.data.name,
+      mcc_code: validation.data.mcc_code,
+      icon: validation.data.icon ?? categoryForm.icon
+    });
     setCategories((prev) => [created, ...prev]);
     setCategoryForm({ name: "", mcc_code: "", icon: "bi-tag-fill" });
     setIsAddCategoryOpen(false); // ДОДАНО: закриваємо модалку
@@ -262,15 +355,42 @@ const ProfilePage = () => {
     if (!editCategory) {
       return;
     }
+    const validation = validateForm(categorySchema, editCategory);
+    if (!validation.success) {
+      setCategoryErrors(validation.fieldErrors ?? {});
+      return;
+    }
     try {
+      setCategoryErrors({});
+      if (editCategorySnapshot) {
+        const currentComparable = {
+          name: validation.data.name.trim(),
+          mcc_code: validation.data.mcc_code ?? "",
+          icon: validation.data.icon ?? editCategory.icon
+        };
+        const snapshotComparable = {
+          name: editCategorySnapshot.name.trim(),
+          mcc_code: editCategorySnapshot.mcc_code ?? "",
+          icon: editCategorySnapshot.icon
+        };
+        const isDirty = Object.keys(snapshotComparable).some((key) => {
+          return snapshotComparable[key as keyof typeof snapshotComparable] !== currentComparable[key as keyof typeof currentComparable];
+        });
+        if (!isDirty) {
+          setIsEditCategoryOpen(false);
+          setEditCategory(null);
+          return;
+        }
+      }
       const updated = await updateCategory(editCategory.id, {
-        name: editCategory.name,
-        mcc_code: editCategory.mcc_code ?? "",
-        icon: editCategory.icon
+        name: validation.data.name,
+        mcc_code: validation.data.mcc_code ?? "",
+        icon: validation.data.icon ?? editCategory.icon
       });
       setCategories((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
       setIsEditCategoryOpen(false);
       setEditCategory(null);
+      setEditCategorySnapshot(null);
       
       // ДОДАНО: Повідомлення про успішне редагування
       toast({ variant: "success", message: "Category updated successfully!" });
@@ -384,6 +504,7 @@ const ProfilePage = () => {
   size="sm" 
   onClick={() => {
     setCategoryForm({ name: "", mcc_code: "", icon: "bi-tag-fill" });
+    setCategoryErrors({});
     setIsAddCategoryOpen(true); // Тепер вона відкриває модалку
   }}
 >
@@ -405,7 +526,7 @@ const ProfilePage = () => {
                      </div>
                    </div>
                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                     <button onClick={() => { setEditCategory(cat); setIsEditCategoryOpen(true); }} data-testid="edit-category-button" className="h-8 w-8 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors">
+                     <button onClick={() => { setEditCategory(cat); setEditCategorySnapshot(cat); setCategoryErrors({}); setIsEditCategoryOpen(true); }} data-testid="edit-category-button" className="h-8 w-8 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors">
                        <i className="bi bi-pencil-fill text-xs" />
                      </button>
                      <button onClick={() => { setDeleteCategoryId(cat.id); setIsDeleteCategoryOpen(true); }} data-testid="delete-category-button" className="h-8 w-8 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-colors">
@@ -441,7 +562,21 @@ const ProfilePage = () => {
         title="Edit Profile"
         type="edit"
       >
-        <ProfileFormFields draft={profileDraft} setDraft={setProfileDraft} />
+        <ProfileFormFields
+          draft={profileDraft}
+          setDraft={setProfileDraft}
+          errors={profileErrors}
+          onFieldChange={(field: string) => {
+            setProfileErrors((prev) => {
+              if (!prev[field]) {
+                return prev;
+              }
+              const next = { ...prev };
+              delete next[field];
+              return next;
+            });
+          }}
+        />
       </FormModal>
 
       <FormModal
@@ -452,9 +587,72 @@ const ProfilePage = () => {
         type="edit"
       >
         <div data-testid="password-form" className="flex flex-col gap-4">
-          <Input data-testid="current-password-input" type="password" placeholder="Current Password" value={passwordForm.old_password} onChange={(e) => setPasswordForm(p => ({...p, old_password: e.target.value}))} />
-          <Input data-testid="new-password-input" type="password" placeholder="New Password" value={passwordForm.new_password} onChange={(e) => setPasswordForm(p => ({...p, new_password: e.target.value}))} />
-          <Input data-testid="confirm-password-input" type="password" placeholder="Confirm New Password" value={passwordForm.confirm_password} onChange={(e) => setPasswordForm(p => ({...p, confirm_password: e.target.value}))} />
+          <div>
+            <Input
+              data-testid="current-password-input"
+              type="password"
+              placeholder="Current Password"
+              value={passwordForm.old_password}
+              onChange={(e) => {
+                setPasswordForm((p) => ({ ...p, old_password: e.target.value }));
+                setPasswordErrors((prev) => {
+                  if (!prev.old_password) {
+                    return prev;
+                  }
+                  const next = { ...prev };
+                  delete next.old_password;
+                  return next;
+                });
+              }}
+              aria-invalid={!!passwordErrors.old_password}
+              className={passwordErrors.old_password ? "border-rose-500/60 focus:border-rose-400/80 focus:ring-rose-500/20" : undefined}
+            />
+            {passwordErrors.old_password && <p className="mt-1 text-xs text-rose-400">{passwordErrors.old_password}</p>}
+          </div>
+          <div>
+            <Input
+              data-testid="new-password-input"
+              type="password"
+              placeholder="New Password"
+              value={passwordForm.new_password}
+              onChange={(e) => {
+                setPasswordForm((p) => ({ ...p, new_password: e.target.value }));
+                setPasswordErrors((prev) => {
+                  if (!prev.new_password) {
+                    return prev;
+                  }
+                  const next = { ...prev };
+                  delete next.new_password;
+                  return next;
+                });
+              }}
+              aria-invalid={!!passwordErrors.new_password}
+              className={passwordErrors.new_password ? "border-rose-500/60 focus:border-rose-400/80 focus:ring-rose-500/20" : undefined}
+            />
+            {passwordErrors.new_password && <p className="mt-1 text-xs text-rose-400">{passwordErrors.new_password}</p>}
+          </div>
+          <div>
+            <Input
+              data-testid="confirm-password-input"
+              type="password"
+              placeholder="Confirm New Password"
+              value={passwordForm.confirm_password}
+              onChange={(e) => {
+                setPasswordForm((p) => ({ ...p, confirm_password: e.target.value }));
+                setPasswordErrors((prev) => {
+                  if (!prev.confirm_password) {
+                    return prev;
+                  }
+                  const next = { ...prev };
+                  delete next.confirm_password;
+                  return next;
+                });
+              }}
+              aria-invalid={!!passwordErrors.confirm_password}
+              className={passwordErrors.confirm_password ? "border-rose-500/60 focus:border-rose-400/80 focus:ring-rose-500/20" : undefined}
+            />
+            {passwordErrors.confirm_password && <p className="mt-1 text-xs text-rose-400">{passwordErrors.confirm_password}</p>}
+          </div>
         </div>
       </FormModal>
 
@@ -465,7 +663,24 @@ const ProfilePage = () => {
         title="Edit Category"
         type="edit"
       >
-        {editCategory && <CategoryFormFields form={editCategory} setForm={setEditCategory} icons={iconOptions} />}
+        {editCategory && (
+          <CategoryFormFields
+            form={editCategory}
+            setForm={setEditCategory}
+            icons={iconOptions}
+            errors={categoryErrors}
+            onFieldChange={(field: string) => {
+              setCategoryErrors((prev) => {
+                if (!prev[field]) {
+                  return prev;
+                }
+                const next = { ...prev };
+                delete next[field];
+                return next;
+              });
+            }}
+          />
+        )}
       </FormModal>
 
       <ConfirmDeleteModal
@@ -502,8 +717,21 @@ const ProfilePage = () => {
         id="api-token-input"
         placeholder="Paste your token here..." 
         value={monoToken} 
-        onChange={(e) => setMonoToken(e.target.value)} 
+        onChange={(e) => {
+          setMonoToken(e.target.value);
+          setMonoErrors((prev) => {
+            if (!prev.token) {
+              return prev;
+            }
+            const next = { ...prev };
+            delete next.token;
+            return next;
+          });
+        }} 
+        aria-invalid={!!monoErrors.token}
+        className={monoErrors.token ? "border-rose-500/60 focus:border-rose-400/80 focus:ring-rose-500/20" : undefined}
       />
+      {monoErrors.token && <p className="mt-1 text-xs text-rose-400">{monoErrors.token}</p>}
     </div>
     {user?.monobank_token_is_set && (
     <button 
@@ -537,6 +765,17 @@ const ProfilePage = () => {
     form={categoryForm} 
     setForm={setCategoryForm} 
     icons={iconOptions} 
+    errors={categoryErrors}
+    onFieldChange={(field: string) => {
+      setCategoryErrors((prev) => {
+        if (!prev[field]) {
+          return prev;
+        }
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }}
   />
 </FormModal>
     </AppShell>
