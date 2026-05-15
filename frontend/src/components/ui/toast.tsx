@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "../../lib/utils";
 
@@ -68,6 +68,19 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
     },
     [removeToast]
   );
+
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<{ message?: string }>).detail;
+      if (!detail?.message) {
+        return;
+      }
+      toast({ variant: "warning", message: detail.message });
+    };
+
+    window.addEventListener("auth:logout", handler);
+    return () => window.removeEventListener("auth:logout", handler);
+  }, [toast]);
 
   const value = useMemo(() => ({ toast }), [toast]);
 
