@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import AppShell from "../components/layout/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
-import Modal from "../components/ui/modal";
 import { getDashboard, getDashboardHistory } from "../api/dashboard";
 import { createTransaction, deleteTransaction, updateTransaction } from "../api/transactions";
 import { getCategories } from "../api/categories";
@@ -26,6 +25,8 @@ import { TransactionFormFields } from "../components/ui/TransactionFormFields";
 import { ConfirmDeleteModal } from "../components/ui/ConfirmDeleteModal";
 // Імпортуємо наш новий хук валюти
 import { useCurrency } from "../hooks/useCurrency";
+import { transactionSchema } from "../validation/schemas";
+import { validateForm } from "../validation/validate";
 
 const COLORS = ["#10b981", "#3b82f6", "#f43f5e", "#f59e0b", "#8b5cf6"];
 const periodOptions = [
@@ -84,6 +85,15 @@ const DashboardPage = () => {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [editTx, setEditTx] = useState<Transaction | null>(null);
   const [deleteTx, setDeleteTx] = useState<Transaction | null>(null);
+  const [editTxSnapshot, setEditTxSnapshot] = useState<{
+    title: string;
+    amount: string;
+    transaction_type: "income" | "expense";
+    category_id: string;
+    created_at: string;
+    note: string;
+  } | null>(null);
+  const [txErrors, setTxErrors] = useState<Record<string, string>>({});
   const [taskId, setTaskId] = useState<string | null>(null);
   const [isSticky, setIsSticky] = useState(false);
   const pollRef = useRef<number | null>(null);
@@ -150,23 +160,34 @@ const DashboardPage = () => {
     pollRef.current = window.setInterval(async () => {
       try {
         const result = await getSyncTask(taskId);
+
+        // Якщо таска вже не в черзі (SUCCESS або FAILURE)
         if (result.status !== "PENDING") {
           if (pollRef.current) {
             window.clearInterval(pollRef.current);
           }
           setTaskId(null);
+
+          // Визначаємо текст повідомлення (підтримка і рядка, і об'єкта з меседжем)
+          const rawResult = result.result;
+          const extractedMessage = typeof rawResult === 'object' && rawResult?.message
+            ? rawResult.message
+            : (typeof rawResult === 'string' ? rawResult : null);
+
           if (result.status === "SUCCESS") {
             toast({
               variant: "success",
-              message: result.result?.message ?? "Sync completed"
+              message: extractedMessage ?? "Sync completed successfully"
             });
 
+            // Оновлюємо дані на дашборді
             void loadDashboard(period);
             void loadHistory(period, page);
           } else {
+            // Обробка FAILURE або інших статусів
             toast({
               variant: "error",
-              message: result.result?.message ?? `Sync ${result.status.toLowerCase()}`
+              message: extractedMessage ?? `Sync ${result.status.toLowerCase()}`
             });
           }
         }
@@ -175,7 +196,10 @@ const DashboardPage = () => {
           window.clearInterval(pollRef.current);
         }
         setTaskId(null);
-        toast({ variant: "error", message: toErrorMessage(err) });
+        toast({ 
+          variant: "error", 
+          message: toErrorMessage(err) 
+        });
       }
     }, 2000);
 
@@ -184,8 +208,7 @@ const DashboardPage = () => {
         window.clearInterval(pollRef.current);
       }
     };
-  }, [taskId]);
-
+  }, [taskId, period, page]); // Додав залежності, щоб loadDashboard мав актуальні дані
   useEffect(() => {
     const handleScroll = () => {
       setIsSticky(window.scrollY > 8);
@@ -225,39 +248,84 @@ const DashboardPage = () => {
       created_at: "",
       note: ""
     });
+    setTxErrors({});
   };
 
   const openAddModal = () => {
     resetForm();
     setEditTx(null);
+    setEditTxSnapshot(null);
     setIsAddOpen(true);
   };
 
   const openEditModal = (tx: Transaction) => {
-    setEditTx(tx);
-    setForm({
+    const snapshot = {
       title: tx.title,
       amount: String(tx.amount),
       transaction_type: tx.transaction_type,
       category_id: String(tx.category_id),
       created_at: toDateInput(tx.created_at),
       note: tx.note ?? ""
-    });
+    };
+    setEditTx(tx);
+    setForm(snapshot);
+    setEditTxSnapshot(snapshot);
+    setTxErrors({});
     setIsEditOpen(true);
   };
 
+  const normalizeTxCompare = (value: {
+    title: string;
+    amount: string | number;
+    transaction_type: "income" | "expense";
+    category_id: string | number;
+    created_at?: string;
+    note?: string | null;
+  }) => {
+    return {
+      title: value.title.trim(),
+      amount: Number(value.amount),
+      transaction_type: value.transaction_type,
+      category_id: String(value.category_id),
+      created_at: value.created_at ? value.created_at : "",
+      note: value.note ? String(value.note).trim() : ""
+    };
+  };
+
   const submitTransaction = async () => {
+    const validation = validateForm(transactionSchema, form);
+    if (!validation.success) {
+      setTxErrors(validation.fieldErrors ?? {});
+      return;
+    }
     const payload = {
-      title: form.title,
-      amount: Number(form.amount),
-      transaction_type: form.transaction_type as "income" | "expense",
-      category_id: Number(form.category_id),
-      created_at: form.created_at || undefined,
-      note: form.note || undefined
+      title: validation.data.title,
+      amount: validation.data.amount,
+      transaction_type: validation.data.transaction_type,
+      category_id: Number(validation.data.category_id),
+      created_at: validation.data.created_at ? new Date(validation.data.created_at).toISOString() : undefined,
+      note: validation.data.note
     };
 
     try {
+      setTxErrors({});
       if (editTx) {
+        if (editTxSnapshot) {
+          const currentComparable = normalizeTxCompare({
+            ...validation.data,
+            category_id: validation.data.category_id,
+            created_at: validation.data.created_at ?? "",
+            note: validation.data.note ?? ""
+          });
+          const snapshotComparable = normalizeTxCompare(editTxSnapshot);
+          const isDirty = Object.keys(snapshotComparable).some((key) => {
+            return snapshotComparable[key as keyof typeof snapshotComparable] !== currentComparable[key as keyof typeof currentComparable];
+          });
+          if (!isDirty) {
+            setIsEditOpen(false);
+            return;
+          }
+        }
         await updateTransaction(editTx.id, payload);
         setIsEditOpen(false);
         // ДОДАНО: Тоаст про успішне оновлення
@@ -342,13 +410,15 @@ const DashboardPage = () => {
     }
   }, [history.length, tableLoading, toast]);
 
+  const unusedVariable = 123;
+
   return (
     <AppShell>
       <div className="space-y-6">
         <div className="sticky top-4 z-30 mb-8 flex w-full justify-center">
 
           {/* Сам хедер, який динамічно змінює ширину */}
-          <div
+          <div data-testid="dashboard-toolbar"
               className={`flex w-full flex-col gap-4 rounded-2xl border px-6 py-4 transition-all duration-500 lg:flex-row lg:items-center lg:justify-between ${
                   isSticky
                       ? "max-w-[95%] lg:max-w-5xl border-blue-500/70 bg-[#0b0f17]/95 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.7)] backdrop-blur-xl"
@@ -368,7 +438,7 @@ const DashboardPage = () => {
             </div>
 
             {/* Права частина: Перемикачі та Кнопки */}
-            <div className="flex flex-wrap items-center gap-3">
+            <div data-testid="dashboard-toolbar-actions" className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-1 backdrop-blur-sm">
                 {periodOptions.map((option) => (
                     <button
@@ -413,11 +483,11 @@ const DashboardPage = () => {
 
          {data && (
            <>
-            <div className="grid gap-4 md:grid-cols-3">
-              <Card className="surface-card border-emerald-500/40 border-t-2 bg-gradient-to-br from-[#0c1913] via-[#0a120e] to-[#0a120e] shadow-[inset_0_1px_0_rgba(16,185,129,0.35),inset_20px_20px_60px_rgba(16,185,129,0.08)] transition hover:-translate-y-1 hover:shadow-[inset_0_1px_0_rgba(16,185,129,0.45),inset_20px_20px_60px_rgba(16,185,129,0.12),0_18px_50px_rgba(16,185,129,0.25)]">
+            <div data-testid="dashboard-stats-cards" className="grid gap-4 md:grid-cols-3">
+              <Card data-testid="dashboard-total-income" className="surface-card border-emerald-500/40 border-t-2 bg-gradient-to-br from-[#0c1913] via-[#0a120e] to-[#0a120e] shadow-[inset_0_1px_0_rgba(16,185,129,0.35),inset_20px_20px_60px_rgba(16,185,129,0.08)] transition hover:-translate-y-1 hover:shadow-[inset_0_1px_0_rgba(16,185,129,0.45),inset_20px_20px_60px_rgba(16,185,129,0.12),0_18px_50px_rgba(16,185,129,0.25)]">
                 <CardHeader>
                   <CardTitle>
-                    <span className="flex items-center gap-2 text-emerald-100/80">
+                    <span data-testid="dashboard-total-income-title" className="flex items-center gap-2 text-emerald-100/80">
                       <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/30 text-emerald-100">
                         <i className="bi bi-arrow-down" />
                       </span>
@@ -427,17 +497,17 @@ const DashboardPage = () => {
                 </CardHeader>
                 <CardContent>
                   {/* ВИКОРИСТАНО formatWithSymbol */}
-                  <p className="text-3xl font-black text-emerald-500">{formatWithSymbol(data.stats.current_income)}</p>
-                  <span className="mt-3 inline-flex items-center gap-2 rounded-md bg-black/40 px-2.5 py-1 text-xs font-semibold text-emerald-400">
+                  <p data-testid="dashboard-total-income-amount" className="text-3xl font-black text-emerald-500">{formatWithSymbol(data.stats.current_income)}</p>
+                  <span data-testid="dashboard-total-income-change" className="mt-3 inline-flex items-center gap-2 rounded-md bg-black/40 px-2.5 py-1 text-xs font-semibold text-emerald-400">
                     <i className="bi bi-arrow-up" />
                     {data.stats.income_percentage_change}%
                   </span>
                 </CardContent>
               </Card>
-              <Card className="surface-card border-rose-500/40 border-t-2 bg-gradient-to-br from-[#1a0d0f] via-[#120a0a] to-[#120a0a] shadow-[inset_0_1px_0_rgba(244,63,94,0.35),inset_20px_20px_60px_rgba(244,63,94,0.08)] transition hover:-translate-y-1 hover:shadow-[inset_0_1px_0_rgba(244,63,94,0.45),inset_20px_20px_60px_rgba(244,63,94,0.12),0_18px_50px_rgba(244,63,94,0.25)]">
+              <Card data-testid="dashboard-total-expense" className="surface-card border-rose-500/40 border-t-2 bg-gradient-to-br from-[#1a0d0f] via-[#120a0a] to-[#120a0a] shadow-[inset_0_1px_0_rgba(244,63,94,0.35),inset_20px_20px_60px_rgba(244,63,94,0.08)] transition hover:-translate-y-1 hover:shadow-[inset_0_1px_0_rgba(244,63,94,0.45),inset_20px_20px_60px_rgba(244,63,94,0.12),0_18px_50px_rgba(244,63,94,0.25)]">
                 <CardHeader>
                   <CardTitle>
-                    <span className="flex items-center gap-2 text-rose-100/80">
+                    <span data-testid="dashboard-total-expense-title" className="flex items-center gap-2 text-rose-100/80">
                       <span className="flex h-8 w-8 items-center justify-center rounded-full bg-rose-500/30 text-rose-100">
                         <i className="bi bi-arrow-up" />
                       </span>
@@ -447,20 +517,20 @@ const DashboardPage = () => {
                 </CardHeader>
                 <CardContent>
                   {/* ВИКОРИСТАНО formatWithSymbol */}
-                  <p className="text-3xl font-black text-rose-500">{formatWithSymbol(data.stats.current_expense)}</p>
-                  <span className="mt-3 inline-flex items-center gap-2 rounded-md bg-black/40 px-2.5 py-1 text-xs font-semibold text-rose-400">
+                  <p data-testid="dashboard-total-expense-amount" className="text-3xl font-black text-rose-500">{formatWithSymbol(data.stats.current_expense)}</p>
+                  <span data-testid="dashboard-total-expense-change" className="mt-3 inline-flex items-center gap-2 rounded-md bg-black/40 px-2.5 py-1 text-xs font-semibold text-rose-400">
                     <i className="bi bi-arrow-down" />
                     {data.stats.expense_percentage_change}%
                   </span>
                 </CardContent>
               </Card>
-              <Card className="surface-card border-blue-500/40 border-t-2 bg-gradient-to-br from-[#0b121a] via-[#0a0d12] to-[#0a0d12] shadow-[inset_0_1px_0_rgba(59,130,246,0.35),inset_20px_20px_60px_rgba(59,130,246,0.08)] transition hover:-translate-y-1 hover:shadow-[inset_0_1px_0_rgba(59,130,246,0.45),inset_20px_20px_60px_rgba(59,130,246,0.12),0_18px_50px_rgba(59,130,246,0.25)]">
+              <Card data-testid="dashboard-current-balance" className="surface-card border-blue-500/40 border-t-2 bg-gradient-to-br from-[#0b121a] via-[#0a0d12] to-[#0a0d12] shadow-[inset_0_1px_0_rgba(59,130,246,0.35),inset_20px_20px_60px_rgba(59,130,246,0.08)] transition hover:-translate-y-1 hover:shadow-[inset_0_1px_0_rgba(59,130,246,0.45),inset_20px_20px_60px_rgba(59,130,246,0.12),0_18px_50px_rgba(59,130,246,0.25)]">
                 <CardHeader>
                   <CardTitle>
-                    <span className="flex items-center gap-2 text-blue-100/80">
+                    <span data-testid="dashboard-current-balance-title" className="flex items-center gap-2 text-blue-100/80">
                       <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-500/30 text-blue-100">
                         <i className="bi bi-wallet2" />
-                      </span>
+                      </span> 
                       Current Balance
                     </span>
                   </CardTitle>
@@ -468,12 +538,12 @@ const DashboardPage = () => {
                 <CardContent>
                     {/* Сума тепер стає червоною, якщо баланс від'ємний */}
                     {/* ВИКОРИСТАНО formatWithSymbol */}
-                    <p className={`text-3xl font-black ${data.stats.current_balance < 0 ? 'text-rose-500' : 'text-blue-200'}`}>
+                    <p data-testid="dashboard-current-balance-amount" className={`text-3xl font-black ${data.stats.current_balance < 0 ? 'text-rose-500' : 'text-blue-200'}`}>
                       {formatWithSymbol(data.stats.current_balance)}
                     </p>
 
                     {/* Динамічний статус-бейдж */}
-                    <span className={`mt-3 inline-flex items-center gap-2 rounded-md bg-black/40 px-2.5 py-1 text-xs font-semibold ${
+                    <span data-testid="dashboard-current-balance-status" className={`mt-3 inline-flex items-center gap-2 rounded-md bg-black/40 px-2.5 py-1 text-xs font-semibold ${
                       data.stats.current_balance < 0 ? 'text-rose-400' : 'text-emerald-400'
                     }`}>
                       <i className={`bi ${data.stats.current_balance < 0 ? 'bi-exclamation-triangle-fill' : 'bi-shield-check'}`} />
@@ -483,7 +553,7 @@ const DashboardPage = () => {
               </Card>
             </div>
             <div className="grid gap-4 lg:grid-cols-3">
-              <Card className="surface-card transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/20 hover:shadow-[0_10px_40px_rgba(0,0,0,0.3)]">
+              <Card data-testid="dashboard-expenses-by-category" className="surface-card transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/20 hover:shadow-[0_10px_40px_rgba(0,0,0,0.3)]">
                 <CardHeader className="pb-2">
                   <CardTitle className="flex items-center gap-2">
                     <i className="bi bi-pie-chart-fill text-indigo-500" />
@@ -619,7 +689,7 @@ const DashboardPage = () => {
                           {/* ЛЕГЕНДА: автоматично заповнить залишок місця */}
                           <div className="flex-1 overflow-y-auto pl-6 pr-3 mr-4 custom-scrollbar">
                             {/* ... ТУТ ЗАЛИШАЄТЬСЯ ТВОЯ ЛЕГЕНДА БЕЗ ЗМІН ... */}
-                            <ul className="mx-auto flex w-[85%] flex-col gap-3">
+                            <ul data-testid="expense-by-category-legend" className="mx-auto flex w-[85%] flex-col gap-3">
                               {expenseChartData.map((entry, index) => {
                                 const color = COLORS[index % COLORS.length];
                                 const isHidden = hiddenCategories.includes(entry.name);
@@ -669,7 +739,7 @@ const DashboardPage = () => {
                   })()}
                 </CardContent>
               </Card>
-              <Card className="surface-card lg:col-span-2 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/20 hover:shadow-[0_10px_40px_rgba(0,0,0,0.3)]">
+              <Card data-testid="dashboard-balance-dynamics" className="surface-card lg:col-span-2 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/20 hover:shadow-[0_10px_40px_rgba(0,0,0,0.3)]">
                 <CardHeader className="pb-2">
                   <CardTitle className="flex items-center gap-2">
                     {/* Додали зелену іконку графіка */}
@@ -754,7 +824,7 @@ const DashboardPage = () => {
                 </CardContent>
               </Card>
             </div>
-            <Card className="surface-card">
+            <Card data-testid="transactions-table" className="surface-card">
               <CardHeader>
                 <CardTitle>Transactions</CardTitle>
               </CardHeader>
@@ -779,6 +849,7 @@ const DashboardPage = () => {
                     return (
                         <div
                             key={tx.id}
+                            data-testid="transaction-row"
                             // Використовуємо inset тіні для ідеально рівних смужок по краях, які не ламають заокруглення
                             className="group relative flex flex-wrap items-center justify-between rounded-xl border border-white/5 bg-[#0f172a]/40 p-4 transition-all duration-300 hover:-translate-y-[1px] hover:border-blue-500/50 hover:bg-[#121a2b] hover:shadow-[inset_3px_0_0_#3b82f6,inset_-3px_0_0_#3b82f6,0_8px_20px_rgba(0,0,0,0.3)]"
                         >
@@ -847,7 +918,7 @@ const DashboardPage = () => {
                 </div>
 
                 {/* Пагінація (залишається як була) */}
-                <div className="mt-6 flex items-center justify-between text-sm text-slate-400">
+                <div data-testid="transactions-table-pagination" className="mt-6 flex items-center justify-between text-sm text-slate-400">
       <span>
         Page {page} of {totalPages}
       </span>
@@ -872,19 +943,31 @@ const DashboardPage = () => {
       </div>
 
       <FormModal
-  type="add"
-  isOpen={isAddOpen}
-  onClose={() => setIsAddOpen(false)}
-  onSubmit={submitTransaction}
-  title="Add New Transaction"
->
-  <TransactionFormFields 
-    form={form} 
-    setForm={setForm} 
-    categories={categories} 
-    variant="success" 
-  />
-</FormModal>
+        type="add"
+        isOpen={isAddOpen}
+        onClose={() => setIsAddOpen(false)}
+        onSubmit={submitTransaction}
+        title="Add New Transaction"
+        data-testid="add-transaction-modal"
+      >
+      <TransactionFormFields 
+        form={form} 
+        setForm={setForm} 
+        categories={categories} 
+        variant="success" 
+        errors={txErrors}
+        onFieldChange={(field) => {
+          setTxErrors((prev) => {
+            if (!prev[field]) {
+              return prev;
+            }
+            const next = { ...prev };
+            delete next[field];
+            return next;
+          });
+        }}
+      />
+    </FormModal>
 
 
 <FormModal
@@ -899,6 +982,17 @@ const DashboardPage = () => {
     setForm={setForm} 
     categories={categories} 
     variant="primary" 
+    errors={txErrors}
+    onFieldChange={(field) => {
+      setTxErrors((prev) => {
+        if (!prev[field]) {
+          return prev;
+        }
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }}
   />
 </FormModal>
 

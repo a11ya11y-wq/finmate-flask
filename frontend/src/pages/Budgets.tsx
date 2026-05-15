@@ -10,6 +10,9 @@ import { getCategories } from "../api/categories";
 import type { BudgetWithStats, Category } from "../api/types";
 import { toErrorMessage } from "../api/error";
 import { ConfirmDeleteModal } from "../components/ui/ConfirmDeleteModal";
+import { budgetSchema } from "../validation/schemas";
+import { validateForm } from "../validation/validate";
+import { cn } from "../lib/utils";
 // Імпортуємо наш новий хук валюти
 import { useCurrency } from "../hooks/useCurrency";
 
@@ -31,6 +34,7 @@ const BudgetsPage = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({ amount: "", category_id: "", is_recurring: true });
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const { toast } = useToast();
@@ -60,18 +64,76 @@ const BudgetsPage = () => {
   const handleChange = (field: keyof typeof form) =>
       (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const value = field === "is_recurring" ? (event.target as HTMLInputElement).checked : event.target.value;
+        if (field === "category_id") {
+          const selectedBudget = budgets.find((budget) => String(budget.category_id) === String(value));
+          setForm((prev) => ({
+            ...prev,
+            category_id: String(value),
+            amount: selectedBudget ? String(selectedBudget.amount) : "",
+            is_recurring: selectedBudget ? selectedBudget.is_recurring : true
+          }));
+          setErrors((prev) => {
+            if (!prev.category_id && !prev.amount) {
+              return prev;
+            }
+            const next = { ...prev };
+            delete next.category_id;
+            delete next.amount;
+            return next;
+          });
+          return;
+        }
+
         setForm((prev) => ({ ...prev, [field]: value }));
+        setErrors((prev) => {
+          if (!prev[field]) {
+            return prev;
+          }
+          const next = { ...prev };
+          delete next[field];
+          return next;
+        });
       };
+
+  const normalizeBudgetCompare = (value: { amount: number; is_recurring: boolean }) => {
+    return {
+      amount: Math.round(value.amount * 100) / 100,
+      is_recurring: value.is_recurring
+    };
+  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    const validation = validateForm(budgetSchema, form);
+    if (!validation.success) {
+      setErrors(validation.fieldErrors ?? {});
+      return;
+    }
     try {
-      const isUpdate = budgets.some((b) => Number(b.category_id) === Number(form.category_id));
+      setErrors({});
+      const selectedBudget = budgets.find((b) => Number(b.category_id) === Number(form.category_id));
+      const isUpdate = !!selectedBudget;
+      if (selectedBudget) {
+        const currentComparable = normalizeBudgetCompare({
+          amount: validation.data.amount,
+          is_recurring: validation.data.is_recurring
+        });
+        const snapshotComparable = normalizeBudgetCompare({
+          amount: Number(selectedBudget.amount),
+          is_recurring: selectedBudget.is_recurring
+        });
+        const isDirty = Object.keys(snapshotComparable).some((key) => {
+          return snapshotComparable[key as keyof typeof snapshotComparable] !== currentComparable[key as keyof typeof currentComparable];
+        });
+        if (!isDirty) {
+          return;
+        }
+      }
 
       await upsertBudget({
-        amount: Number(form.amount),
-        category_id: Number(form.category_id),
-        is_recurring: form.is_recurring
+        amount: validation.data.amount,
+        category_id: Number(validation.data.category_id),
+        is_recurring: validation.data.is_recurring
       });
 
       // Оновлюємо дані з сервера без перезавантаження
@@ -122,7 +184,7 @@ const BudgetsPage = () => {
 
           {/* Шкала ліміту бюджетів */}
           <Card className="surface-card">
-            <CardContent className="pt-6">
+            <CardContent data-testid="budgets-limit-container" className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-slate-400">Budget limit</p>
@@ -141,47 +203,58 @@ const BudgetsPage = () => {
 
           <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
             {/* ФОРМА */}
-            <Card className="surface-card h-fit sticky top-24">
+            <Card data-testid="budgets-form-container" className="surface-card h-fit sticky top-24">
               <CardHeader>
                 <CardTitle>Create budget</CardTitle>
               </CardHeader>
               <CardContent>
-                <form className="space-y-5" onSubmit={handleSubmit}>
+                <form className="space-y-5" onSubmit={handleSubmit} noValidate>
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-slate-300">Category</label>
+                    <label htmlFor="category-label" className="text-sm font-medium text-slate-300">Category</label>
                     <select
-                        className={selectStyles}
+                        id="category-label"
+                        className={cn(
+                          selectStyles,
+                          errors.category_id && "border-rose-500/60 focus:border-rose-400/80 focus:ring-rose-500/20"
+                        )}
                         value={form.category_id}
                         onChange={handleChange("category_id")}
-                        required
+                      aria-invalid={!!errors.category_id}
                     >
                       <option value="" disabled>Select category...</option>
                       {categories.map((category) => (
                           <option key={category.id} value={category.id}>{category.name}</option>
                       ))}
                     </select>
+                    {errors.category_id && <p data-testid="category-id-error" className="text-xs text-rose-400">{errors.category_id}</p>}
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-slate-300">Amount</label>
+                    <label htmlFor="amount-input" className="text-sm font-medium text-slate-300">Amount</label>
                     <div className="relative">
                       {/* ВИКОРИСТАНО currencySymbol */}
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">{currencySymbol}</span>
                       <Input
+                          id="amount-input"
                           type="number"
                           step="0.01"
-                          className="pl-7"
+                          className={cn(
+                            "pl-7",
+                            errors.amount && "border-rose-500/60 focus:border-rose-400/80 focus:ring-rose-500/20"
+                          )}
                           placeholder="0.00"
                           value={form.amount}
                           onChange={handleChange("amount")}
-                          required
+                          aria-invalid={!!errors.amount}
                       />
                     </div>
+                    {errors.amount && <p data-testid="amount-error" className="text-xs text-rose-400">{errors.amount}</p>}
                   </div>
 
                   {/* СЕКЦІЯ З ДИНАМІЧНИМ НОУТОМ */}
                   <div className="space-y-3">
-                    <label className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/5 p-3 cursor-pointer transition-colors hover:bg-white/10">
+                    <label htmlFor="recurring-checkbox" className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/5 p-3 cursor-pointer transition-colors hover:bg-white/10">
                       <input
+                          id="recurring-checkbox"
                           type="checkbox"
                           className="h-4 w-4 rounded border-white/10 bg-black/50 accent-blue-500"
                           checked={form.is_recurring}
@@ -232,7 +305,11 @@ const BudgetsPage = () => {
                 const isOverBudget = Number(budget.remaining) < 0;
 
                 return (
-                    <Card key={budget.id} className="surface-card hover:-translate-y-1 transition-all duration-300">
+                    <Card
+                      key={budget.id}
+                      data-testid="budget-card"
+                      className="surface-card hover:-translate-y-1 transition-all duration-300"
+                    >
                       <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
                         <CardTitle className="text-lg">{budget.category_name}</CardTitle>
                         <span className={`inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wider ${budget.is_recurring ? 'bg-blue-500/20 text-blue-300' : 'bg-slate-500/20 text-slate-300'}`}>

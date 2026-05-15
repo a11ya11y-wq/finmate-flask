@@ -6,6 +6,8 @@ import { Input } from "../components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { useToast } from "../components/ui/toast";
 import { toErrorMessage } from "../api/error";
+import { loginSchema } from "../validation/schemas";
+import { validateForm } from "../validation/validate";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -13,12 +15,30 @@ const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const { toast } = useToast();
+
+  const clearFieldError = (field: string) => {
+    setErrors((prev) => {
+      if (!prev[field]) {
+        return prev;
+      }
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    const validation = validateForm(loginSchema, { email, password });
+    if (!validation.success) {
+      setErrors(validation.fieldErrors ?? {});
+      return;
+    }
     try {
-      await login(email, password, rememberMe);
+      setErrors({});
+      await login(validation.data.email, validation.data.password, rememberMe);
       navigate("/dashboard");
     } catch (err) {
       toast({ variant: "error", message: toErrorMessage(err) });
@@ -41,26 +61,38 @@ const LoginPage = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <form className="space-y-4" onSubmit={handleSubmit}>
+          <form className="space-y-4" onSubmit={handleSubmit} noValidate>
             <div>
               <label className="text-sm font-medium text-slate-200">Email</label>
               <Input
+              id="email-input"
                 type="email"
                 value={email}
-                onChange={(event) => setEmail(event.target.value)}
+                onChange={(event) => {
+                  setEmail(event.target.value);
+                  clearFieldError("email");
+                }}
                 placeholder="your.email@example.com"
-                required
+                aria-invalid={!!errors.email}
+                className={errors.email ? "border-rose-500/60 focus:border-rose-400/80 focus:ring-rose-500/20" : undefined}
               />
+              {errors.email && <p data-testid="email-error" className="mt-1 text-xs text-rose-400">{errors.email}</p>}
             </div>
             <div>
               <label className="text-sm font-medium text-slate-200">Password</label>
               <Input
+              id="password-input"
                 type="password"
                 value={password}
-                onChange={(event) => setPassword(event.target.value)}
+                onChange={(event) => {
+                  setPassword(event.target.value);
+                  clearFieldError("password");
+                }}
                 placeholder="Enter your password"
-                required
+                aria-invalid={!!errors.password}
+                className={errors.password ? "border-rose-500/60 focus:border-rose-400/80 focus:ring-rose-500/20" : undefined}
               />
+              {errors.password && <p data-testid="password-error" className="mt-1 text-xs text-rose-400">{errors.password}</p>}
             </div>
             <label className="flex items-center gap-2 text-sm text-slate-400">
               <input

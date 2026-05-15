@@ -36,11 +36,12 @@ type RequestOptions = {
   method?: "GET" | "POST" | "PUT" | "DELETE";
   body?: unknown;
   auth?: boolean;
+  retryCount?: number;
 };
 
 export const apiRequest = async <T>(
   path: string,
-  { method = "GET", body, auth = true }: RequestOptions = {}
+  { method = "GET", body, auth = true, retryCount = 0 }: RequestOptions = {}
 ): Promise<T> => {
   const { accessToken, setAccessToken, clearAuth } = useAuthStore.getState();
 
@@ -64,13 +65,20 @@ export const apiRequest = async <T>(
 
   const error = await parseError(response);
 
-  if (response.status === 401 && auth && shouldRetryWithRefresh(error)) {
+  if (response.status === 401 && auth && retryCount < 1) {
     const refreshed = await refreshAccessToken();
     if (refreshed) {
       setAccessToken(refreshed);
-      return apiRequest<T>(path, { method, body, auth });
+      return apiRequest<T>(path, { method, body, auth, retryCount: retryCount + 1 });
     }
     clearAuth();
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("auth:logout", {
+          detail: { message: "Session expired. Please sign in again." }
+        })
+      );
+    }
   }
 
   throw error;

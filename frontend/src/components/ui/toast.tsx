@@ -1,4 +1,5 @@
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "../../lib/utils";
 
 type ToastVariant = "info" | "success" | "warning" | "error";
@@ -68,43 +69,73 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
     [removeToast]
   );
 
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<{ message?: string }>).detail;
+      if (!detail?.message) {
+        return;
+      }
+      toast({ variant: "warning", message: detail.message });
+    };
+
+    window.addEventListener("auth:logout", handler);
+    return () => window.removeEventListener("auth:logout", handler);
+  }, [toast]);
+
   const value = useMemo(() => ({ toast }), [toast]);
 
   return (
     <ToastContext.Provider value={value}>
       {children}
-      <div className="fixed right-6 top-6 z-[9999] flex w-[320px] max-w-[calc(100vw-3rem)] flex-col gap-3">
-        {toasts.map((item) => {
-          const config = variantStyles[item.variant];
-          return (
-            <div
-              key={item.id}
-              className={cn(
-                "relative rounded-2xl border px-4 py-3 text-slate-100 shadow-[0_20px_40px_rgba(0,0,0,0.45)] backdrop-blur",
-                config.wrapper
-              )}
-            >
-              <div className="flex items-start gap-3">
-                <span className={cn("text-lg", config.iconColor)}>
-                  <i className={`bi ${config.icon}`} />
-                </span>
-                <div className="flex-1">
-                  {item.title && <p className="text-sm font-semibold text-slate-100">{item.title}</p>}
-                  <p className="text-sm text-slate-200">{item.message}</p>
+      {createPortal(
+        <div className="fixed right-6 top-36 z-[100] flex w-[320px] max-w-[calc(100vw-3rem)] flex-col gap-3">
+          {toasts.map((item) => {
+            const config = variantStyles[item.variant];
+            const messageLines = item.message
+              .split("\n")
+              .map((line) => line.trim())
+              .filter(Boolean);
+            return (
+              <div
+                key={item.id}
+                data-testid="toast-item"
+                data-variant={item.variant}
+                className={cn(
+                  "relative rounded-2xl border px-4 py-3 text-slate-100 shadow-[0_20px_40px_rgba(0,0,0,0.45)] backdrop-blur",
+                  config.wrapper
+                )}
+              >
+                <div className="flex items-start gap-3">
+                  <span data-testid="toast-icon" className={cn("text-lg", config.iconColor)}>
+                    <i className={`bi ${config.icon}`} />
+                  </span>
+                  <div className="flex-1">
+                    {item.title && <p className="text-sm font-semibold text-slate-100">{item.title}</p>}
+                    {messageLines.length > 1 ? (
+                      <div className="space-y-1 text-sm text-slate-200">
+                        {messageLines.map((line, index) => (
+                          <p key={`${item.id}-${index}`}>{line}</p>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-slate-200">{item.message}</p>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    className="text-slate-500 transition hover:text-slate-200"
+                    onClick={() => removeToast(item.id)}
+                    aria-label="Close notification"
+                  >
+                    <i className="bi bi-x-lg" />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  className="text-slate-500 transition hover:text-slate-200"
-                  onClick={() => removeToast(item.id)}
-                  aria-label="Close notification"
-                >
-                  <i className="bi bi-x-lg" />
-                </button>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>,
+        document.body
+      )}
     </ToastContext.Provider>
   );
 };
