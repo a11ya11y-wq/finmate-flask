@@ -17,12 +17,9 @@ class DevelopmentConfig(Config):
 
 class TestingConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL')
-    REDIS_URL = None
+    REDIS_URL = os.environ.get('REDIS_URL')
     TESTING = True
     DEBUG = True
-
-    RATELIMIT_STORAGE_URI = "memory://"
-    RATELIMIT_ENABLED = False
 
 class ProductionConfig(Config):
     SQLALCHEMY_DATABASE_URI=os.environ.get('API_MAIN_DATABASE_URL')
