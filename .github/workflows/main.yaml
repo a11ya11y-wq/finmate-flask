@@ -125,7 +125,7 @@ jobs:
       - name: Wait for API and Gateway to be ready
         run: |
           echo "Waiting for gateway to respond with non-502 status..."
-          timeout 60s sh -c 'until [ "$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1/api/v1/auth/register)" != "502" ]; do sleep 2; done' || (docker compose -f docker-compose.dev.yaml logs api-main && docker compose -f docker-compose.dev.yaml logs gateway && exit 1)
+          timeout 60s sh -c 'until [ "$(curl -s -o /dev/null -w "%{http_code}" http://localhost/api/v1/auth/register)" != "502" ]; do sleep 2; done' || (docker compose -f docker-compose.dev.yaml logs api-main && docker compose -f docker-compose.dev.yaml logs gateway && exit 1)
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -147,9 +147,10 @@ jobs:
         env:
           USER_EMAIL: testingtest@gmail.com
           USER_PASSWORD: 123123
-          BASE_URL: http://127.0.0.1
-          VITE_API_URL: http://127.0.0.1
-          API_URL: http://127.0.0.1/api/v1
+          # ВИПРАВЛЕНО НА LOCALHOST
+          BASE_URL: http://localhost
+          VITE_API_URL: http://localhost
+          API_URL: http://localhost/api/v1
         run: npx playwright test
 
       - name: Upload Playwright Report (On Failure Only)
