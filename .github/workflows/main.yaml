@@ -82,6 +82,7 @@ jobs:
           REDIS_URL=redis://redis:6379/0
           CELERY_BROKER_URL=redis://redis:6379/0
           CELERY_RESULT_BACKEND=redis://redis:6379/0
+          # Дозволяємо Nginx приймати запити від локального хоста в CI
           CORS_ORIGINS=http://localhost,http://127.0.0.1
           EOF
 
@@ -141,23 +142,17 @@ jobs:
         working-directory: ./frontend
         run: npx playwright install --with-deps chromium
 
-      - name: Run Playwright tests
+      - name: Run Playwright tests (Strict Mode)
         working-directory: ./frontend
         env:
           USER_EMAIL: testingtest@gmail.com
           USER_PASSWORD: 123123
+          BASE_URL: http://127.0.0.1
           VITE_API_URL: http://127.0.0.1
-        run: npx playwright test --update-snapshots
+          API_URL: http://127.0.0.1/api/v1
+        run: npx playwright test
 
-      - name: Upload Playwright Snapshots as Artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-linux-snapshots
-          path: frontend/tests/e2e/**/*-snapshots/*.png
-          retention-days: 1
-
-      - name: Upload Playwright Report
+      - name: Upload Playwright Report (On Failure Only)
         if: failure()
         uses: actions/upload-artifact@v4
         with:
