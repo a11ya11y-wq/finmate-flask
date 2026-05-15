@@ -55,7 +55,7 @@ services:
       - PYTHONPATH=/app
       - FLASK_APP=app.py
     command: >
-      sh -c "PYTHONPATH=. python3 -m flask db upgrade && python3 -m flask run --host=0.0.0.0 --port=5000"
+      sh -c "PYTHONPATH=. python3 -m flask db upgrade && gunicorn --bind 0.0.0.0:5000 --workers 3 core_service.wsgi:app"
     env_file:
       - .env
     depends_on:
@@ -66,7 +66,6 @@ services:
 
   celery_worker:
     image: finmate_api_main
-    build: api-main
     command: celery -A celery_worker.celery worker --loglevel=info
     env_file:
       - .env

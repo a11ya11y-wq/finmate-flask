@@ -59,7 +59,6 @@ services:
 
   celery_worker:
     image: finmate_api_main
-    build: api-main
     command: celery -A celery_worker.celery worker --pool=solo --loglevel=info
     env_file:
       - .env
