@@ -17,7 +17,7 @@ class DevelopmentConfig(Config):
 
 class TestingConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL')
-    REDIS_URL = os.environ.get('REDIS_URL')
+    REDIS_URL = os.environ.get('TEST_REDIS_URL')
     TESTING = True
     DEBUG = True
 

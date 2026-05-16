@@ -23,6 +23,26 @@ export const TransactionFormFields = ({
   errors = {},
   onFieldChange
 }: TransactionFormFieldsProps) => {
+  const normalizeDateInput = (value: string) => {
+    if (!value) {
+      return "";
+    }
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      return value;
+    }
+    const match = value.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+    if (match) {
+      return `${match[3]}-${match[2]}-${match[1]}`;
+    }
+    return value;
+  };
+  const formatCategoryLabel = (name: string) => {
+    const maxLength = 30;
+    if (name.length <= maxLength) {
+      return name;
+    }
+    return `${name.slice(0, maxLength - 3)}...`;
+  };
   // 1. СТАТИЧНІ КЛАСИ (щоб Tailwind їх не видалив)
   const inactiveBtn = "border-white/10 bg-white/5 text-slate-400 hover:bg-white/10";
   const inactiveDot = "bg-slate-500";
@@ -49,6 +69,7 @@ export const TransactionFormFields = ({
             errors.title && "border-rose-500/60 focus:border-rose-400/80 focus:ring-rose-500/20"
           )}
           placeholder="E.g. Grocery shopping"
+          maxLength={50}
           value={form.title}
           onChange={(e) => {
             setForm((prev: any) => ({ ...prev, title: e.target.value }));
@@ -103,6 +124,7 @@ export const TransactionFormFields = ({
             id="amount-input"
             type="number"
             step="0.01"
+            max={99999999.99}
             className={cn(
               selectStyles,
               "pl-7",
@@ -138,7 +160,9 @@ export const TransactionFormFields = ({
         >
           <option value="" disabled>Select category...</option>
           {categories.map((category) => (
-            <option key={category.id} value={category.id}>{category.name}</option>
+            <option key={category.id} value={category.id} title={category.name}>
+              {formatCategoryLabel(category.name)}
+            </option>
           ))}
         </select>
         {errors.category_id && <p data-testid="category-id-error" className="mt-1 text-xs text-rose-400">{errors.category_id}</p>}
@@ -156,7 +180,8 @@ export const TransactionFormFields = ({
           )}
           value={form.created_at}
           onChange={(e) => {
-            setForm((prev: any) => ({ ...prev, created_at: e.target.value }));
+            const normalized = normalizeDateInput(e.target.value);
+            setForm((prev: any) => ({ ...prev, created_at: normalized }));
             onFieldChange?.("created_at");
           }}
           aria-invalid={!!errors.created_at}

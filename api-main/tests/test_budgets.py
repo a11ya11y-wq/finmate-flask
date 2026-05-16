@@ -40,7 +40,19 @@ create_bud_failed_json = [
     ),
     (
         {}, 422, "Field required"
-    )
+    ),
+    # Exceeding amount digits limit
+    (
+        BASE_BUDGET_JSON | {"amount": 123456789},
+        422,
+        "Decimal input should have no more than 8 digits before the decimal point"
+    ),
+    # Exceeding amount decimal places limit
+    (
+        BASE_BUDGET_JSON | {"amount": 100.123},
+        422,
+        "Decimal input should have no more than 2 decimal places"
+    ),
 ]
 
 class TestCreateBudgets:
@@ -143,6 +155,18 @@ update_bud_failed =[
     ),
     (
         {}, 422, "Field required"
+    ),
+    # Exceeding amount digits limit
+    (
+        BASE_UPDATE_JSON | {"amount": 123456789},
+        422,
+        "Decimal input should have no more than 8 digits before the decimal point"
+    ),
+    # Exceeding amount decimal places limit
+    (
+        BASE_UPDATE_JSON | {"amount": 100.123},
+        422,
+        "Decimal input should have no more than 2 decimal places"
     )
 ]
 

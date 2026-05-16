@@ -19,6 +19,10 @@ input, button, textarea, select {
 select option {
   background: #0b0f17;
   color: #e2e8f0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .auth-body {

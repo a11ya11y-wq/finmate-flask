@@ -3,6 +3,7 @@ import pytest
 
 BASE_CREATE_CAT_JSON = {
     "name": "TEST_CAT",
+    "icon": "bi-wifi",
     "mcc_code": "1234, 7688"
 }
 
@@ -18,6 +19,13 @@ create_cat_failed_json = [
     ),
     (
         BASE_CREATE_CAT_JSON | {"mcc_code": 3}, 422, "Input should be a valid string"
+    ),
+    (
+        {"name": "T" * 51}, 422, "String should have at most 50 characters"
+    ),
+    (
+        BASE_CREATE_CAT_JSON | {"mcc_code": "T" * 129}, 422,
+        "String should have at most 128 characters"
     )
 ]
 
@@ -88,6 +96,13 @@ update_cat_failed_json = [
     ),
     (
         {"mcc_code": 3}, 422, "Input should be a valid string"
+    ),
+    (
+        {"name": "T" * 51}, 422, "String should have at most 50 characters"
+    ),
+    (
+        {"mcc_code": "T" * 129}, 422,
+        "String should have at most 128 characters"
     )
 ]
 

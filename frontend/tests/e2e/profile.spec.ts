@@ -106,7 +106,9 @@ test.describe('Profile Page', () => {
 
             await profilePage.monobankIntegrationButton.click();
 
-            await profilePage.monobankIntegrationModal.apiKeyInput.fill('valid-monobank-api-token');
+            const validToken: string = 'T'.repeat(44);
+
+            await profilePage.monobankIntegrationModal.apiKeyInput.fill(validToken);
             await profilePage.monobankIntegrationModal.saveButton.click();
 
             await profilePage.toast.expectSuccess('Monobank token saved');
@@ -121,7 +123,8 @@ test.describe('Profile Page', () => {
 
             await profilePage.monobankIntegrationButton.click();
 
-            await profilePage.monobankIntegrationModal.apiKeyInput.fill('valid-monobank-api-token');
+            const validToken: string = 'T'.repeat(44);
+            await profilePage.monobankIntegrationModal.apiKeyInput.fill(validToken);
             await profilePage.monobankIntegrationModal.saveButton.click();
 
             await profilePage.monobankIntegrationButton.click(); 
@@ -140,7 +143,7 @@ test.describe('Profile Page', () => {
             await profilePage.monobankIntegrationModal.apiKeyInput.fill('123');
             await profilePage.monobankIntegrationModal.saveButton.click();
 
-            await profilePage.toast.expectError('Token must be at least 10 characters');
+            await profilePage.expectFieldError('token', 'Token must be exactly 44 characters');
         })
     });
     test('User can delete their account', async ({ page }) => {

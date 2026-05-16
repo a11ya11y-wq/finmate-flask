@@ -516,13 +516,13 @@ const ProfilePage = () => {
              <div className="grid gap-3 sm:grid-cols-2">
                {categories.map((cat) => (
                  <div key={cat.id} className="group flex items-center justify-between rounded-2xl border border-white/5 bg-[#0f172a]/40 p-4 transition-all hover:bg-[#121a2b] hover:border-blue-500/30">
-                   <div className="flex items-center gap-4">
+                   <div className="flex min-w-0 items-center gap-4">
                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-500/10 text-blue-400">
                        <i className={`bi ${cat.icon} text-lg`} />
                      </div>
-                     <div>
-                       <p className="text-sm font-bold text-white">{cat.name}</p>
-                       <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500">{cat.mcc_code || "No MCC"}</p>
+                     <div className="min-w-0">
+                       <p className="truncate text-sm font-bold text-white">{cat.name}</p>
+                       <p className="truncate text-[10px] font-medium uppercase tracking-wider text-slate-500">{cat.mcc_code || "No MCC"}</p>
                      </div>
                    </div>
                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -717,6 +717,7 @@ const ProfilePage = () => {
         id="api-token-input"
         placeholder="Paste your token here..." 
         value={monoToken} 
+        maxLength={44}
         onChange={(e) => {
           setMonoToken(e.target.value);
           setMonoErrors((prev) => {

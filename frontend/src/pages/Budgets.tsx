@@ -29,6 +29,13 @@ const getProgressColor = (percent: number) => {
 const BudgetsPage = () => {
   // Викликаємо хук на початку компонента
   const { currencySymbol, formatWithSymbol } = useCurrency();
+  const formatCategoryLabel = (name: string) => {
+    const maxLength = 30;
+    if (name.length <= maxLength) {
+      return name;
+    }
+    return `${name.slice(0, maxLength - 3)}...`;
+  };
 
   const [budgets, setBudgets] = useState<BudgetWithStats[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -223,7 +230,9 @@ const BudgetsPage = () => {
                     >
                       <option value="" disabled>Select category...</option>
                       {categories.map((category) => (
-                          <option key={category.id} value={category.id}>{category.name}</option>
+                          <option key={category.id} value={category.id} title={category.name}>
+                            {formatCategoryLabel(category.name)}
+                          </option>
                       ))}
                     </select>
                     {errors.category_id && <p data-testid="category-id-error" className="text-xs text-rose-400">{errors.category_id}</p>}
@@ -237,6 +246,7 @@ const BudgetsPage = () => {
                           id="amount-input"
                           type="number"
                           step="0.01"
+                          max={99999999.99}
                           className={cn(
                             "pl-7",
                             errors.amount && "border-rose-500/60 focus:border-rose-400/80 focus:ring-rose-500/20"
@@ -310,9 +320,9 @@ const BudgetsPage = () => {
                       data-testid="budget-card"
                       className="surface-card hover:-translate-y-1 transition-all duration-300"
                     >
-                      <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                        <CardTitle className="text-lg">{budget.category_name}</CardTitle>
-                        <span className={`inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wider ${budget.is_recurring ? 'bg-blue-500/20 text-blue-300' : 'bg-slate-500/20 text-slate-300'}`}>
+                      <CardHeader className="flex min-w-0 flex-row items-center justify-between pb-2 space-y-0">
+                        <CardTitle className="truncate text-lg" title={budget.category_name}>{budget.category_name}</CardTitle>
+                        <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wider ${budget.is_recurring ? 'bg-blue-500/20 text-blue-300' : 'bg-slate-500/20 text-slate-300'}`}>
                       <i className={`bi ${budget.is_recurring ? 'bi-arrow-repeat' : 'bi-calendar'}`} />
                           {budget.is_recurring ? 'Recurring' : 'One-time'}
                     </span>

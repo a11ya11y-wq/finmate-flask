@@ -5,6 +5,8 @@ import { BudgetCard } from './components/BudgetCard';
 import { ConfirmDeleteModal } from '../common/components/ConfirmDeleteModal';
 
 export class BudgetsPage extends BasePage {
+    protected readonly url = '/budgets';
+
     readonly budgetLimitContainer: Locator
 
     readonly budgetForm: BudgetForm;
@@ -22,9 +24,5 @@ export class BudgetsPage extends BasePage {
         this.budgetCards = new BudgetCard(page);
 
         this.confirmDeleteModal = new ConfirmDeleteModal(page);
-    }
-    
-    async goto() {
-        return await this.page.goto('/budgets');
     }
 }

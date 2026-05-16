@@ -3,7 +3,9 @@ import { Header } from './components/Header';
 import { Toast } from './components/Toast';
 
 
-export class BasePage {
+export abstract class BasePage {
+    protected abstract readonly url: string
+
     readonly page: Page
     readonly header: Header
     readonly toast: Toast
@@ -20,5 +22,9 @@ export class BasePage {
     
         await expect(errorLocator).toBeVisible({ timeout: 5000 });
         await expect(errorLocator).toHaveText(expectedMessage);
+    }
+
+    async goto(): Promise<void> {
+        await this.page.goto(this.url, { waitUntil: 'networkidle' });
     }
 }

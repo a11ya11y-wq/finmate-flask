@@ -4,6 +4,17 @@ const amountSchema = z
   .string()
   .trim()
   .min(1, "Enter a valid amount")
+  .refine((value) => {
+    const normalized = value.replace(/,/g, ".").trim();
+    const match = normalized.match(/^(\d+)(?:\.(\d{1,2})?)?$/);
+    if (!match) {
+      return false;
+    }
+    const integerPart = match[1].replace(/^0+(?=\d)/, "") || "0";
+    const decimalPart = match[2] ?? "";
+    const totalDigits = integerPart.length + decimalPart.length;
+    return integerPart.length <= 8 && decimalPart.length <= 2 && totalDigits <= 10;
+  }, "Amount must have at most 10 digits total and up to 2 decimal places")
   .refine((value) => !Number.isNaN(Number(value)), "Enter a valid amount")
   .transform((value) => Number(value))
   .refine((value) => Number.isFinite(value), "Enter a valid amount")
@@ -19,6 +30,7 @@ const dateSchema = z.preprocess(
   },
   z
     .string()
+    .refine((value) => /^\d{4}-\d{2}-\d{2}$/.test(value), "Use format YYYY-MM-DD")
     .refine((value) => !Number.isNaN(new Date(value).getTime()), "Enter a valid date")
     .optional()
 );
@@ -61,7 +73,7 @@ export const transactionSchema = z.object({
     .string()
     .trim()
     .min(1, "Enter a transaction title")
-    .max(128, "Title must be at most 128 characters"),
+    .max(50, "Title must be at most 50 characters"),
   amount: amountSchema,
   transaction_type: z.enum(["income", "expense"]),
   category_id: z.string().min(1, "Select a category"),
@@ -114,7 +126,11 @@ export const passwordChangeSchema = z
   });
 
 export const monobankTokenSchema = z.object({
-  token: z.string().trim().min(1, "Token cannot be empty")
+  token: z
+    .string()
+    .trim()
+    .min(44, "Token must be exactly 44 characters")
+    .max(44, "Token must be exactly 44 characters")
 });
 
 export const categorySchema = z.object({
@@ -122,7 +138,7 @@ export const categorySchema = z.object({
     .string()
     .trim()
     .min(1, "Enter a category name")
-    .max(128, "Category name must be at most 128 characters"),
+    .max(50, "Category name must be at most 50 characters"),
   mcc_code: z
     .preprocess(
       (value) => {
@@ -134,7 +150,7 @@ export const categorySchema = z.object({
         }
         return value;
       },
-      z.string().max(200, "MCC code must be at most 200 characters").optional()
+      z.string().max(128, "MCC code must be at most 128 characters").optional()
     )
     .optional(),
   icon: z.preprocess(

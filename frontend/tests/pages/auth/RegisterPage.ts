@@ -3,6 +3,8 @@ import { RegisterRequest } from "../../interfaces/auth";
 import { BasePage } from "../common/BasePage";
 
 export class RegisterPage extends BasePage {
+    protected readonly url = '/register';
+
 
     readonly title: Locator;
     // Form fields
@@ -43,7 +45,4 @@ export class RegisterPage extends BasePage {
         await this.submitButton.click();
     }
 
-    async goto() {
-        await this.page.goto('/register');
-    }
 }

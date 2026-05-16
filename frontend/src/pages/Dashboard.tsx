@@ -717,12 +717,12 @@ const DashboardPage = () => {
                                           setActiveIndex(undefined);
                                         }}
                                     >
-                                      <div className="flex items-center gap-3">
-                      <span
-                          className="h-3 w-3 rounded-sm transition-colors duration-300 group-hover:scale-110"
+                                      <div className="flex min-w-0 items-center gap-3">
+                        <span
+                          className="h-3 w-3 shrink-0 rounded-sm transition-colors duration-300 group-hover:scale-110"
                           style={{ backgroundColor: isHidden ? '#475569' : color }}
-                      />
-                                        <span className={`text-sm font-semibold transition-colors duration-300 ${isHidden ? 'text-slate-500 line-through' : 'text-slate-200 group-hover:text-white'}`}>
+                        />
+                                        <span className={`truncate text-sm font-semibold transition-colors duration-300 ${isHidden ? 'text-slate-500 line-through' : 'text-slate-200 group-hover:text-white'}`}>
                         {entry.name}
                       </span>
                                       </div>
@@ -854,12 +854,12 @@ const DashboardPage = () => {
                             className="group relative flex flex-wrap items-center justify-between rounded-xl border border-white/5 bg-[#0f172a]/40 p-4 transition-all duration-300 hover:-translate-y-[1px] hover:border-blue-500/50 hover:bg-[#121a2b] hover:shadow-[inset_3px_0_0_#3b82f6,inset_-3px_0_0_#3b82f6,0_8px_20px_rgba(0,0,0,0.3)]"
                         >
                           {/* 1. Нумерація, Тайтл та Нотатка */}
-                          <div className="flex w-full items-center gap-4 md:w-[35%]">
+                          <div className="flex w-full min-w-0 items-center gap-4 md:w-[35%]">
               <span className="w-6 text-center text-sm font-medium text-slate-600 transition-colors group-hover:text-blue-400">
                 {index + 1}
               </span>
-                            <div className="flex flex-col">
-                <span className="text-base font-bold tracking-wide text-slate-100 transition-colors group-hover:text-white">
+                            <div className="flex min-w-0 flex-col">
+                <span className="truncate text-base font-bold tracking-wide text-slate-100 transition-colors group-hover:text-white">
                   {tx.title}
                 </span>
                               {tx.note && <span className="mt-0.5 text-xs text-slate-500">{tx.note}</span>}
@@ -867,11 +867,11 @@ const DashboardPage = () => {
                           </div>
 
                           {/* 2. Іконка та Назва категорії */}
-                          <div className="mt-2 flex w-full items-center gap-2 md:mt-0 md:w-[18%]">
-                            <div className={`flex h-7 w-7 items-center justify-center rounded-lg ${catStyles.color}`}>
+                          <div className="mt-2 flex w-full min-w-0 items-center gap-2 md:mt-0 md:w-[18%]">
+                            <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${catStyles.color}`}>
                               <i className={`bi ${catStyles.icon} text-xs`} />
                             </div>
-                            <span className="text-xs font-semibold text-slate-300">{tx.category_name}</span>
+                            <span className="truncate text-xs font-semibold text-slate-300">{tx.category_name}</span>
                           </div>
 
                           {/* 3. Сума */}

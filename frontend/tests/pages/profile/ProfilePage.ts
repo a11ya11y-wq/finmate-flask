@@ -10,6 +10,8 @@ import { CreateCategoryModal } from './components/CreateCategoryModal';
 import { EditCategoryModal } from './components/EditCategoryModal';
 
 export class ProfilePage extends BasePage {
+    protected readonly url = '/profile';
+
     readonly page: Page;
 
     readonly userInfo: ProfileUserInfo;
@@ -51,9 +53,5 @@ export class ProfilePage extends BasePage {
         this.editCategoryModal = new EditCategoryModal(page);
 
         this.deleteAccountButton = page.getByRole('button', { name: 'Delete Account' });
-    }
-
-    async goto() {
-        await this.page.goto('/profile');
     }
 }

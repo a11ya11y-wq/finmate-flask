@@ -2,6 +2,8 @@ import { Page, Locator } from '@playwright/test'
 import { BasePage } from '../common/BasePage';
 
 export class LoginPage extends BasePage {
+    protected readonly url = '/login';
+
     readonly emailInput: Locator;
     readonly passwordInput: Locator;
     readonly submitButton: Locator;
@@ -17,10 +19,6 @@ export class LoginPage extends BasePage {
         this.rememberMeCheckbox = page.getByRole('checkbox', { name: 'Remember me' });
         this.createOneLink = page.getByRole('link', { name: 'Create one' });
         this.title = page.getByRole('heading', { name: 'Welcome Back' });
-    }
-
-    async goto() {
-        await this.page.goto('/login');
     }
 
     async login(email: string, password: string, rememberMe: boolean = false) {

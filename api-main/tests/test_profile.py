@@ -169,7 +169,7 @@ class TestChangeToken:
     def test_change_token_success(self, client, auth_headers):
         response = client.put("/api/v1/profile/monobank",
                               headers=auth_headers,
-                              json={"token": "TESTMONOTOKEN"}
+                              json={"token": "1" * 44}
                               )
         assert response.status_code == 200
 
@@ -191,10 +191,14 @@ class TestChangeToken:
 
     def test_change_token_wo_auth(self, client):
         response = client.put("/api/v1/profile/monobank",
-                              json={"token": "TESTMONOTOKEN"}
+                              json={"token": "1" * 44}
                               )
         assert response.status_code == 401
 
-
-#TODO: Test делит токен монобанка
+    
+    def test_change_token_delete(self, client, auth_headers):
+        response = client.delete("/api/v1/profile/monobank",
+                                 headers=auth_headers
+                                 )
+        assert response.status_code == 204
 

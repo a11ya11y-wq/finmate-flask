@@ -9,6 +9,8 @@ import { StatsCard } from './components/StatsCard';
 import { DashboardCategoryChart } from './components/DashboardCategoryChart';
 
 export class DashboardPage extends BasePage {
+    protected readonly url = '/dashboard';
+
     readonly toolbar: DashboardToolBar;
     readonly addTransactionModal: AddTransactionModal;
     readonly transactionsTable: TransactionsTable;
@@ -44,9 +46,4 @@ export class DashboardPage extends BasePage {
         this.editTransactionModal = new EditTransactionModal(page);
 
     }
-
-    async goto() {
-        await this.page.goto('/dashboard');
-    }
-
 }

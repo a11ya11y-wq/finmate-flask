@@ -6,10 +6,10 @@ class Category(db.Model):
     __tablename__ = 'categories'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(128), nullable=False)
+    name = db.Column(db.String(50), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     icon = db.Column(db.String(50), default='bi-tag-fill', nullable=False)
-    mcc_code = db.Column(db.String(200), nullable=True)
+    mcc_code = db.Column(db.String(128), nullable=True)
 
     user = db.relationship('Users', back_populates='categories', lazy=True)
     transactions = db.relationship('Transactions', back_populates='category', lazy=True)

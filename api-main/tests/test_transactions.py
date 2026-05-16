@@ -94,6 +94,30 @@ create_tx_failed_json =[
     ),
     (
         {}, 422, "Field required"
+    ),
+    # Over max amount (digits)  
+    (
+        BASE_TRANSACTION_JSON | {"amount": 123456789},
+        422,
+        "Decimal input should have no more than 8 digits before the decimal point"
+    ),
+    # Over max amount (decimal places)
+    (
+        BASE_TRANSACTION_JSON | {"amount": 100.123},
+        422,
+        "Decimal input should have no more than 2 decimal places"
+    ),
+    # Over max title length
+    (
+        BASE_TRANSACTION_JSON | {"title": "T" * 51},
+        422,
+        "String should have at most 50 characters"
+    ),
+    # Over max note length
+    (
+        BASE_TRANSACTION_JSON | {"note": "N" * 129},
+        422,
+        "String should have at most 128 characters"
     )
 ]
 
@@ -165,6 +189,10 @@ update_tx_failed_json = [
     ({"created_at": "2025-15-15"}, 422, "Input should be a valid datetime or date, month value is outside expected range of 1-12"),
     ({"created_at": "2025-11-40"}, 422, "Input should be a valid datetime or date, day value is outside expected range"),
     ({"created_at": "INVALID DATA"}, 422, "Input should be a valid datetime or date, invalid character in year"),
+    ({"amount": 123456789.0}, 422, "Decimal input should have no more than 8 digits before the decimal point"),
+    ({"amount": 100.123}, 422, "Decimal input should have no more than 2 decimal places"),
+    ({"title": "T" * 51}, 422, "String should have at most 50 characters"),
+    ({"note": "N" * 129}, 422, "String should have at most 128 characters"),
     ({}, 400, "No valid fields to update.")
 ]
 
