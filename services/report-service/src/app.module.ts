@@ -7,7 +7,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 @Module({
   imports: [
     ScheduleModule.forRoot(),
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: '../../.env' }),
     ReportsModule,
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -16,7 +16,7 @@ import { ScheduleModule } from '@nestjs/schedule';
         type: 'postgres',
         url: String(config.get<string>('REPORT_SERVICE_DATABASE_URL')),
         autoLoadEntities: true,
-        synchronize: true,
+        synchronize: true, //TODO: Disable in production
         logging: true,
       }),
     }),

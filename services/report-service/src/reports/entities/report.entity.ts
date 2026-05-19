@@ -15,23 +15,23 @@ export enum ReportStatus {
 @Entity('reports')
 export class Report {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({ name: 'user_id' })
-  userId: number;
+  userId!: number;
 
   @Column({ name: 'start_date', type: 'timestamp' })
-  startDate: Date;
+  startDate!: Date;
 
   @Column({ name: 'end_date', type: 'timestamp' })
-  endDate: Date;
+  endDate!: Date;
 
   @Column({ type: 'enum', enum: ReportStatus, default: ReportStatus.PENDING })
-  status: ReportStatus;
+  status!: ReportStatus;
 
   @Column({ name: 'file_name', type: 'varchar', nullable: true })
   fileName?: string | null;
 
   @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+  createdAt!: Date;
 }

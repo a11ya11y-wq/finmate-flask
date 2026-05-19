@@ -9,7 +9,7 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
-
+  console.log('TEST ENV:', process.env.REPORT_SERVICE_DATABASE_URL);
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
     AppModule,
     {

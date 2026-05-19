@@ -1,0 +1,76 @@
+# ========================
+# Git
+# ========================
+.git
+.gitignore
+.gitmodules
+
+# ========================
+# Секрети та конфіги середовища
+# ========================
+.env
+.env.*
+!.env.example  # Дозволяємо копіювати приклад конфігу (якщо він є)
+.flaskenv
+
+# ========================
+# IDE та редактори коду
+# ========================
+.idea/
+.vscode/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# ========================
+# Системне сміття
+# ========================
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# ========================
+# Python (Бекенд)
+# ========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# ========================
+# Node.js / JS / TS (Фронтенд)
+# ========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+dist/
+build/
+.next/
+.nuxt/
+coverage/
+
+# ========================
+# Бази даних та Логи
+# ========================
+*.log
+*.sqlite3
+*.db
+
+# ========================
+# Docker (опціонально, щоб не тягнути конфіги в образ)
+# ========================
+docker-compose.yml
+docker-compose.*.yml

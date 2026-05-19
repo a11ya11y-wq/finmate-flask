@@ -1,17 +1,11 @@
-import { Controller, Logger } from '@nestjs/common';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { Controller, Inject, Logger } from '@nestjs/common';
+import { EventPattern, Payload } from '@nestjs/microservices';
 import { ReportsService } from './reports.service';
 import { PdfService } from './pdf.service';
 import { CreateReportDto } from './dto/create-report.dto';
 import { ReportStatus } from './entities/report.entity';
 import * as fs from 'node:fs';
-
-interface ReportResponse {
-  reportId: number;
-  fileName?: string;
-  status: ReportStatus;
-  msg?: string;
-}
+import Redis from 'ioredis';
 
 @Controller()
 export class ReportsController {
@@ -20,12 +14,16 @@ export class ReportsController {
   constructor(
     private readonly reportsService: ReportsService,
     private readonly pdfService: PdfService,
+    @Inject('REDIS_CLIENT') private readonly redis: Redis,
   ) {}
 
-  @MessagePattern('reports_queue')
-  async handleCreateReport(
-    @Payload() data: CreateReportDto,
-  ): Promise<ReportResponse> {
+  @EventPattern('reports_queue')
+  async handleCreateReport(@Payload() data: CreateReportDto): Promise<void> {
+    const reqId = data.requestId;
+    const redisStatusKey = `request:${reqId}:status`;
+    const redisFileKey = `request:${reqId}:file`;
+    const redisErrorKey = `request:${reqId}:error`;
+
     let currentReportId: number = 0;
 
     try {
@@ -42,27 +40,21 @@ export class ReportsController {
 
       if (existingReport?.status === ReportStatus.PENDING) {
         this.logger.log(
-          `The report: ${existingReport.id} is still being pending for user ${data.userId}`,
+          `Report: ${existingReport.id} is still being pending. Linking request ID ${reqId}.`,
         );
-        return {
-          // Pending response when an existing report is still being processed
-          reportId: existingReport.id,
-          status: ReportStatus.PENDING,
-          msg: 'A report for the specified date range is currently being processed. Please check back later.',
-        };
+        // Pending response when an existing report is still being processed
+        await this.redis.set(redisStatusKey, ReportStatus.PENDING);
+        return;
       }
 
       if (existingReport && existingReport.fileName) {
         const fullPath = `./uploads/${existingReport.fileName}`;
         if (fs.existsSync(fullPath)) {
           this.logger.log(`Returning existing report ID: ${existingReport.id}`);
-          return {
-            // Success response with existing file name
-            reportId: existingReport.id,
-            status: ReportStatus.PROCESSED,
-            fileName: existingReport.fileName,
-            msg: 'A report for the specified date range already exists. Returning the existing report.',
-          };
+          // Success response with existing file name
+          await this.redis.set(redisStatusKey, ReportStatus.PROCESSED);
+          await this.redis.set(redisFileKey, existingReport.fileName);
+          return;
         }
       }
       const report = await this.reportsService.create(data);
@@ -81,12 +73,13 @@ export class ReportsController {
           ReportStatus.FAILED,
           null,
         );
-        return {
-          // Failure response when no transactions are found
-          reportId: report.id,
-          status: ReportStatus.FAILED,
-          msg: 'No transactions found for the specified date range. Report generation failed.',
-        };
+        // Failure response when no transactions are found
+        await this.redis.set(redisStatusKey, ReportStatus.FAILED);
+        await this.redis.set(
+          redisErrorKey,
+          'No transactions found for the specified period.',
+        );
+        return;
       }
 
       const fileName = await this.pdfService.generateTxReport(
@@ -102,13 +95,11 @@ export class ReportsController {
       this.logger.log(
         `Report ID ${report.id} for user ${report.userId} includes ${transactions.length} transactions`,
       );
+      // Success response with file name
+      await this.redis.set(redisFileKey, fileName);
+      await this.redis.set(redisStatusKey, ReportStatus.PROCESSED);
 
-      return {
-        // Success response with file name
-        reportId: report.id,
-        status: ReportStatus.PROCESSED,
-        fileName: fileName,
-      };
+      return;
     } catch (error) {
       this.logger.error(
         `Error processing report ID ${currentReportId}:`,
@@ -120,12 +111,13 @@ export class ReportsController {
           ReportStatus.FAILED,
         );
       }
-      return {
-        // Failure response
-        reportId: currentReportId,
-        status: ReportStatus.FAILED,
-        msg: 'An error occurred while processing the report. Please try again later.',
-      };
+      // Failure response
+      await this.redis.set(
+        redisErrorKey,
+        'An error occurred while processing the report.',
+      );
+      await this.redis.set(redisStatusKey, ReportStatus.FAILED);
+      return;
     }
   }
 }
