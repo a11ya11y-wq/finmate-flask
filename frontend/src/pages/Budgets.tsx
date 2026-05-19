@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import AppShell from "../components/layout/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -9,6 +10,7 @@ import { getBudgets, upsertBudget, deleteBudget } from "../api/budgets";
 import { getCategories } from "../api/categories";
 import type { BudgetWithStats, Category } from "../api/types";
 import { toErrorMessage } from "../api/error";
+import { queryKeys } from "../api/queryKeys";
 import { ConfirmDeleteModal } from "../components/ui/ConfirmDeleteModal";
 import { budgetSchema } from "../validation/schemas";
 import { validateForm } from "../validation/validate";
@@ -37,36 +39,56 @@ const BudgetsPage = () => {
     return `${name.slice(0, maxLength - 3)}...`;
   };
 
-  const [budgets, setBudgets] = useState<BudgetWithStats[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({ amount: "", category_id: "", is_recurring: true });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const budgetsQuery = useQuery<BudgetWithStats[]>({
+    queryKey: queryKeys.budgets,
+    queryFn: getBudgets
+  });
+
+  const categoriesQuery = useQuery<{ data: Category[] }>({
+    queryKey: queryKeys.categories,
+    queryFn: getCategories
+  });
+
+  useEffect(() => {
+    if (budgetsQuery.error) {
+      toast({ variant: "error", message: toErrorMessage(budgetsQuery.error) });
+    }
+  }, [budgetsQuery.error, toast]);
+
+  useEffect(() => {
+    if (categoriesQuery.error) {
+      toast({ variant: "error", message: toErrorMessage(categoriesQuery.error) });
+    }
+  }, [categoriesQuery.error, toast]);
+
+  const upsertBudgetMutation = useMutation({
+    mutationFn: upsertBudget,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.budgets });
+    }
+  });
+
+  const deleteBudgetMutation = useMutation({
+    mutationFn: deleteBudget,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.budgets });
+    }
+  });
+
+  const budgets = (budgetsQuery.data ?? []) as BudgetWithStats[];
+  const categories = (categoriesQuery.data?.data ?? []) as Category[];
+  const loading = budgetsQuery.isLoading || categoriesQuery.isLoading;
 
   const maxBudgets = 5;
   const usedBudgets = budgets.length;
   const progress = Math.min(100, (usedBudgets / maxBudgets) * 100);
-
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const [budgetsResponse, categoriesResponse] = await Promise.all([
-          getBudgets(),
-          getCategories()
-        ]);
-        setBudgets(budgetsResponse);
-        setCategories(categoriesResponse.data);
-      } catch (err) {
-        toast({ variant: "error", message: toErrorMessage(err) });
-      } finally {
-        setLoading(false);
-      }
-    };
-    void load();
-  }, [toast]);
 
   const handleChange = (field: keyof typeof form) =>
       (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -137,15 +159,11 @@ const BudgetsPage = () => {
         }
       }
 
-      await upsertBudget({
+      await upsertBudgetMutation.mutateAsync({
         amount: validation.data.amount,
         category_id: Number(validation.data.category_id),
         is_recurring: validation.data.is_recurring
       });
-
-      // Оновлюємо дані з сервера без перезавантаження
-      const freshBudgets = await getBudgets();
-      setBudgets(freshBudgets);
 
       setForm({ amount: "", category_id: "", is_recurring: true });
 
@@ -161,8 +179,7 @@ const BudgetsPage = () => {
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
-      await deleteBudget(deleteId);
-      setBudgets((prev) => prev.filter((budget) => budget.id !== deleteId));
+      await deleteBudgetMutation.mutateAsync(deleteId);
       setIsDeleteOpen(false);
       setDeleteId(null);
       toast({ variant: "success", message: "Budget deleted successfully!" });

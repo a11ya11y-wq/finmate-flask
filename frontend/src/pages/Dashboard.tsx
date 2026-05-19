@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import AppShell from "../components/layout/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -6,8 +7,9 @@ import { getDashboard, getDashboardHistory } from "../api/dashboard";
 import { createTransaction, deleteTransaction, updateTransaction } from "../api/transactions";
 import { getCategories } from "../api/categories";
 import { syncTransactions, getSyncTask } from "../api/monobank";
-import type { Category, DashboardResponse, Transaction } from "../api/types";
+import type { Category, DashboardResponse, PaginationResponse, Transaction } from "../api/types";
 import { toErrorMessage } from "../api/error";
+import { queryKeys } from "../api/queryKeys";
 import {
   Area,
   AreaChart,
@@ -72,14 +74,9 @@ const DashboardPage = () => {
 
   const [activeIndex, setActiveIndex] = useState<number | undefined>(undefined);
   const [hiddenCategories, setHiddenCategories] = useState<string[]>([]);
-  const [data, setData] = useState<DashboardResponse | null>(null);
-  const [history, setHistory] = useState<Transaction[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [period, setPeriod] = useState<Period>("month");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [tableLoading, setTableLoading] = useState(true);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -96,8 +93,8 @@ const DashboardPage = () => {
   const [txErrors, setTxErrors] = useState<Record<string, string>>({});
   const [taskId, setTaskId] = useState<string | null>(null);
   const [isSticky, setIsSticky] = useState(false);
-  const pollRef = useRef<number | null>(null);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [form, setForm] = useState({
     title: "",
     amount: "",
@@ -107,108 +104,127 @@ const DashboardPage = () => {
     note: ""
   });
 
-  const loadDashboard = async (selectedPeriod: Period) => {
-    try {
-      const response = await getDashboard(selectedPeriod);
-      setData(response);
-      setTotalPages(response.recent_transactions.total_page || 1);
-    } catch (err) {
-      toast({ variant: "error", message: toErrorMessage(err) });
-    }
-  };
+  const dashboardQuery = useQuery<DashboardResponse>({
+    queryKey: queryKeys.dashboard(period),
+    queryFn: () => getDashboard(period)
+  });
 
-  const loadHistory = async (selectedPeriod: Period, currentPage: number) => {
-    try {
-      setTableLoading(true);
-      const response = await getDashboardHistory(selectedPeriod, currentPage);
-      setHistory(response.data);
-    } catch (err) {
-      toast({ variant: "error", message: toErrorMessage(err) });
-    } finally {
-      setTableLoading(false);
-    }
-  };
+  const historyQuery = useQuery<PaginationResponse<Transaction>>({
+    queryKey: queryKeys.dashboardHistory(period, page),
+    queryFn: () => getDashboardHistory(period, page)
+  });
 
-  useEffect(() => {
-    const init = async () => {
-      setLoading(true);
-      await Promise.all([loadDashboard(period), loadHistory(period, page)]);
-      setLoading(false);
-    };
+  const categoriesQuery = useQuery<{ data: Category[] }>({
+    queryKey: queryKeys.categories,
+    queryFn: getCategories
+  });
 
-    void init();
-  }, [period, page]);
+  const syncMutation = useMutation({
+    mutationFn: syncTransactions,
+    onSuccess: (result) => setTaskId(result.task_id)
+  });
+
+  const normalizeTaskStatus = (status?: string) => (status ?? "").toUpperCase();
 
   useEffect(() => {
-    const loadCategories = async () => {
-      try {
-        const response = await getCategories();
-        setCategories(response.data);
-      } catch (err) {
-        toast({ variant: "error", message: toErrorMessage(err) });
-      }
-    };
+    if (dashboardQuery.error) {
+      toast({ variant: "error", message: toErrorMessage(dashboardQuery.error) });
+    }
+  }, [dashboardQuery.error, toast]);
 
-    void loadCategories();
-  }, [toast]);
+  useEffect(() => {
+    if (historyQuery.error) {
+      toast({ variant: "error", message: toErrorMessage(historyQuery.error) });
+    }
+  }, [historyQuery.error, toast]);
+
+  useEffect(() => {
+    if (categoriesQuery.error) {
+      toast({ variant: "error", message: toErrorMessage(categoriesQuery.error) });
+    }
+  }, [categoriesQuery.error, toast]);
 
   useEffect(() => {
     if (!taskId) {
       return;
     }
 
-    pollRef.current = window.setInterval(async () => {
+    let isCancelled = false;
+    let timeoutId: number | null = null;
+    let attempts = 0;
+
+    const finish = (message: { variant: "success" | "error"; text: string }) => {
+      if (isCancelled) {
+        return;
+      }
+      setTaskId(null);
+      toast({ variant: message.variant, message: message.text });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.dashboard(period) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.dashboardHistory(period, page) });
+    };
+
+    const pollOnce = async () => {
       try {
-        const result = await getSyncTask(taskId);
+        const result = await queryClient.fetchQuery({
+          queryKey: queryKeys.monobankTask(taskId),
+          queryFn: () => getSyncTask(taskId),
+          staleTime: 0
+        });
 
-        // Якщо таска вже не в черзі (SUCCESS або FAILURE)
-        if (result.status !== "PENDING") {
-          if (pollRef.current) {
-            window.clearInterval(pollRef.current);
+        const normalizedStatus = normalizeTaskStatus(result.status);
+
+        if (!normalizedStatus) {
+          finish({ variant: "error", text: "Sync status is missing. Please try again." });
+          return;
+        }
+
+        if (normalizedStatus === "PENDING") {
+          attempts += 1;
+          if (attempts >= 30) {
+            finish({ variant: "error", text: "Sync is taking too long. Please try again later." });
+            return;
           }
-          setTaskId(null);
-
-          // Визначаємо текст повідомлення (підтримка і рядка, і об'єкта з меседжем)
+        } else {
           const rawResult = result.result;
-          const extractedMessage = typeof rawResult === 'object' && rawResult?.message
-            ? rawResult.message
-            : (typeof rawResult === 'string' ? rawResult : null);
+          const extractedMessage =
+            typeof rawResult === "object" && rawResult?.message
+              ? rawResult.message
+              : typeof rawResult === "string"
+                ? rawResult
+                : null;
 
-          if (result.status === "SUCCESS") {
-            toast({
+          if (normalizedStatus === "SUCCESS") {
+            finish({
               variant: "success",
-              message: extractedMessage ?? "Sync completed successfully"
+              text: extractedMessage ?? "Sync completed successfully"
             });
-
-            // Оновлюємо дані на дашборді
-            void loadDashboard(period);
-            void loadHistory(period, page);
           } else {
-            // Обробка FAILURE або інших статусів
-            toast({
+            finish({
               variant: "error",
-              message: extractedMessage ?? `Sync ${result.status.toLowerCase()}`
+              text: extractedMessage ?? `Sync ${normalizedStatus.toLowerCase()}`
             });
           }
+          return;
         }
       } catch (err) {
-        if (pollRef.current) {
-          window.clearInterval(pollRef.current);
-        }
-        setTaskId(null);
-        toast({ 
-          variant: "error", 
-          message: toErrorMessage(err) 
-        });
+        finish({ variant: "error", text: toErrorMessage(err) });
+        return;
       }
-    }, 2000);
 
-    return () => {
-      if (pollRef.current) {
-        window.clearInterval(pollRef.current);
+      if (!isCancelled) {
+        timeoutId = window.setTimeout(pollOnce, 2000);
       }
     };
-  }, [taskId, period, page]); // Додав залежності, щоб loadDashboard мав актуальні дані
+
+    void pollOnce();
+
+    return () => {
+      isCancelled = true;
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
+      }
+    };
+  }, [taskId, period, page, queryClient, toast]);
   useEffect(() => {
     const handleScroll = () => {
       setIsSticky(window.scrollY > 8);
@@ -218,6 +234,17 @@ const DashboardPage = () => {
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const data = dashboardQuery.data ?? null;
+  const history = historyQuery.data?.data ?? [];
+  const categories = categoriesQuery.data?.data ?? [];
+  const tableLoading = historyQuery.isLoading || historyQuery.isFetching;
+
+  useEffect(() => {
+    if (data?.recent_transactions?.total_page) {
+      setTotalPages(data.recent_transactions.total_page || 1);
+    }
+  }, [data]);
 
   const expenseChartData = useMemo(() => {
     if (!data) {
@@ -292,6 +319,31 @@ const DashboardPage = () => {
     };
   };
 
+  const createTransactionMutation = useMutation({
+    mutationFn: createTransaction,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.dashboard(period) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.dashboardHistory(period, page) });
+    }
+  });
+
+  const updateTransactionMutation = useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: Parameters<typeof updateTransaction>[1] }) =>
+      updateTransaction(id, payload),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.dashboard(period) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.dashboardHistory(period, page) });
+    }
+  });
+
+  const deleteTransactionMutation = useMutation({
+    mutationFn: deleteTransaction,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.dashboard(period) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.dashboardHistory(period, page) });
+    }
+  });
+
   const submitTransaction = async () => {
     const validation = validateForm(transactionSchema, form);
     if (!validation.success) {
@@ -326,17 +378,16 @@ const DashboardPage = () => {
             return;
           }
         }
-        await updateTransaction(editTx.id, payload);
+        await updateTransactionMutation.mutateAsync({ id: editTx.id, payload });
         setIsEditOpen(false);
         // ДОДАНО: Тоаст про успішне оновлення
         toast({ variant: "success", message: "Transaction updated successfully!" });
       } else {
-        await createTransaction(payload);
+        await createTransactionMutation.mutateAsync(payload);
         setIsAddOpen(false);
         // ДОДАНО: Тоаст про успішне створення
         toast({ variant: "success", message: "Transaction added successfully!" });
       }
-      await Promise.all([loadDashboard(period), loadHistory(period, page)]);
     } catch (err) {
       toast({ variant: "error", message: toErrorMessage(err) });
     }
@@ -347,10 +398,9 @@ const DashboardPage = () => {
       return;
     }
     try {
-      await deleteTransaction(deleteTx.id);
+      await deleteTransactionMutation.mutateAsync(deleteTx.id);
       setIsDeleteOpen(false);
       setDeleteTx(null);
-      await Promise.all([loadDashboard(period), loadHistory(period, page)]);
 
       // ДОДАНО: Тоаст про успішне видалення
       toast({ variant: "success", message: "Transaction deleted successfully!" });
@@ -361,8 +411,7 @@ const DashboardPage = () => {
 
   const triggerSync = async () => {
     try {
-      const result = await syncTransactions();
-      setTaskId(result.task_id);
+      await syncMutation.mutateAsync();
     } catch (err) {
       toast({ variant: "error", message: toErrorMessage(err) });
     }
@@ -409,8 +458,6 @@ const DashboardPage = () => {
       toast({ variant: "info", message: "No transactions yet." });
     }
   }, [history.length, tableLoading, toast]);
-
-  const unusedVariable = 123;
 
   return (
     <AppShell>

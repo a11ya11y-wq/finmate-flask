@@ -2,6 +2,8 @@ import { create } from "zustand";
 import type { User } from "../api/types";
 import { getProfile } from "../api/profile";
 import { login as loginRequest, logout as logoutRequest, refresh } from "../api/auth";
+import { queryClient } from "../lib/queryClient";
+import { queryKeys } from "../api/queryKeys";
 
 type AuthState = {
   accessToken: string | null;
@@ -27,7 +29,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const result = await loginRequest({ email, password, remember_me: rememberMe });
       set({ accessToken: result.access_token });
-      const profile = await getProfile();
+      const profile = await queryClient.fetchQuery({
+        queryKey: queryKeys.profile,
+        queryFn: getProfile
+      });
       set({ user: profile, status: "idle" });
     } catch (error) {
       set({ status: "idle" });
@@ -39,7 +44,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const result = await refresh();
       set({ accessToken: result.access_token });
-      const profile = await getProfile();
+      const profile = await queryClient.fetchQuery({
+        queryKey: queryKeys.profile,
+        queryFn: getProfile
+      });
       set({ user: profile, status: "idle" });
       return true;
     } catch (error) {
@@ -52,6 +60,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       await logoutRequest();
     } finally {
+      queryClient.removeQueries({ queryKey: queryKeys.profile });
       clearAuth();
     }
   }
