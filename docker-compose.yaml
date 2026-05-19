@@ -4,8 +4,6 @@ services:
     container_name: finmate_postgres
     env_file:
       - .env
-    ports:
-      - "5432:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
     healthcheck:
@@ -32,6 +30,7 @@ services:
     container_name: finmate_gateway
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./gateway/nginx.local.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
@@ -45,13 +44,14 @@ services:
   api-main:
     image: finmate_api_main
     build: api-main
-    ports:
-      - "5000:5000"
+    working_dir: /app
+    environment:
+      - PYTHONPATH=/app
+      - FLASK_APP=app.py
+    command: >
+      sh -c "PYTHONPATH=. python3 -m flask db upgrade && gunicorn --bind 0.0.0.0:5000 --workers 3 core_service.wsgi:app"
     env_file:
       - .env
-    volumes:
-      - ./api-main:/app
-      - ./shared_reports:/app/uploads
     depends_on:
         db:
           condition: service_healthy
@@ -60,12 +60,9 @@ services:
 
   celery_worker:
     image: finmate_api_main
-    build: api-main
-    command: celery -A celery_worker.celery worker --pool=solo --loglevel=info
+    command: celery -A celery_worker.celery worker --loglevel=info
     env_file:
       - .env
-    volumes:
-      - ./api-main:/app
     depends_on:
       - api-main
 
@@ -84,10 +81,8 @@ services:
         - ./shared_reports:/app/uploads
 
   frontend:
-    container_name: finmate_frontend
-    build: ./frontend_by_copilot
-    ports:
-      - "3000:80"
+    container_name: frontend
+    build: ./frontend
     depends_on:
       - api-main
 

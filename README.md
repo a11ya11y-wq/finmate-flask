@@ -5,6 +5,11 @@
 
 ![Python](https://img.shields.io/badge/Python-3.11+-blue?style=for-the-badge&logo=python&logoColor=white)
 ![Flask](https://img.shields.io/badge/Flask-2.0+-green?style=for-the-badge&logo=flask&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![Playwright](https://img.shields.io/badge/Playwright-2EAD33?style=for-the-badge&logo=playwright&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
 ![Pydantic](https://img.shields.io/badge/Pydantic-Validation-e92063?style=for-the-badge&logo=pydantic&logoColor=white)
 ![JWT](https://img.shields.io/badge/JWT-Auth-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
 ![Celery](https://img.shields.io/badge/Celery-Async_Tasks-37814A?style=for-the-badge&logo=celery&logoColor=white)
@@ -12,14 +17,13 @@
 ![Redis](https://img.shields.io/badge/Redis-Cache_%26_Broker-DC382D?style=for-the-badge&logo=redis&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 ![Nginx](https://img.shields.io/badge/Nginx-Reverse_Proxy-009639?style=for-the-badge&logo=nginx&logoColor=white)
-![Vite](https://img.shields.io/badge/Frontend-Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
 ![Coverage](https://img.shields.io/badge/Coverage-80%25-green?style=for-the-badge)
 
 ## 🚀 Live Demo
 Check out the application live at: **[https://fin-mate.app](https://fin-mate.app)**
 
 ## Overview
-**FinMate** is a modern full-stack personal finance application designed to help users track income & expenses, manage budgets, and visualize financial health. The project features a robust **Flask** backend, an asynchronous task queue using **Celery**, and a responsive frontend built with **Vite** and **Bootstrap 5**.
+**FinMate** is a modern full-stack personal finance application designed to help users track income & expenses, manage budgets, and visualize financial health. The project features a robust **Flask** backend, an asynchronous task queue using **Celery**, and a highly responsive, type-safe frontend built with **React** and **TypeScript**.
 
 > **Note:** The frontend architecture and UI logic were developed with the assistance of AI tools (GitHub Copilot), focusing on modern best practices and responsiveness.
 
@@ -36,8 +40,8 @@ Check out the application live at: **[https://fin-mate.app](https://fin-mate.app
     1.  **Caching:** Stores heavy analytical queries (Dashboard) and user profiles.
     2.  **Message Broker:** Manages the task queue for Celery workers.
 - **Testing & Quality Assurance:**
-    - Comprehensive test suite utilizing **Pytest**.
-    - Achieved **80% code coverage** for backend logic.
+    - **Backend Testing:** Comprehensive test suite utilizing **Pytest** with **80% code coverage** for business logic.
+    - **E2E Testing:** Robust End-to-End test coverage using **Playwright** to ensure critical user journeys (authentication, transaction management, API synchronization) function flawlessly across modern browsers.
     - <details><summary>View Coverage Report</summary><img src="/screenshots/coverage_report.png" alt="Coverage Report"></details>
 
 ## 🏗 Infrastructure & Deployment
@@ -91,9 +95,16 @@ To protect against brute-force attacks and service abuse, **Flask-Limiter** is i
 - **Redis:** Cache & Broker.
 
 ### Frontend
-- **Vite:** Build tool and development server.
-- **Bootstrap 5:** Styling and layout.
-- **Chart.js:** Data visualization.
+- **Framework/UI:** React 18, React Router, TypeScript
+- **Build/Dev:** Vite + `@vitejs/plugin-react`
+- **Styling:** Tailwind CSS, PostCSS, Autoprefixer
+- **State Management:** Zustand
+- **Validation:** Zod
+- **Data Visualization:** Recharts
+
+### Quality Assurance
+- **Pytest:** Backend unit and integration testing.
+- **Playwright:** End-to-End (E2E) browser automation testing.
 
 ## Screenshots
 
@@ -121,7 +132,7 @@ Screenshots are located in `frontend_by_copilot/public/img/screenshots/`.
 1.  **Clone the repository:**
     ```bash
     git clone https://github.com/a11ya11y-wq/finmate-flask.git
-    cd core_service
+    cd finmate-flask
     ```
 
 2.  **Environment Setup:**
@@ -165,9 +176,15 @@ Screenshots are located in `frontend_by_copilot/public/img/screenshots/`.
     The app will be available at `http://localhost:3000`.
 
 4.  **Run Tests:**
-    ```bash
-    docker compose exec api-main pytest
-    ```
+    * **Backend (Pytest):**
+        ```bash
+        docker compose exec api-main pytest
+        ```
+    * **E2E (Playwright):**
+        ```bash
+        cd frontend
+        npm run test:e2e
+        ```
 
 ## 🔌 API Endpoints
 
@@ -186,7 +203,7 @@ Screenshots are located in `frontend_by_copilot/public/img/screenshots/`.
 | **Categories**    |                                      |                                              |
 | `POST`            | `/api/v1/categories/`                | Create category                              |
 | `DELETE`          | `/api/v1/categories/{id}`            | Delete category                              |
-| `PUT`             | `/api/v1/categories/<{id}`           | Update category                              |
+| `PUT`             | `/api/v1/categories/{id}`           | Update category                              |
 | `GET`             | `/api/v1/categories/all`             | Get all categories                           |
 | **Budgets**       |                                      |                                              |
 | `POST`            | `/api/v1/budgets/`                   | Create or update budget                      |

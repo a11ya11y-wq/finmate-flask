@@ -1,0 +1,11 @@
+
+tests/.auth/user.json
+tests/.auth
+
+# Playwright
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/

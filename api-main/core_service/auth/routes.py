@@ -1,4 +1,4 @@
-from flask import request, jsonify, make_response
+from flask import app, current_app, request, jsonify, make_response
 from flask_jwt_extended import jwt_required
 
 from core_service.auth import bp
@@ -22,11 +22,13 @@ def login():
             "message": "Login successful."
         }), 200)
 
+        is_secure = not current_app.debug
+
         resp.set_cookie(
             key='finmate_refresh_token',
             value=refresh_token,
             httponly=True,
-            secure=False,  # На продакшн сервері має бути True і в логаут добавить!
+            secure=is_secure,
             samesite='Lax',
             path='/api/v1/auth/refresh',
             max_age=delta
@@ -50,11 +52,13 @@ def refresh():
 
         max_age_seconds = 30 * 24 * 60 * 60
 
+        is_secure = not current_app.debug
+        
         resp.set_cookie(
             key='finmate_refresh_token',
             value=new_refresh_token,
             httponly=True,
-            secure=False,
+            secure=is_secure,
             samesite='Lax',
             path='/api/v1/auth/refresh',
             max_age=token_validity
@@ -94,13 +98,15 @@ def logout():
         service.logout_user(access_token)
 
         resp = make_response(jsonify({"message": "Successfully logged out"}), 200)
+    
+        is_secure = not current_app.debug
 
         resp.set_cookie(
             'finmate_refresh_token',
             '',
             expires=0,
             httponly=True,
-            secure=False,
+            secure=is_secure,
             path='/api/v1/auth/refresh'
         )
         return resp

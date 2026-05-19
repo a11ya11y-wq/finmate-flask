@@ -23,4 +23,4 @@ class PasswordChangeSchema(BaseModel):
 
 
 class MonoTokenUpdateSchema(BaseModel):
-    token : str = Field(min_length=10)
+    token : str = Field(min_length=44, max_length=44)

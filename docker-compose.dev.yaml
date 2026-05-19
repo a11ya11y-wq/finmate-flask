@@ -60,7 +60,6 @@ services:
 
   celery_worker:
     image: finmate_api_main
-    build: api-main
     command: celery -A celery_worker.celery worker --pool=solo --loglevel=info
     env_file:
       - .env
@@ -84,8 +83,8 @@ services:
         - ./shared_reports:/app/uploads
 
   frontend:
-    container_name: finmate_frontend
-    build: ./frontend_by_copilot
+    container_name: frontend
+    build: ./frontend
     ports:
       - "3000:80"
     depends_on:
