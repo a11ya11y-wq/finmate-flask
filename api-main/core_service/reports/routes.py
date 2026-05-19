@@ -5,7 +5,6 @@ from core_service.reports import bp
 from core_service.utils.error_parser import parse_exception
 from core_service.reports.service import ReportService
 from core_service.extensions import limiter, celery
-from .tasks import task_generate_report
 import logging
 
 
@@ -22,48 +21,23 @@ def generate_pdf_report():
         data = request.get_json() # startDate and endDate
         logger.info(f"Received request to generate PDF report for user {user_id}")
 
-        task = task_generate_report.delay(user_id, data)
+        request_id= service.generate_pdf_report(user_id, data)
 
         return jsonify({
             "message": "Report generation started. You will receive the report shortly.",
-            "taskId": task.id
+            "status": "PENDING",
+            "request_id": request_id
         }), 202
 
     except Exception as e:
         return parse_exception(e)
 
-@bp.route("/status/<task_id>", methods=['GET'])
+@bp.route("/generate-pdf/<request_id>/status", methods=['GET'])
 @jwt_required()
-def get_task_status(task_id):
+def get_report_status(request_id):
     try:
-        task_result = celery.AsyncResult(task_id)
-
-        res = task_result.result
-
-        if res is None:
-            return jsonify({"status": task_result.state, "msg": "Waiting for worker..."}), 200
-
-        if task_result.state == 'PENDING':
-            return jsonify({
-                "status": "PENDING",
-                "msg": res.get('msg', 'Report generation is pending')
-            }), 200
-
-        elif task_result.state == 'SUCCESS':
-                return jsonify({
-                    "status": "SUCCESS",
-                    "data": res.get('fileName'),
-                    "msg": res.get('msg', 'Report generated successfully')
-                }), 200
-
-        elif task_result.state == 'FAILURE':
-            return jsonify({
-                "status": "FAILED",
-                "error": str(task_result.info),
-                "msg": res.get('msg', 'Report generation failed')
-            }), 500
-
-        return jsonify({"status": task_result.state}), 200
+        response_data, status_code = service.get_report_status(request_id)
+        return jsonify(response_data), status_code
 
     except Exception as e:
         return parse_exception(e)

@@ -52,8 +52,8 @@ export class ReportsController {
         if (fs.existsSync(fullPath)) {
           this.logger.log(`Returning existing report ID: ${existingReport.id}`);
           // Success response with existing file name
-          await this.redis.set(redisStatusKey, ReportStatus.PROCESSED);
           await this.redis.set(redisFileKey, existingReport.fileName);
+          await this.redis.set(redisStatusKey, ReportStatus.PROCESSED);
           return;
         }
       }
@@ -74,11 +74,11 @@ export class ReportsController {
           null,
         );
         // Failure response when no transactions are found
-        await this.redis.set(redisStatusKey, ReportStatus.FAILED);
         await this.redis.set(
           redisErrorKey,
           'No transactions found for the specified period.',
         );
+        await this.redis.set(redisStatusKey, ReportStatus.FAILED);
         return;
       }
 

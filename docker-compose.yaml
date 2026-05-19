@@ -77,7 +77,6 @@ services:
       redis:
         condition: service_healthy
     volumes:
-#        - ./services/report-service:/app
         - ./shared_reports:/app/uploads
 
   frontend:

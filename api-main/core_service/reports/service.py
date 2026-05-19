@@ -8,7 +8,7 @@ import uuid
 import json
 from core_service import extensions
 import os
-from flask import send_from_directory
+from flask import jsonify, send_from_directory
 
 
 
@@ -22,72 +22,72 @@ class ReportService:
         self.upload_folder = "/app/uploads"
 
     def generate_pdf_report(self, user_id: int, data: dict):
-
         validated_data = ReportRequestSchema.model_validate(data)
         payload = validated_data.model_dump(mode='json', exclude_unset=True)
+
         if not payload:
             raise BusinessLogicError("No valid fields to generate report.")
         payload['userId'] = user_id
 
         with UnitOfWork() as uow:
             user = uow.auth.find_user_by_id(user_id)
-
         if not user:
             logger.warning(f"User entity not found for user_id: {user_id}")
             raise ResourceNotFound("User not found.")
 
-        job_id = str(uuid.uuid4())
+        request_id = str(uuid.uuid4())
+        payload['requestId'] = request_id
 
         message = {
             "pattern": 'reports_queue',
             "data": payload,
-            "id": str(job_id)
         }
+        logger.info(f"Payload for report generation: {payload}=======")
 
-        channel = 'reports_queue'
-        reply_channel = f'{channel}.reply'
-
-        pubsub = extensions.redis_client.pubsub()
-        pubsub.subscribe(reply_channel)
-
-        start_time = time.time()
-        timeout = 30  # seconds
         try:
-            pubsub.publish(channel, json.dumps(message))
-            logger.info(f"Published job {job_id} to {channel}. Waiting for NestJS...")
+            status_key = f"request:{request_id}:status"
+            extensions.redis_client.setex(status_key, 3600, "PENDING") # Value is set to "PENDING"
 
-            while time.time() - start_time < timeout:
+            extensions.redis_client.publish('reports_queue', json.dumps(message))
+            logger.info(f"Published report job {request_id} to reports_queue.")
 
-                raw_message = pubsub.get_message(ignore_subscribe_messages=True, timeout=1)
-
-                if raw_message:
-                    response_payload = json.loads(raw_message['data'])
-
-                    if response_payload.get('id') == job_id:
-
-                        if 'err' in response_payload:
-                            logger.error(f"NestJS returned an error: {response_payload['err']}")
-                            raise BusinessLogicError(f"Microservice error: {response_payload['err']}")
-
-                        data = response_payload.get('response')
-
-                        if data is None:
-                            logger.error(f"Received empty response for job {job_id}")
-                            raise BusinessLogicError("Empty response from report service.")
-
-                        logger.info(f"Successfully received report result for job {job_id}")
-                        return data
-
-            logger.error(f"Timeout waiting for NestJS response on job {job_id}")
-            raise BusinessLogicError("Report service timeout.")
+            return request_id
 
         except Exception as e:
-            logger.error(f"Failed to publish report generation job to Redis channel '{channel}'")
-            raise BusinessLogicError("Failed to initiate report generation.")
+            logger.error(f"Failed to publish report generation job: {str(e)}")
+            raise BusinessLogicError(f"Failed to initiate report generation, please try again later.")
 
-        finally:
-            pubsub.unsubscribe(reply_channel)
-            pubsub.close()
+
+    def get_report_status(self, request_id: str) -> tuple[dict, int]:
+        status_key = f"request:{request_id}:status"
+        file_key = f"request:{request_id}:file"
+
+        status = extensions.redis_client.get(status_key)
+        status = status.upper() if status else None
+
+        if not status:
+            return jsonify({"error": "Request ID not found or expired"}), 404
+
+        if status == "PROCESSED":
+            file_resp = extensions.redis_client.get(file_key)
+            file_name = file_resp if file_resp else None
+            return {
+                "status": status,
+                "fileName": file_name
+            }, 200
+
+        elif status == "FAILED":
+            error_resp = extensions.redis_client.get(f"request:{request_id}:error")
+            error_msg = error_resp if error_resp else "Unknown error during generation"
+            return {
+                "status": status,
+                "error": error_msg
+            }, 400
+
+        else:
+            return {
+                "status": status
+            }, 202
 
 
     def download_report(self, file_name: str):
