@@ -67,10 +67,13 @@ services:
       - api-main
 
   report-service:
-    build: ./services/report-service
+    build: 
+      context: ./services/report-service
+      target: production
     container_name: finmate_report_service
     env_file:
       - .env
+    init: true
     depends_on:
       db:
         condition: service_healthy

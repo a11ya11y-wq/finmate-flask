@@ -14,6 +14,7 @@ export class ReportsController {
   constructor(
     private readonly reportsService: ReportsService,
     private readonly pdfService: PdfService,
+
     @Inject('REDIS_CLIENT') private readonly redis: Redis,
   ) {}
 

@@ -1,36 +1,34 @@
-# Етап 1: Збірка
-FROM node:20-alpine AS builder
+# === БАЗОВИЙ ОБРАЗ (Переходимо на Debian slim заради Playwright) ===
+FROM node:20-bookworm-slim AS base
 WORKDIR /app
+
+# Копіюємо маніфести пакетів
 COPY package*.json ./
+
+# Встановлюємо пакети (це стягне саму лібу playwright)
 RUN npm install
+
+# МАГІЯ PLAYWRIGHT: Офіційна команда, яка сама ставить Chromium 
+# і ВСІ необхідні системні залежності Debian (шрифти, libnss тощо)
+RUN npx playwright install --with-deps chromium
+
+# === ЕТАП РОЗРОБКИ (Target: development) ===
+FROM base AS development
+COPY . .
+RUN mkdir -p /app/uploads && chmod 777 /app/uploads
+CMD ["npm", "run", "start:dev"]
+
+# === ЕТАП ЗБІРКИ ===
+FROM base AS builder
 COPY . .
 RUN npm run build
 
-# Етап 2: Фінальний образ
-FROM node:20-alpine
-WORKDIR /app
-
-# 1. Встановлюємо Chromium та залежності
-RUN apk add --no-cache \
-      chromium \
-      nss \
-      freetype \
-      harfbuzz \
-      ca-certificates \
-      ttf-freefont
-
-# 2. Кажемо Puppeteer використовувати системний Chromium замість завантаження свого
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
-
-COPY package*.json ./
-RUN npm install --only=production
-
-# Копіюємо скомпілений код та шаблони[cite: 1]
+# === ФІНАЛЬНИЙ ПРОДАКШЕН ОБРАЗ (Target: production) ===
+FROM base AS production
+# Видаляємо dev-залежності для економії місця
+RUN npm prune --production
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/templates ./templates
-
-# Створюємо папку для волюма, щоб не було помилок доступу[cite: 1]
 RUN mkdir -p /app/uploads && chmod 777 /app/uploads
 
 CMD ["node", "dist/main"]
