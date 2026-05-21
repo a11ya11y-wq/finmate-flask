@@ -72,6 +72,9 @@ export class ReportsService {
         endDate,
         status: ReportStatus.PROCESSED, // We need only completed reports
       },
+      order: {
+        createdAt: 'DESC',
+      },
     });
   }
 }

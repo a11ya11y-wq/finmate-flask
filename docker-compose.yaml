@@ -66,21 +66,21 @@ services:
     depends_on:
       - api-main
 
-  report-service:
-    build: 
-      context: ./services/report-service
-      target: production
-    container_name: finmate_report_service
-    env_file:
-      - .env
-    init: true
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    volumes:
-        - ./shared_reports:/app/uploads
+  # report-service:
+  #   build: 
+  #     context: ./services/report-service
+  #     target: production
+  #   container_name: finmate_report_service
+  #   env_file:
+  #     - .env
+  #   init: true
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
+  #   volumes:
+  #       - ./shared_reports:/app/uploads
 
   frontend:
     container_name: frontend

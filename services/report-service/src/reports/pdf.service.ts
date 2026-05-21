@@ -67,7 +67,11 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
       await page.setContent(htmlContent, { waitUntil: 'networkidle' });
 
       const fileName = `report_${reportId}_${Date.now()}.pdf`;
-      const REPORTS_UPLOAD_DIR = '/app/uploads'; // TODO: move to config!!!!
+      const REPORTS_UPLOAD_DIR = path.join(process.cwd(), 'uploads'); // TODO: move to config!!!!
+
+      if (!fs.existsSync(REPORTS_UPLOAD_DIR)) {
+        fs.mkdirSync(REPORTS_UPLOAD_DIR, { recursive: true });
+      }
       const filePath = path.join(REPORTS_UPLOAD_DIR, fileName);
 
       await page.pdf({ path: filePath, format: 'A4', printBackground: true });

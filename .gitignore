@@ -5,6 +5,9 @@ api-main/doc.md
 venv/
 env/
 
+**/uploads/
+
+
 shared_reports
 
 htmlcov/

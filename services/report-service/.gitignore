@@ -2,6 +2,8 @@
 static/reports/*
 !static/reports/.gitkeep
 
+**/uploads/
+
 # compiled output
 /dist
 /node_modules
