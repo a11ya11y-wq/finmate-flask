@@ -21,22 +21,19 @@ def generate_pdf_report():
         data = request.get_json() # startDate and endDate
         logger.info(f"Received request to generate PDF report for user {user_id}")
 
-        request_id= service.generate_pdf_report(user_id, data)
+        report_dict, status_code = service.generate_pdf_report(user_id, data)
 
-        return jsonify({
-            "message": "Report generation started. You will receive the report shortly.",
-            "status": "PENDING",
-            "request_id": request_id
-        }), 202
+        return jsonify(report_dict), status_code
 
     except Exception as e:
         return parse_exception(e)
 
-@bp.route("/generate-pdf/<request_id>/status", methods=['GET'])
+@bp.route("/generate-pdf/<int:report_id>/status", methods=['GET'])
 @jwt_required()
-def get_report_status(request_id):
+def get_report_status(report_id):
     try:
-        response_data, status_code = service.get_report_status(request_id)
+        user_id = int(get_jwt_identity())
+        response_data, status_code = service.get_report_status(user_id, report_id)
         return jsonify(response_data), status_code
 
     except Exception as e:

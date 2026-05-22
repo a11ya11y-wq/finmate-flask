@@ -9,12 +9,14 @@ class UnitOfWork:
         from core_service.profile.repository import ProfileRepository
         from core_service.budgets.repository import BudgetRepository
         from core_service.auth.repository import AuthRepository
+        from core_service.reports.repository import ReportRepository
 
         self.transactions = TransactionRepository()
         self.categories = CategoryRepository()
         self.profile = ProfileRepository()
         self.budget = BudgetRepository()
         self.auth = AuthRepository()
+        self.reports = ReportRepository()
 
     def __enter__(self):
         return self
@@ -25,6 +27,9 @@ class UnitOfWork:
 
     def commit(self):
         db.session.commit()
+
+    def flush(self):
+        db.session.flush()
 
     def rollback(self):
         db.session.rollback()

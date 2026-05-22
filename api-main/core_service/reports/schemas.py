@@ -1,9 +1,9 @@
 from pydantic import BaseModel, Field, model_validator
-from datetime import datetime
+from datetime import date
 
 class ReportRequestSchema(BaseModel):
-    startDate : datetime = Field()
-    endDate : datetime = Field()
+    startDate : date = Field()
+    endDate : date = Field()
 
     @model_validator(mode='after')
     def check_correct_period(self):

@@ -21,6 +21,44 @@ class TransactionRepository:
     def get_by_id_and_user(self, user_id: int, tx_id: int) -> Optional[Transactions]:
         return Transactions.query.filter_by(user_id=user_id, id=tx_id).first()
 
+    # For report generation
+    def get_tx_by_period(self, user_id: int, start_date, end_date) -> list[dict]: 
+        rows = db.session.query(
+            Transactions.title,
+            Transactions.created_at,
+            Transactions.amount,
+            Transactions.transaction_type,
+            Category.name.label('category_name')
+        ).outerjoin(
+            Category, Transactions.category_id == Category.id
+        ).filter(
+            Transactions.user_id == user_id,
+            Transactions.created_at >= start_date,
+            Transactions.created_at <= end_date
+        ).order_by(
+            Transactions.created_at.desc()
+        ).all()
+        
+        # (Decimal -> str, datetime -> isoformat).
+        formatted_transactions = []
+        for row in rows:
+            tx_type = str(row.transaction_type).upper()
+
+            if tx_type == "EXPENSE":
+                formatted_amount = f"-{row.amount}"
+            else:
+                formatted_amount = str(row.amount)
+
+            formatted_transactions.append({
+                "title": row.title,
+                "date": row.created_at.isoformat(),
+                "amount": formatted_amount,
+                "type": tx_type,
+                "category": row.category_name if row.category_name else "Uncategorized"
+            })
+
+        return formatted_transactions
+
     def get_recent_transactions(self, user_id: int, period, limit: int = 15, offset: int = 0) -> list[Transactions]:
         query = self.get_base_query(user_id, period)
         return query.order_by(Transactions.created_at.desc()).limit(limit).offset(offset).all()

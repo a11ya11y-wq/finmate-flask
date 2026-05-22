@@ -1,3 +1,4 @@
+from datetime import datetime
 import logging
 import time
 
@@ -9,6 +10,7 @@ import json
 from core_service import extensions
 import os
 from flask import jsonify, send_from_directory
+from core_service.models.report_model import ReportStatus, Reports
 
 
 
@@ -21,7 +23,7 @@ class ReportService:
     def __init__(self):
         self.upload_folder = "/app/uploads"
 
-    def generate_pdf_report(self, user_id: int, data: dict):
+    def generate_pdf_report(self, user_id: int, data: dict) -> tuple[dict, int]:
         validated_data = ReportRequestSchema.model_validate(data)
         payload = validated_data.model_dump(mode='json', exclude_unset=True)
 
@@ -29,65 +31,114 @@ class ReportService:
             raise BusinessLogicError("No valid fields to generate report.")
         payload['userId'] = user_id
 
+        start_date = validated_data.startDate
+        end_date = validated_data.endDate
+
         with UnitOfWork() as uow:
             user = uow.auth.find_user_by_id(user_id)
-        if not user:
-            logger.warning(f"User entity not found for user_id: {user_id}")
-            raise ResourceNotFound("User not found.")
+            if not user:
+                logger.warning(f"User entity not found for user_id: {user_id}")
+                raise ResourceNotFound("User not found.")
+            
+            existing_report = uow.reports.get_active_report_by_period(user_id, start_date, end_date)
+            if existing_report:
+                logger.info(f"Existing report found for user_id: {user_id} in the specified period. Returning existing report.")
 
-        request_id = str(uuid.uuid4())
-        payload['requestId'] = request_id
+                if existing_report.status == ReportStatus.PROCESSED:
+                    return existing_report.to_dict(), 200
+                elif existing_report.status == ReportStatus.PENDING:
+                    raise BusinessLogicError("Report generation is already in progress for the specified period.")
+                elif existing_report.status in [ReportStatus.FAILED, ReportStatus.EXPIRED]:
+                    report = uow.reports.create_report(user_id, start_date, end_date)
 
-        message = {
-            "pattern": 'reports_queue',
-            "data": payload,
+            else:
+                report = uow.reports.create_report(user_id, start_date, end_date)
+            uow.flush() # Ensure report.id is generated before fetching transactions
+
+            transactions = uow.transactions.get_tx_by_period(user_id, start_date, end_date)
+
+
+            if not transactions:
+                logger.info(f"No transactions found for user_id: {user_id} in the specified period.")
+                uow.reports.update_report_status(report.id, ReportStatus.FAILED)
+                uow.commit()
+                raise BusinessLogicError("No transactions found for the specified period for report.")
+            uow.commit()
+
+        task_payload = {
+            "reportId": report.id,
+            "user": {
+                "username": user.username,
+                "email": user.email
+            },
+            "transactions": transactions
         }
-        logger.info(f"Payload for report generation: {payload}=======")
 
         try:
-            status_key = f"request:{request_id}:status"
-            extensions.redis_client.setex(status_key, 3600, "PENDING") # Value is set to "PENDING"
-
-            extensions.redis_client.publish('reports_queue', json.dumps(message))
-            logger.info(f"Published report job {request_id} to reports_queue.")
-
-            return request_id
-
+            extensions.redis_client.rpush("pdf_task_queue", json.dumps(task_payload))
+            logger.info(f"Report generation task enqueued for user_id: {user_id} with report_id: {report.id}")
         except Exception as e:
-            logger.error(f"Failed to publish report generation job: {str(e)}")
-            raise BusinessLogicError(f"Failed to initiate report generation, please try again later.")
+            logger.error(f"Failed to enqueue report generation task for user_id: {user_id} with report_id: {report.id}. Error: {str(e)}")
+            with UnitOfWork() as uow:
+                uow.reports.update_report_status(report.id, ReportStatus.FAILED)
+                uow.commit()
+            raise BusinessLogicError("Failed to start report generation process. Please try again later.")
 
+        return report.to_dict(), 202
+ 
 
-    def get_report_status(self, request_id: str) -> tuple[dict, int]:
-        status_key = f"request:{request_id}:status"
-        file_key = f"request:{request_id}:file"
+    def get_report_status(self, user_id: int, report_id: int) -> tuple[dict, int]:
+         with UnitOfWork() as uow:
 
-        status = extensions.redis_client.get(status_key)
-        status = status.upper() if status else None
+            report = uow.reports.get_report_by_id(report_id)
+            if not report or report.user_id != user_id:
+                logger.warning(f"Report with id {report_id} not found for user_id: {user_id}")
+                raise ResourceNotFound("Report not found or access denied.")
 
-        if not status:
-            return jsonify({"error": "Request ID not found or expired"}), 404
+            if report.status == ReportStatus.PROCESSED:
+                return {
+                    "status": report.status.value,
+                    "fileName": report.file_name
+                }, 200
+            elif report.status in [ReportStatus.FAILED, ReportStatus.EXPIRED]:
+                return {
+                    "status": report.status.value,
+                    "error": "Report generation failed."
+                }, 400
 
-        if status == "PROCESSED":
-            file_resp = extensions.redis_client.get(file_key)
-            file_name = file_resp if file_resp else None
-            return {
-                "status": status,
-                "fileName": file_name
-            }, 200
+            redis_result_key = f"report_result:{report_id}"
+            result = extensions.redis_client.get(redis_result_key)
 
-        elif status == "FAILED":
-            error_resp = extensions.redis_client.get(f"request:{request_id}:error")
-            error_msg = error_resp if error_resp else "Unknown error during generation"
-            return {
-                "status": status,
-                "error": error_msg
-            }, 400
+            if not result:
+                return { "status": "pending" }, 202
 
-        else:
-            return {
-                "status": status
-            }, 202
+            result_data = json.loads(result)
+            status = result_data.get("status")
+    
+            if status == "success":
+                file_name = result_data.get("fileName")
+                uow.reports.update_report_status(report_id, ReportStatus.PROCESSED, file_name)
+                uow.commit()
+                extensions.redis_client.delete(redis_result_key)
+                return {
+                    "status": status,
+                    "fileName": file_name
+                }, 200
+
+            elif status == "error":
+                error_msg = result_data.get("message", "An error occurred during report generation.")
+                uow.reports.update_report_status(report_id, ReportStatus.FAILED)
+                uow.commit()
+                extensions.redis_client.delete(redis_result_key)
+                return {
+                    "status": status,
+                    "error": error_msg
+                }, 400
+
+            else:
+                return {
+                    "status": status
+                }, 202
 
 
     def download_report(self, file_name: str):
