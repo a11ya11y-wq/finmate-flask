@@ -8,7 +8,7 @@ import { Browser, chromium } from 'playwright';
 import path from 'node:path';
 import * as fs from 'node:fs';
 import * as Handlebars from 'handlebars';
-import { Transaction } from './entities/transaction.entity';
+import { ReportTaskPayload } from './dto/report-task.dto';
 
 @Injectable()
 export class PdfService implements OnModuleInit, OnModuleDestroy {
@@ -38,14 +38,17 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async generateTxReport(reportId: number, transactions: Transaction[]) {
+  async generateTxReport(
+    reportId: number,
+    transactions: ReportTaskPayload['transactions'],
+  ) {
     const templatePath = path.join(process.cwd(), 'templates', 'report.hbs');
     const templateHtml = fs.readFileSync(templatePath, 'utf-8');
 
     const template = Handlebars.compile(templateHtml);
 
     const totalBalance = transactions.reduce((acc, t) => {
-      return acc + Number(t.correctedAmount);
+      return acc + Number(t.amount);
     }, 0);
 
     const htmlContent = template({
@@ -55,8 +58,8 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
       transactions: transactions.map((t) => ({
         ...t,
         dateFormatted: new Date(t.date).toLocaleDateString('en-GB'),
-        amountFormatted: Math.abs(Number(t.correctedAmount)).toFixed(2),
-        isExpense: Number(t.correctedAmount) < 0,
+        amountFormatted: Math.abs(Number(t.amount)).toFixed(2),
+        isExpense: Number(t.amount) < 0,
       })),
     });
 
