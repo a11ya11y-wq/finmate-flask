@@ -37,7 +37,7 @@ class TransactionDTO {
     },
   )
   @IsNotEmpty({ message: 'Amount is required' })
-  amount!: number;
+  amount!: string;
 
   @IsString({ message: 'Category must be a string' })
   @IsNotEmpty({ message: 'Category is required' })

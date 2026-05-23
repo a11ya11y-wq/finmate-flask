@@ -9,11 +9,24 @@ import path from 'node:path';
 import * as fs from 'node:fs';
 import * as Handlebars from 'handlebars';
 import { ReportTaskPayload } from './dto/report-task.dto';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
 @Injectable()
 export class PdfService implements OnModuleInit, OnModuleDestroy {
   private browser!: Browser;
   private readonly logger = new Logger(PdfService.name);
+  private readonly s3: S3Client;
+
+  constructor() {
+    this.s3 = new S3Client({
+      endpoint: process.env.DO_SPACES_ENDPOINT,
+      region: process.env.DO_SPACES_REGION || 'us-east-1',
+      credentials: {
+        accessKeyId: process.env.DO_SPACES_KEY!,
+        secretAccessKey: process.env.DO_SPACES_SECRET!,
+      },
+    });
+  }
 
   async onModuleInit() {
     this.logger.log('Launching playwright browser for PDF generation...');
@@ -41,7 +54,7 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
   async generateTxReport(
     reportId: number,
     transactions: ReportTaskPayload['transactions'],
-  ) {
+  ): Promise<string> {
     const templatePath = path.join(process.cwd(), 'templates', 'report.hbs');
     const templateHtml = fs.readFileSync(templatePath, 'utf-8');
 
@@ -70,16 +83,21 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
       await page.setContent(htmlContent, { waitUntil: 'networkidle' });
 
       const fileName = `report_${reportId}_${Date.now()}.pdf`;
-      const REPORTS_UPLOAD_DIR = path.join(process.cwd(), 'uploads'); // TODO: move to config!!!!
 
-      if (!fs.existsSync(REPORTS_UPLOAD_DIR)) {
-        fs.mkdirSync(REPORTS_UPLOAD_DIR, { recursive: true });
-      }
-      const filePath = path.join(REPORTS_UPLOAD_DIR, fileName);
+      const pdfBuffer = await page.pdf({ format: 'A4' });
 
-      await page.pdf({ path: filePath, format: 'A4', printBackground: true });
+      const command = new PutObjectCommand({
+        Bucket: process.env.DO_SPACES_BUCKET,
+        Key: fileName,
+        Body: pdfBuffer,
+        ACL: 'public-read',
+        ContentType: 'application/pdf',
+      });
 
-      return fileName;
+      await this.s3.send(command);
+      this.logger.log(`File ${fileName} successfully uploaded to DO Spaces`);
+
+      return `${process.env.DO_SPACES_ENDPOINT}/${process.env.DO_SPACES_BUCKET}/${fileName}`;
     } catch (error) {
       this.logger.error(
         `Failed to generate PDF report: ${error instanceof Error ? error.message : error}`,
