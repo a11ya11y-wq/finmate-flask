@@ -52,6 +52,7 @@ class ReportService:
                     raise BusinessLogicError("Report generation is already in progress for the specified period.")
                 
                 elif existing_report.status in [ReportStatus.FAILED, ReportStatus.EXPIRED]:
+                    logger.info(f"Previous report generation failed or expired for user_id: {user_id}. Generating a new report.")
                     report = uow.reports.create_report(user_id, start_date, end_date)
 
             else:
@@ -88,9 +89,9 @@ class ReportService:
             raise BusinessLogicError("Failed to start report generation process. Please try again later.")
 
         return {
-            "id": existing_report.id,
-            "status": existing_report.status.value,
-        }, 200
+            "id": report.id,
+            "status": report.status.value,
+        }, 202
  
 
     def get_report_status(self, user_id: int, report_id: int) -> tuple[dict, int]:

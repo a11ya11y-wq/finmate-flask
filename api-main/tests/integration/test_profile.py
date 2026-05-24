@@ -1,7 +1,7 @@
 import pytest
 from werkzeug.security import generate_password_hash
 
-from tests.conftest import db_session
+from tests.integration.conftest import db_session
 from core_service.models import Users
 
 @pytest.mark.usefixtures("db_session")

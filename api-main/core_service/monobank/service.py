@@ -138,7 +138,7 @@ class MonobankService:
                 assigned_category_id = mcc_map.get(mcc_code_str, default_category.id)
 
                 new_tx = Transactions(
-                    title=t_dict['description'],
+                    title=t_dict.get('description', 'Monobank Transaction'),
 
                     amount=Decimal(abs(t_dict['amount'])) / Decimal(100),
 
