@@ -22,11 +22,13 @@ class ReportRepository:
         db.session.add(report)
         return report
     
-    def update_report_status(self, report_id: int, status: ReportStatus, file_name: str = None):
+    def update_report_status(self, report_id: int, status: ReportStatus, file_url: str = None, expire_at: datetime = None) -> Reports:
         report = self.get_report_by_id(report_id)
         if report:
             report.status = status
-            if file_name:
-                report.file_name = file_name
+            if file_url:
+                report.file_url = file_url
+            if expire_at:
+                report.expire_at = expire_at
             return report
         return None

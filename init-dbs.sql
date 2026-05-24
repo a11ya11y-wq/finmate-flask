@@ -1,4 +1,3 @@
-CREATE DATABASE finmate_db;
 CREATE DATABASE finmate_test_db;
 
 GRANT ALL PRIVILEGES ON DATABASE finmate_db TO finmate_admin;

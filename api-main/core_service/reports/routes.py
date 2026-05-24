@@ -38,13 +38,3 @@ def get_report_status(report_id):
 
     except Exception as e:
         return parse_exception(e)
-
-
-@bp.route("/download/<file_name>", methods=['GET'])
-@jwt_required()
-def download_report(file_name): #TODO: add assert report.id == current_user_id
-    try:
-        report_file = service.download_report(file_name)
-        return report_file
-    except Exception as e:
-        return parse_exception(e)

@@ -1,16 +1,11 @@
-from datetime import datetime
 import logging
-import time
-
+from datetime import datetime, timedelta, timezone
 from .schemas import ReportRequestSchema
 from core_service.exceptions import BusinessLogicError, ResourceNotFound
 from core_service.uow import UnitOfWork
-import uuid
 import json
 from core_service import extensions
-import os
-from flask import jsonify, send_from_directory
-from core_service.models.report_model import ReportStatus, Reports
+from core_service.models.report_model import ReportStatus
 
 
 
@@ -19,9 +14,6 @@ logger = logging.getLogger(__name__)
 
 
 class ReportService:
-
-    def __init__(self):
-        self.upload_folder = "/app/uploads"
 
     def generate_pdf_report(self, user_id: int, data: dict) -> tuple[dict, int]:
         validated_data = ReportRequestSchema.model_validate(data)
@@ -45,9 +37,20 @@ class ReportService:
                 logger.info(f"Existing report found for user_id: {user_id} in the specified period. Returning existing report.")
 
                 if existing_report.status == ReportStatus.PROCESSED:
-                    return existing_report.to_dict(), 200
+                    if existing_report.expire_at and datetime.now(timezone.utc) > existing_report.expire_at:
+                        logger.info(f"Report {existing_report.id} expired. Generating a new one.")
+                        uow.reports.update_report_status(existing_report.id, ReportStatus.EXPIRED)
+                        report = uow.reports.create_report(user_id, start_date, end_date)
+                    else:
+                        return {
+                            "id": existing_report.id,
+                            "status": existing_report.status.value,
+                            "fileUrl": existing_report.file_url
+                        }, 200
+                    
                 elif existing_report.status == ReportStatus.PENDING:
                     raise BusinessLogicError("Report generation is already in progress for the specified period.")
+                
                 elif existing_report.status in [ReportStatus.FAILED, ReportStatus.EXPIRED]:
                     report = uow.reports.create_report(user_id, start_date, end_date)
 
@@ -84,7 +87,10 @@ class ReportService:
                 uow.commit()
             raise BusinessLogicError("Failed to start report generation process. Please try again later.")
 
-        return report.to_dict(), 202
+        return {
+            "id": existing_report.id,
+            "status": existing_report.status.value,
+        }, 200
  
 
     def get_report_status(self, user_id: int, report_id: int) -> tuple[dict, int]:
@@ -96,33 +102,71 @@ class ReportService:
                 raise ResourceNotFound("Report not found or access denied.")
 
             if report.status == ReportStatus.PROCESSED:
+                if report.expire_at and datetime.now(timezone.utc) > report.expire_at:
+                    uow.reports.update_report_status(report_id, ReportStatus.EXPIRED)
+                    uow.commit()
+                    return {
+                        "id": report_id,
+                        "status": ReportStatus.EXPIRED.value,
+                        "error": "The report link has expired. Please generate a new report."
+                    }, 410
+
                 return {
+                    "id": report_id,
                     "status": report.status.value,
-                    "fileName": report.file_name
+                    "fileUrl": report.file_url
                 }, 200
+            
             elif report.status in [ReportStatus.FAILED, ReportStatus.EXPIRED]:
                 return {
+                    "id": report_id,
                     "status": report.status.value,
                     "error": "Report generation failed."
                 }, 400
+            
+            elif report.status == ReportStatus.PENDING:
+                timeout_limit = report.created_at + timedelta(hours=1)
+                
+                if datetime.now(timezone.utc) > timeout_limit:
+                    logger.error(f"Report {report_id} stuck in PENDING for too long. Marking as FAILED.")
+                    uow.reports.update_report_status(report_id, ReportStatus.FAILED)
+                    uow.commit()
+                    return {
+                        "id": report_id,
+                        "status": ReportStatus.FAILED.value,
+                        "error": "The report generation timed out. Please request a new report."
+                    }, 400
 
             redis_result_key = f"report_result:{report_id}"
             result = extensions.redis_client.get(redis_result_key)
 
             if not result:
-                return { "status": "pending" }, 202
+                return { "id": report_id, "status": ReportStatus.PENDING.value }, 202
 
             result_data = json.loads(result)
             status = result_data.get("status")
     
             if status == "success":
-                file_name = result_data.get("fileName")
-                uow.reports.update_report_status(report_id, ReportStatus.PROCESSED, file_name)
+                file_url = result_data.get("fileUrl")
+
+                if not file_url:
+                    logger.error(f"Report {report_id} marked as success but no fileUrl provided in Redis result.")
+                    uow.reports.update_report_status(report_id, ReportStatus.FAILED)
+                    uow.commit()
+                    return {
+                        "id": report_id,
+                        "status": ReportStatus.FAILED.value,
+                        "error": "Report generation failed due to missing file URL."
+                    }, 400
+                
+                expire_time = datetime.now(timezone.utc) + timedelta(days=3)
+                uow.reports.update_report_status(report_id, ReportStatus.PROCESSED, file_url, expire_time)
                 uow.commit()
                 extensions.redis_client.delete(redis_result_key)
                 return {
-                    "status": status,
-                    "fileName": file_name
+                    "id": report_id,
+                    "status": ReportStatus.PROCESSED.value,
+                    "fileUrl": file_url
                 }, 200
 
             elif status == "error":
@@ -131,25 +175,13 @@ class ReportService:
                 uow.commit()
                 extensions.redis_client.delete(redis_result_key)
                 return {
-                    "status": status,
+                    "id": report_id,
+                    "status": ReportStatus.FAILED.value,
                     "error": error_msg
                 }, 400
 
             else:
                 return {
+                    "id": report_id,
                     "status": status
                 }, 202
-
-
-    def download_report(self, file_name: str):
-        file_path = os.path.join(self.upload_folder, file_name)
-
-        if not os.path.exists(file_path):
-            raise BusinessLogicError("Report file not found on server.")
-
-        return send_from_directory(
-            self.upload_folder,
-            file_name,
-            as_attachment=True
-        )
-

@@ -97,7 +97,7 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
       await this.s3.send(command);
       this.logger.log(`File ${fileName} successfully uploaded to DO Spaces`);
 
-      return `${process.env.DO_SPACES_ENDPOINT}/${process.env.DO_SPACES_BUCKET}/${fileName}`;
+      return `${process.env.DO_SPACES_ENDPOINT}/${process.env.DO_SPACES_BUCKET}/${fileName}`; // fileUrl
     } catch (error) {
       this.logger.error(
         `Failed to generate PDF report: ${error instanceof Error ? error.message : error}`,
