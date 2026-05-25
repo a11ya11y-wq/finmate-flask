@@ -384,3 +384,50 @@ class TestGetReportStatus:
             service.get_report_status(999, report_id)
     
             assert str(exc_info.value) == "Redis is down"
+
+class TestGetReportHistory:
+    def test_get_report_history_success(self, report_uow):
+        user_id = 322
+        fake_reports = [
+            MagicMock(id=1, status=ReportStatus.PROCESSED, start_date=datetime(2026, 5, 1), end_date=datetime(2026, 5, 24), created_at=datetime(2026, 5, 25)),
+            MagicMock(id=2, status=ReportStatus.FAILED, start_date=datetime(2026, 4, 1), end_date=datetime(2026, 4, 30), created_at=datetime(2026, 5, 1))
+        ]
+        report_uow.reports.get_report_history.return_value = fake_reports
+
+        service = ReportService()
+        response = service.get_report_history(user_id)
+
+        assert len(response) == 2
+        assert response[0]["id"] == 1
+        assert response[0]["status"] == ReportStatus.PROCESSED.value
+        assert response[0]["startDate"] == "2026-05-01T00:00:00"
+        assert response[0]["endDate"] == "2026-05-24T00:00:00"
+        assert response[0]["createdAt"] == "2026-05-25T00:00:00"
+
+        assert response[1]["id"] == 2
+        assert response[1]["status"] == ReportStatus.FAILED.value
+        assert response[1]["startDate"] == "2026-04-01T00:00:00"
+        assert response[1]["endDate"] == "2026-04-30T00:00:00"
+        assert response[1]["createdAt"] == "2026-05-01T00:00:00"
+
+        report_uow.reports.get_report_history.assert_called_once_with(user_id)
+
+    def test_get_report_history_no_reports(self, report_uow):
+        user_id = 32
+        report_uow.reports.get_report_history.return_value = []
+
+        service = ReportService()
+        response = service.get_report_history(user_id)
+
+        assert response == []
+        report_uow.reports.get_report_history.assert_called_once_with(user_id)
+
+    def test_get_report_history_user_not_found(self, report_uow):
+        user_id = 991
+        report_uow.reports.get_report_history.return_value = []
+
+        service = ReportService()
+        response = service.get_report_history(user_id)
+
+        assert response == []
+        report_uow.reports.get_report_history.assert_called_once_with(user_id)

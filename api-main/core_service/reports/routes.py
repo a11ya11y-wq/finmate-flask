@@ -38,3 +38,16 @@ def get_report_status(report_id):
 
     except Exception as e:
         return parse_exception(e)
+
+@bp.route("/history", methods=['GET'])
+@jwt_required()
+def get_report_history():
+    try:
+        user_id = int(get_jwt_identity())
+        response_data = service.get_report_history(user_id)
+        return jsonify(response_data), 200
+
+    except Exception as e:
+        return parse_exception(e)
+    
+    

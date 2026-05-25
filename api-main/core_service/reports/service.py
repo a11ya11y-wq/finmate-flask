@@ -6,16 +6,20 @@ from core_service.uow import UnitOfWork
 import json
 from core_service import extensions
 from core_service.models.report_model import ReportStatus
-
+from core_service.utils.caching import invalidate_cache, redis_cache
 
 
 logger = logging.getLogger(__name__)
 
 
 
+def reports_key_builder(self, user_id):
+    return f"reports:{user_id}"
+
 class ReportService:
 
     def generate_pdf_report(self, user_id: int, data: dict) -> tuple[dict, int]:
+        self._clear_related_caches(user_id)
         validated_data = ReportRequestSchema.model_validate(data)
         payload = validated_data.model_dump(mode='json', exclude_unset=True)
 
@@ -106,6 +110,7 @@ class ReportService:
                 if report.expire_at and datetime.now(timezone.utc) > report.expire_at:
                     uow.reports.update_report_status(report_id, ReportStatus.EXPIRED)
                     uow.commit()
+                    self._clear_related_caches(user_id)
                     return {
                         "id": report_id,
                         "status": ReportStatus.EXPIRED.value,
@@ -132,6 +137,7 @@ class ReportService:
                     logger.error(f"Report {report_id} stuck in PENDING for too long. Marking as FAILED.")
                     uow.reports.update_report_status(report_id, ReportStatus.FAILED)
                     uow.commit()
+                    self._clear_related_caches(user_id)
                     return {
                         "id": report_id,
                         "status": ReportStatus.FAILED.value,
@@ -154,6 +160,7 @@ class ReportService:
                     logger.error(f"Report {report_id} marked as success but no fileUrl provided in Redis result.")
                     uow.reports.update_report_status(report_id, ReportStatus.FAILED)
                     uow.commit()
+                    self._clear_related_caches(user_id)
                     return {
                         "id": report_id,
                         "status": ReportStatus.FAILED.value,
@@ -163,6 +170,7 @@ class ReportService:
                 expire_time = datetime.now(timezone.utc) + timedelta(days=3)
                 uow.reports.update_report_status(report_id, ReportStatus.PROCESSED, file_url, expire_time)
                 uow.commit()
+                self._clear_related_caches(user_id)
                 extensions.redis_client.delete(redis_result_key)
                 return {
                     "id": report_id,
@@ -174,6 +182,7 @@ class ReportService:
                 error_msg = result_data.get("message", "An error occurred during report generation.")
                 uow.reports.update_report_status(report_id, ReportStatus.FAILED)
                 uow.commit()
+                self._clear_related_caches(user_id)
                 extensions.redis_client.delete(redis_result_key)
                 return {
                     "id": report_id,
@@ -186,3 +195,27 @@ class ReportService:
                     "id": report_id,
                     "status": status
                 }, 202
+    
+    @redis_cache(ttl=3600, key_builder=reports_key_builder)
+    def get_report_history(self, user_id: int) -> list[dict]:
+        with UnitOfWork() as uow:
+            reports = uow.reports.get_report_history(user_id)
+            report_history = []
+            for report in reports:
+                report_history.append({
+                    "id": report.id,
+                    "status": report.status.value,
+
+                    "startDate": report.start_date.isoformat() if report.start_date else None,
+                    "endDate": report.end_date.isoformat() if report.end_date else None,
+                    "createdAt": report.created_at.isoformat() if report.created_at else None,
+
+                    "fileUrl": report.file_url,
+                    "expireAt": report.expire_at.isoformat() if report.expire_at else None
+                })
+            return report_history
+        
+    @staticmethod
+    def _clear_related_caches(user_id):
+        invalidate_cache(f"reports:{user_id}")
+
