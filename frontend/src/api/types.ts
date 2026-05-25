@@ -82,3 +82,22 @@ export type PaginationResponse<T> = {
   data: T[];
 };
 
+export type ReportStatus = "PENDING" | "PROCESSED" | "FAILED" | "EXPIRED";
+
+export type ReportResponse = {
+  id: number;
+  status: ReportStatus;
+  fileUrl?: string | null;
+  error?: string | null;
+};
+
+export type ReportHistoryItem = {
+  id: number;
+  status: ReportStatus;
+  startDate?: string | null;
+  endDate?: string | null;
+  createdAt?: string | null;
+  expireAt?: string | null;
+  fileUrl?: string | null;
+};
+

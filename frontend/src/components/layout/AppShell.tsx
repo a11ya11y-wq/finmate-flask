@@ -6,6 +6,7 @@ import { useAuthStore } from "../../store/authStore";
 const navItems = [
 	{ to: "/dashboard", label: "Dashboard" },
 	{ to: "/budgets", label: "Budgets" },
+	{ to: "/reports", label: "Reports" },
 	{ to: "/profile", label: "Profile" }
 ];
 

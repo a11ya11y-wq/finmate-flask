@@ -6,6 +6,7 @@ import DashboardPage from "../pages/Dashboard";
 import TransactionsPage from "../pages/Transactions";
 import BudgetsPage from "../pages/Budgets";
 import ProfilePage from "../pages/Profile";
+import ReportsPage from "../pages/Reports";
 import NotFoundPage from "../pages/NotFound";
 
 const AppRoutes = () => {
@@ -43,6 +44,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <ProfilePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/reports"
+        element={
+          <ProtectedRoute>
+            <ReportsPage />
           </ProtectedRoute>
         }
       />
