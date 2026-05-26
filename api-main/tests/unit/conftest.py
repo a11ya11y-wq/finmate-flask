@@ -28,6 +28,16 @@ def patch_uow(mocker, mock_uow_context):
 
     return _patcher
 
-@pytest.fixture(scope='function')
+
+@pytest.fixture(scope='function', autouse=True)
 def mock_redis_client(mocker):
-    return mocker.patch("core_service.extensions.redis_client") # return MagicMock
+    # Mock redis deco
+    mock_redis = mocker.patch("core_service.extensions.redis_client")
+    mock_redis.get.return_value = None
+
+    # Mock cache invalidation 
+    mocker.patch("core_service.transactions.service.invalidate_cache")
+    mocker.patch("core_service.monobank.service.invalidate_cache")
+    mocker.patch("core_service.reports.service.invalidate_cache")
+
+    return mock_redis

@@ -7,8 +7,17 @@ from core_service.models.category_model import Category
 from core_service import create_app, db
 
 
+@pytest.fixture(scope='session')
+def init_database(app):
+    with app.app_context():
+        db.drop_all()
+        db.create_all()
+        yield db
+
+        db.drop_all()
+
 @pytest.fixture(scope='function')
-def db_session(app):
+def db_session(app, init_database):
     with app.app_context():
         connection = db.engine.connect()
         transaction = connection.begin()

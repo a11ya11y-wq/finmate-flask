@@ -6,8 +6,6 @@ from core_service import create_app, db
 def app():
     app = create_app(config_name='testing')
     with app.app_context():
-        db.drop_all()
-        db.create_all()
         yield app
 
 

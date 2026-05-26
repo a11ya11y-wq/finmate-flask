@@ -61,7 +61,7 @@ class TransactionService:
     def update_transaction(self, tx_id: int, user_id: int, data: dict) -> Transactions:
 
         validated_data = TransactionUpdateSchema.model_validate(data)
-        update_payload = validated_data.model_dump(exclude_unset=True)
+        update_payload = validated_data.model_dump(exclude_unset=True, exclude_none=True)
         if not update_payload:
             raise BusinessLogicError("No valid fields to update.")
 
@@ -103,9 +103,6 @@ class TransactionService:
                             raise BusinessLogicError("You can only change the category and notes for a bank transaction.")
                         else:
                             update_payload.pop(field, None)
-
-            if not update_payload:
-                    raise BusinessLogicError("No valid changes detected.")
                 
             if 'category_id' in update_payload:
                 new_cat_id = update_payload['category_id']

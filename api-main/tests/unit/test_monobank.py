@@ -110,13 +110,10 @@ class TestMonobankService:
 
         mono_env["uow"].transactions.bulk_insert_transactions.assert_not_called()
 
-    # 1. ТЕСТ НА СТВОРЕННЯ ДЕФОЛТНОЇ КАТЕГОРІЇ ТА INCOME-ТРАНЗАКЦІЙ
     def test_sync_tx_creates_uncat_and_maps_income(self, mono_env, app):
-        # Імітуємо дохід (плюсова сума)
         INCOME_TX = [{"id": "mono_income_1", "amount": 15000, "description": "Salary", "time": 1700000000, "mcc": 1234}]
         mono_env["client"].get_transactions.return_value = INCOME_TX
-        
-        # Імітуємо, що категорії "Uncategorized" ще немає в базі
+
         mono_env["uow"].categories.get_by_name_and_user.return_value = None
         fake_new_cat = Category(id=999, name="Uncategorized")
         mono_env["uow"].categories.create_category.return_value = fake_new_cat
@@ -125,15 +122,13 @@ class TestMonobankService:
         service = MonobankService()
         with app.app_context():
             service.sync_tx(user_id=1)
-            
-        # Перевіряємо, чи сервіс реально спробував створити категорію
+
         mono_env["uow"].categories.create_category.assert_called_once_with(1, {"name": "Uncategorized"})
         
         transactions_saved = mono_env["uow"].transactions.bulk_insert_transactions.call_args[0][0]
         assert transactions_saved[0].transaction_type == 'income' # Дохід!
         assert transactions_saved[0].amount == Decimal('150.00')
 
-    # 2. ТЕСТ НА COMMIT ТА ОНОВЛЕННЯ БАЛАНСУ
     def test_sync_tx_commits_and_clears_cache(self, mono_env, app, mocker):
         mono_env["client"].get_transactions.return_value = FAKE_MONO_TRANSACTIONS
         mono_env["uow"].transactions.bulk_insert_transactions.return_value = 2
@@ -142,13 +137,11 @@ class TestMonobankService:
         service = MonobankService()
         with app.app_context():
             service.sync_tx(user_id=1)
-            
-        # КРИТИЧНІ ПЕРЕВІРКИ: чи були збережені дані
+
         mono_env["uow"].commit.assert_called_once()
         mono_env["uow"].profile.update_real_balance.assert_called_once()
         mono_env["profile_svc"].recalculate_initial_point.assert_called_once()
-        
-        # Перевіряємо очищення кешу (dashboard, budgets, profile)
+
         assert mock_invalidate.call_count == 3
         mock_invalidate.assert_has_calls([
             call("dashboard:1:*"),
@@ -156,9 +149,7 @@ class TestMonobankService:
             call("profile:1")
         ], any_order=True)
 
-    # 3. ТЕСТ НА ВИБІР ПРАВИЛЬНОЇ КАРТКИ (Чорна гривнева)
     def test_get_card_stats_selects_black_uah_card(self, mono_env, app):
-        # Підсовуємо 3 картки: доларова, біла, чорна
         MULTI_CARDS_INFO = {"accounts": [
             {"id": "USD_CARD", "type": "black", "currencyCode": 840, "balance": 5000},
             {"id": "WHITE_CARD", "type": "white", "currencyCode": 980, "balance": 1000},
@@ -170,13 +161,11 @@ class TestMonobankService:
         service = MonobankService()
         with app.app_context():
             service.sync_tx(user_id=1)
-            
-        # Перевіряємо, чи пішов запит транзакцій саме з BLACK_UAH
+
         mono_env["client"].get_transactions.assert_called_once()
         args = mono_env["client"].get_transactions.call_args[0]
         assert args[0] == "BLACK_UAH" # account_id
 
-    # 4. ТЕСТ НА ВІДСУТНІСТЬ РАХУНКІВ
     def test_sync_tx_no_accounts_found(self, mono_env, app):
         mono_env["client"].get_client_info.return_value = {"accounts": []}
         
@@ -185,9 +174,7 @@ class TestMonobankService:
             with app.app_context():
                 service.sync_tx(user_id=1)
 
-    # 5. ТЕСТ НА ПОМИЛКУ ТОКЕНА ВІД САМОГО БАНКУ (Forbidden)
     def test_sync_tx_forbidden_error_from_api(self, mono_env, app):
-        # Монобанк відповідає, що токен невалідний
         mono_env["client"].get_client_info.return_value = {"errorDescription": "Unknown 'X-Token'"}
         
         service = MonobankService()
