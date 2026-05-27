@@ -12,8 +12,8 @@ from core_service.reports.service import ReportService
 
 
 @pytest.fixture
-def report_uow(patch_uow):
-    mock_uow = patch_uow("core_service.reports.service.UnitOfWork")
+def report_uow():
+    mock_uow = MagicMock()
     mock_uow.auth.find_user_by_id.return_value = MagicMock(
         username="testuser", 
         email="testuser@example.com"
@@ -31,7 +31,7 @@ class TestGeneratePDFReport:
         report_uow.transactions.get_tx_by_period.return_value = [{"amount": 100, "title": "Test TX"}]
 
 
-        service = ReportService()
+        service = ReportService(report_uow)
         payload = {"startDate": "2026-05-01", "endDate": "2026-05-24"}
 
         response, status_code = service.generate_pdf_report(user_id=1, data=payload)
@@ -42,8 +42,7 @@ class TestGeneratePDFReport:
 
         mock_redis_client.rpush.assert_called_once()
 
-        report_uow.flush.assert_called_once()
-        report_uow.commit.assert_called_once()
+        assert report_uow.flush.call_count == 2
 
     def test_generate_report_no_transactions_failed(self, report_uow):
         report_uow.reports.get_active_report_by_period.return_value = None
@@ -53,7 +52,7 @@ class TestGeneratePDFReport:
 
         report_uow.transactions.get_tx_by_period.return_value = []
 
-        service = ReportService()
+        service = ReportService(report_uow)
         payload = {"startDate": "2026-05-01", "endDate": "2026-05-24"}
 
         with pytest.raises(BusinessLogicError) as exc_info:
@@ -62,7 +61,7 @@ class TestGeneratePDFReport:
         assert str(exc_info.value) == "No transactions found for the specified period for report."
 
         report_uow.reports.update_report_status.assert_called_once_with(43, ReportStatus.FAILED)
-        report_uow.commit.assert_called_once()
+        assert report_uow.flush.call_count == 2
 
     def test_generate_existing_report_success(self, report_uow):
         existing_report = MagicMock(
@@ -73,7 +72,7 @@ class TestGeneratePDFReport:
                                 )
         report_uow.reports.get_active_report_by_period.return_value = existing_report
 
-        service = ReportService()
+        service = ReportService(report_uow)
         payload = {"startDate": "2026-05-01", "endDate": "2026-05-24"}
 
         response, status_code = service.generate_pdf_report(user_id=1, data=payload)
@@ -85,13 +84,13 @@ class TestGeneratePDFReport:
 
         report_uow.reports.create_report.assert_not_called()
         report_uow.transactions.get_tx_by_period.assert_not_called()
-        report_uow.commit.assert_not_called()
+        report_uow.flush.assert_not_called()
 
     def test_generate_report_existing_pending_report_failed(self, report_uow):
         existing_report = MagicMock(id=45, status=ReportStatus.PENDING)
         report_uow.reports.get_active_report_by_period.return_value = existing_report
 
-        service = ReportService()
+        service = ReportService(report_uow)
         payload = {"startDate": "2026-05-01", "endDate": "2026-05-24"}
 
         with pytest.raises(BusinessLogicError) as exc_info:
@@ -101,7 +100,7 @@ class TestGeneratePDFReport:
 
         report_uow.reports.create_report.assert_not_called()
         report_uow.transactions.get_tx_by_period.assert_not_called()
-        report_uow.commit.assert_not_called()
+        report_uow.flush.assert_not_called()
 
 
     def test_generate_report_existing_expired_report_success(self, report_uow, mock_redis_client):
@@ -117,7 +116,7 @@ class TestGeneratePDFReport:
 
         report_uow.transactions.get_tx_by_period.return_value = [{"amount": 200, "title": "Another Test TX"}]
 
-        service = ReportService()
+        service = ReportService(report_uow)
         payload = {"startDate": "2026-05-01", "endDate": "2026-05-24"}
 
         response, status_code = service.generate_pdf_report(user_id=1, data=payload)
@@ -129,8 +128,7 @@ class TestGeneratePDFReport:
         report_uow.reports.update_report_status.assert_called_once_with(46, ReportStatus.EXPIRED)
         mock_redis_client.rpush.assert_called_once()
 
-        report_uow.flush.assert_called_once()
-        report_uow.commit.assert_called_once()
+        assert report_uow.flush.call_count == 2
 
     def test_generate_report_existing_failed_report_success(self, report_uow, mock_redis_client):
         existing_report = MagicMock(id=48, status=ReportStatus.FAILED)
@@ -141,7 +139,7 @@ class TestGeneratePDFReport:
 
         report_uow.transactions.get_tx_by_period.return_value = [{"amount": 300, "title": "Yet Another Test TX"}]
 
-        service = ReportService()
+        service = ReportService(report_uow)
         payload = {"startDate": "2026-05-01", "endDate": "2026-05-24"}
 
         response, status_code = service.generate_pdf_report(user_id=1, data=payload)
@@ -153,13 +151,12 @@ class TestGeneratePDFReport:
         report_uow.reports.update_report_status.assert_not_called()
         mock_redis_client.rpush.assert_called_once()
 
-        report_uow.flush.assert_called_once()
-        report_uow.commit.assert_called_once()
+        assert report_uow.flush.call_count == 2
 
     def test_generate_report_user_not_found(self, report_uow):
         report_uow.auth.find_user_by_id.return_value = None
 
-        service = ReportService()
+        service = ReportService(report_uow)
         payload = {"startDate": "2026-05-01", "endDate": "2026-05-24"}
 
         with pytest.raises(ResourceNotFound) as exc_info:
@@ -170,7 +167,7 @@ class TestGeneratePDFReport:
         report_uow.reports.get_active_report_by_period.assert_not_called()
         report_uow.reports.create_report.assert_not_called()
         report_uow.transactions.get_tx_by_period.assert_not_called()
-        report_uow.commit.assert_not_called()
+        report_uow.flush.assert_not_called()
 
     def test_generate_report_redis_error(self, report_uow, mock_redis_client):
         report_uow.reports.get_active_report_by_period.return_value = None
@@ -182,7 +179,7 @@ class TestGeneratePDFReport:
 
         mock_redis_client.rpush.side_effect = Exception("Redis is down")
 
-        service = ReportService()
+        service = ReportService(report_uow)
         payload = {"startDate": "2026-05-01", "endDate": "2026-05-24"}
 
         with pytest.raises(BusinessLogicError) as exc_info:
@@ -190,8 +187,7 @@ class TestGeneratePDFReport:
 
         assert str(exc_info.value) == "Failed to start report generation process. Please try again later."
 
-        report_uow.flush.assert_called_once()
-        assert report_uow.commit.call_count == 2
+        assert report_uow.flush.call_count == 3
     
     invalid_payloads = [
         ({"startDate": "2026-05-01"}), # Missing endDate
@@ -211,7 +207,7 @@ class TestGeneratePDFReport:
     ]
     @pytest.mark.parametrize("payload", invalid_payloads)
     def test_generate_report_pydantic_validation_failed(self, report_uow, payload):
-        service = ReportService()
+        service = ReportService(report_uow)
 
         with pytest.raises(ValidationError):
             service.generate_pdf_report(user_id=1, data=payload)
@@ -226,7 +222,7 @@ class TestGetReportStatus:
         existing_report = MagicMock(id=report_id, status=ReportStatus.PROCESSED, user_id=1, expire_at=datetime.now(timezone.utc) + timedelta(days=1))
         report_uow.reports.get_report_by_id.return_value = existing_report
 
-        service = ReportService()
+        service = ReportService(report_uow)
         response, status_code = service.get_report_status(1, report_id)
 
         assert status_code == 200
@@ -245,7 +241,7 @@ class TestGetReportStatus:
         )
         report_uow.reports.get_report_by_id.return_value = existing_report
 
-        service = ReportService()
+        service = ReportService(report_uow)
         response, status_code = service.get_report_status(1,report_id)
 
         assert status_code == 410
@@ -258,7 +254,7 @@ class TestGetReportStatus:
         report_id = 999
         report_uow.reports.get_report_by_id.return_value = None
 
-        service = ReportService()
+        service = ReportService(report_uow)
         with pytest.raises(ResourceNotFound) as exc_info:
             service.get_report_status(1, report_id)
 
@@ -271,7 +267,7 @@ class TestGetReportStatus:
         existing_report = MagicMock(id=report_id, status=ReportStatus.PROCESSED, user_id=1)
         report_uow.reports.get_report_by_id.return_value = existing_report
 
-        service = ReportService()
+        service = ReportService(report_uow)
         with pytest.raises(ResourceNotFound) as exc_info:
             service.get_report_status(999, report_id)
 
@@ -284,7 +280,7 @@ class TestGetReportStatus:
         existing_report = MagicMock(id=report_id, status=ReportStatus.FAILED, user_id=999)
         report_uow.reports.get_report_by_id.return_value = existing_report
 
-        service = ReportService()
+        service = ReportService(report_uow)
         response, status_code = service.get_report_status(999, report_id)
 
         assert status_code == 400
@@ -297,7 +293,7 @@ class TestGetReportStatus:
         existing_report = MagicMock(id=report_id, status=ReportStatus.EXPIRED, user_id=999)
         report_uow.reports.get_report_by_id.return_value = existing_report
 
-        service = ReportService()
+        service = ReportService(report_uow)
         response, status_code = service.get_report_status(999, report_id)
 
         assert status_code == 400
@@ -315,7 +311,7 @@ class TestGetReportStatus:
         )
         report_uow.reports.get_report_by_id.return_value = existing_report
 
-        service = ReportService()
+        service = ReportService(report_uow)
         response, status_code = service.get_report_status(1, report_id)
 
         assert status_code == 400
@@ -337,7 +333,7 @@ class TestGetReportStatus:
         report_uow.reports.get_report_by_id.return_value = existing_report
         mock_redis_client.get.return_value = None
 
-        service = ReportService()
+        service = ReportService(report_uow)
         response, status_code = service.get_report_status(999, report_id)
 
         assert status_code == 202
@@ -358,7 +354,7 @@ class TestGetReportStatus:
         result_data = {"status": "success", "fileUrl": "http://example.com/report.pdf"}
         mock_redis_client.get.return_value = json.dumps(result_data)
 
-        service = ReportService()
+        service = ReportService(report_uow)
         response, status_code = service.get_report_status(999, report_id)
 
         assert status_code == 200
@@ -378,7 +374,7 @@ class TestGetReportStatus:
 
         mock_redis_client.get.side_effect = Exception("Redis is down")
 
-        service = ReportService()
+        service = ReportService(report_uow)
 
         with pytest.raises(Exception) as exc_info:
             service.get_report_status(999, report_id)
@@ -394,7 +390,7 @@ class TestGetReportHistory:
         ]
         report_uow.reports.get_report_history.return_value = fake_reports
 
-        service = ReportService()
+        service = ReportService(report_uow)
         response = service.get_report_history(user_id)
 
         assert len(response) == 2
@@ -416,7 +412,7 @@ class TestGetReportHistory:
         user_id = 32
         report_uow.reports.get_report_history.return_value = []
 
-        service = ReportService()
+        service = ReportService(report_uow)
         response = service.get_report_history(user_id)
 
         assert response == []
@@ -426,7 +422,7 @@ class TestGetReportHistory:
         user_id = 991
         report_uow.reports.get_report_history.return_value = []
 
-        service = ReportService()
+        service = ReportService(report_uow)
         response = service.get_report_history(user_id)
 
         assert response == []

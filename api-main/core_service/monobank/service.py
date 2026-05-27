@@ -44,6 +44,10 @@ class MonobankService:
         calculated_initial_balance = self.profile_service.recalculate_initial_point(user_id)
         self.uow.flush()
 
+        if added_count > 0:
+            self._clear_related_caches(user_id)
+
+
         logger.info(f"Balance adjusted. New Initial: {calculated_initial_balance}")
         return added_count
 
@@ -152,9 +156,7 @@ class MonobankService:
             logger.info(f"No new transactions to add for user {user_id} from Monobank.")
         return added_count
 
-
-    @staticmethod
-    def _clear_related_caches(user_id: int):
-        invalidate_cache(f"dashboard:{user_id}:*")
-        invalidate_cache(f"budgets:{user_id}")
-        invalidate_cache(f"profile:{user_id}")
+    def _clear_related_caches(self, user_id: int):
+        self.uow.on_commit(lambda: invalidate_cache(f"dashboard:{user_id}:*"))
+        self.uow.on_commit(lambda: invalidate_cache(f"budgets:{user_id}"))
+        self.uow.on_commit(lambda: invalidate_cache(f"profile:{user_id}"))

@@ -49,11 +49,10 @@ class CategoryService:
 
         new_cat = self.uow.categories.create_category(payload)
         self.uow.flush()
-        try:
-            self._clear_related_caches(user_id)
-            logger.info(f"New category created for user {user_id} with name {name}")
-        except Exception as e:
-            logger.error(f"Post-commit action failed: {e}")
+
+        self._clear_related_caches(user_id)
+        logger.info(f"New category created for user {user_id} with name {name}")
+
         return new_cat
 
     def update_category(self, user_id: int, data: dict, cat_id: int) -> Category:
@@ -87,12 +86,11 @@ class CategoryService:
             raise BusinessLogicError("No data provided for update.")
 
         updated_cat = self.uow.categories.update_category(cat_to_update, payload)
-        try:
-            self._clear_related_caches(user_id)
-            invalidate_cache(f"budgets:{user_id}")
-            logger.info(f"Category {cat_id} updated for user {user_id}")
-        except Exception as e:
-            logger.error(f"Post-commit action failed: {e}")
+
+        self._clear_related_caches(user_id)
+        self.uow.on_commit(lambda: invalidate_cache(f"budgets:{user_id}"))
+        logger.info(f"Category {cat_id} updated for user {user_id}")
+
         return updated_cat
 
     def delete_category(self, cat_id: int, user_id: int) -> bool:
@@ -115,14 +113,12 @@ class CategoryService:
             raise BusinessLogicError("Cannot delete category. It is associated with existing budgets.")
 
         self.uow.categories.delete_category(cat_to_delete)
-        try:
-            self._clear_related_caches(user_id)
-            logger.info(f"Category {cat_id} deleted for user {user_id}")
-        except Exception as e:
-            logger.error(f"Post-commit action failed: {e}")
+        
+        self._clear_related_caches(user_id)
+        logger.info(f"Category {cat_id} deleted for user {user_id}")
+
         return True
 
-    @staticmethod
-    def _clear_related_caches(user_id):
-        invalidate_cache(f"categories:{user_id}")
-        invalidate_cache(f"dashboard:{user_id}:*")
+    def _clear_related_caches(self, user_id):
+        self.uow.on_commit(lambda: invalidate_cache(f"categories:{user_id}"))
+        self.uow.on_commit(lambda: invalidate_cache(f"dashboard:{user_id}:*"))

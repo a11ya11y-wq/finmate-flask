@@ -32,11 +32,8 @@ class TransactionService:
         new_tx = self.uow.transactions.create_transaction(payload)
         self.uow.flush()
 
-        try:
-            self._clear_related_caches(user_id)
-            logger.info(f"Transaction {new_tx.id} created for user {user_id}.")
-        except Exception as e:
-            logger.error(f"Post-commit action failed: {e}")
+        self._clear_related_caches(user_id)
+
         return new_tx
 
     def delete_transaction(self, tx_id: int, user_id: int) -> bool:
@@ -52,11 +49,8 @@ class TransactionService:
 
         self.uow.transactions.delete_transaction(tx_to_delete)
 
-        try:
-            self._clear_related_caches(user_id)
-            logger.info(f"Transaction {tx_id} deleted for user {user_id}.")
-        except Exception as e:
-            logger.error(f"Post-commit action failed: {e}")
+        self._clear_related_caches(user_id)
+
         return True
 
     def update_transaction(self, tx_id: int, user_id: int, data: dict) -> Transactions:
@@ -120,11 +114,8 @@ class TransactionService:
 
         updated_tx = self.uow.transactions.update_transaction(tx_to_update, update_payload)
 
-        try:
-            self._clear_related_caches(user_id)
-            logger.info(f"Transaction {tx_id} updated for user {user_id}.")
-        except Exception as e:
-            logger.error(f"Post-commit action failed: {e}")
+        self._clear_related_caches(user_id)
+
         return updated_tx
 
     def get_transaction(self, tx_id: int, user_id: int) -> Transactions:
@@ -136,8 +127,8 @@ class TransactionService:
 
         return transaction
 
-    @staticmethod
-    def _clear_related_caches(user_id):
-        invalidate_cache(f"dashboard:{user_id}:*")
-        invalidate_cache(f"categories:{user_id}")
-        invalidate_cache(f"budgets:{user_id}")
+
+    def _clear_related_caches(self, user_id: int):
+        self.uow.on_commit(lambda: invalidate_cache(f"dashboard:{user_id}:*"))
+        self.uow.on_commit(lambda: invalidate_cache(f"categories:{user_id}"))
+        self.uow.on_commit(lambda: invalidate_cache(f"budgets:{user_id}"))

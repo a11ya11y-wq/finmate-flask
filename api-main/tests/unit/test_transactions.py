@@ -8,8 +8,8 @@ from core_service.exceptions import ResourceNotFound, BusinessLogicError
 
 
 @pytest.fixture
-def transaction_uow(patch_uow):
-    mock_uow = patch_uow("core_service.transactions.service.UnitOfWork")
+def transaction_uow():
+    mock_uow = MagicMock()
     mock_uow.categories.get_cat_by_id_and_user.return_value = MagicMock(id=1, name="Test Category")
     return mock_uow
 
@@ -29,7 +29,7 @@ class TestGetTransaction:
 
         transaction_uow.transactions.get_by_id_and_user.return_value = SUCCESSFUL_TX_DATA
 
-        service = TransactionService()
+        service = TransactionService(transaction_uow)
         result = service.get_transaction(tx_id=1, user_id=142)
 
         transaction_uow.transactions.get_by_id_and_user.assert_called_once_with(142, 1)
@@ -40,7 +40,7 @@ class TestGetTransaction:
 
         transaction_uow.transactions.get_by_id_and_user.return_value = None
 
-        service = TransactionService()
+        service = TransactionService(transaction_uow)
 
         with pytest.raises(ResourceNotFound, match="Transaction 1 not found or access denied."):
             service.get_transaction(tx_id=1, user_id=125)
@@ -53,7 +53,7 @@ class TestCreateTransaction:
     def test_create_transaction_success(self, transaction_uow):
         """Successful transaction creation"""
 
-        service = TransactionService()
+        service = TransactionService(transaction_uow)
         service.create_transaction(user_id=12, data=SUCCESSFUL_TX_DATA)
 
         transaction_uow.categories.get_cat_by_id_and_user.assert_called_once_with(1, 12)
@@ -68,21 +68,21 @@ class TestCreateTransaction:
         assert actual_payload["user_id"] == 12
         assert "created_at" in actual_payload
 
-        transaction_uow.commit.assert_called_once()
+        transaction_uow.flush.assert_called_once()
 
     def test_create_transaction_category_not_found(self, transaction_uow):
         """Category not found or access denied"""
 
         transaction_uow.categories.get_cat_by_id_and_user.return_value = None
 
-        service = TransactionService()
+        service = TransactionService(transaction_uow)
 
         with pytest.raises(ResourceNotFound, match="Category 1 not found or access denied."):
             service.create_transaction(user_id=12, data=SUCCESSFUL_TX_DATA)
 
         transaction_uow.categories.get_cat_by_id_and_user.assert_called_once_with(1, 12)
         transaction_uow.transactions.create_transaction.assert_not_called()
-        transaction_uow.commit.assert_not_called()
+        transaction_uow.flush.assert_not_called()
 
     @pytest.mark.parametrize("invalid_data", [
         {},  # Empty data
@@ -117,14 +117,14 @@ class TestCreateTransaction:
     def test_create_transaction_invalid_data(self, transaction_uow, invalid_data):
         """Validation error for invalid input data"""
 
-        service = TransactionService()
+        service = TransactionService(transaction_uow)
 
         with pytest.raises(ValidationError):
             service.create_transaction(user_id=121, data=invalid_data)
 
         transaction_uow.categories.get_cat_by_id_and_user.assert_not_called()
         transaction_uow.transactions.create_transaction.assert_not_called()
-        transaction_uow.commit.assert_not_called()
+        transaction_uow.flush.assert_not_called()
 
 class TestDeleteTransaction:
     
@@ -133,40 +133,37 @@ class TestDeleteTransaction:
 
         transaction_uow.transactions.get_by_id_and_user.return_value = MagicMock(id=1, mono_id=None)
 
-        service = TransactionService()
+        service = TransactionService(transaction_uow)
         service.delete_transaction(tx_id=1, user_id=132)
 
         transaction_uow.transactions.get_by_id_and_user.assert_called_once_with(132, 1)
         transaction_uow.transactions.delete_transaction.assert_called_once()
-        transaction_uow.commit.assert_called_once()
 
     def test_delete_transaction_not_found(self, transaction_uow):
         """Transaction not found or access denied"""
 
         transaction_uow.transactions.get_by_id_and_user.return_value = None
 
-        service = TransactionService()
+        service = TransactionService(transaction_uow)
 
         with pytest.raises(ResourceNotFound, match="Transaction 1 not found or access denied."):
             service.delete_transaction(tx_id=1, user_id=122)
 
         transaction_uow.transactions.get_by_id_and_user.assert_called_once_with(122, 1)
         transaction_uow.transactions.delete_transaction.assert_not_called()
-        transaction_uow.commit.assert_not_called()
 
     def test_delete_transaction_mono_id_present(self, transaction_uow):
         """Cannot delete a synchronized bank transaction"""
 
         transaction_uow.transactions.get_by_id_and_user.return_value = MagicMock(id=1, mono_id="mono_123")
 
-        service = TransactionService()
+        service = TransactionService(transaction_uow)
 
         with pytest.raises(BusinessLogicError, match="You cannot delete a synchronized bank transaction."):
             service.delete_transaction(tx_id=1, user_id=122)
 
         transaction_uow.transactions.get_by_id_and_user.assert_called_once_with(122, 1)
         transaction_uow.transactions.delete_transaction.assert_not_called()
-        transaction_uow.commit.assert_not_called()
 
 
 
@@ -238,11 +235,10 @@ class TestUpdateTransaction:
 
         transaction_uow.transactions.get_by_id_and_user.return_value = MagicMock(**EXISTING_TX_DATA)
 
-        service = TransactionService()
+        service = TransactionService(transaction_uow)
         service.update_transaction(tx_id=1, user_id=132, data=update_data)
 
         transaction_uow.transactions.get_by_id_and_user.assert_called_once_with(132, 1)
-        transaction_uow.commit.assert_called_once()
 
         args, kwargs = transaction_uow.transactions.update_transaction.call_args
 
@@ -275,12 +271,11 @@ class TestUpdateTransaction:
 
         transaction_uow.transactions.get_by_id_and_user.return_value = MagicMock(**EXISTING_TX_DATA | {"mono_id": "mono_123"})
 
-        service = TransactionService()
+        service = TransactionService(transaction_uow)
 
         service.update_transaction(tx_id=1, user_id=1132, data=update_data)
 
         transaction_uow.transactions.get_by_id_and_user.assert_called_once_with(1132, 1)
-        transaction_uow.commit.assert_called_once()
 
         args, kwargs = transaction_uow.transactions.update_transaction.call_args
         update_payload = args[1]
@@ -305,50 +300,47 @@ class TestUpdateTransaction:
 
         transaction_uow.transactions.get_by_id_and_user.return_value = MagicMock(**EXISTING_TX_DATA | {"mono_id": "mono_123"})
 
-        service = TransactionService()
+        service = TransactionService(transaction_uow)
 
         with pytest.raises(BusinessLogicError, match="You can only change the category and notes for a bank transaction."):
             service.update_transaction(tx_id=1, user_id=132, data=update_data)
 
         transaction_uow.transactions.get_by_id_and_user.assert_called_once_with(132, 1)
         transaction_uow.transactions.update_transaction.assert_not_called()
-        transaction_uow.commit.assert_not_called()
 
     def test_update_transaction_not_found(self, transaction_uow):
         """Transaction not found or access denied"""
 
         transaction_uow.transactions.get_by_id_and_user.return_value = None
 
-        service = TransactionService()
+        service = TransactionService(transaction_uow)
 
         with pytest.raises(ResourceNotFound, match="Transaction 1 not found or access denied."):
             service.update_transaction(tx_id=1, user_id=132, data={"title": "New Title"})
 
         transaction_uow.transactions.get_by_id_and_user.assert_called_once_with(132, 1)
         transaction_uow.transactions.update_transaction.assert_not_called()
-        transaction_uow.commit.assert_not_called()
 
     def test_update_transaction_no_valid_changes(self, transaction_uow):
         """No valid changes detected in the update payload"""
 
         transaction_uow.transactions.get_by_id_and_user.return_value = MagicMock(**EXISTING_TX_DATA)
 
-        service = TransactionService()
+        service = TransactionService(transaction_uow)
 
         with pytest.raises(BusinessLogicError, match="No valid fields to update."):
             service.update_transaction(tx_id=1, user_id=132, data={})
 
         transaction_uow.transactions.get_by_id_and_user.assert_not_called()  # Validation should fail before fetching the transaction
         transaction_uow.transactions.update_transaction.assert_not_called()
-        transaction_uow.commit.assert_not_called()
-    
+
     def test_update_transaction_category_not_found(self, transaction_uow):
         """Category not found or access denied during transaction update"""
 
         transaction_uow.transactions.get_by_id_and_user.return_value = MagicMock(**EXISTING_TX_DATA)
         transaction_uow.categories.get_cat_by_id_and_user.return_value = None
 
-        service = TransactionService()
+        service = TransactionService(transaction_uow)
 
         with pytest.raises(ResourceNotFound, match="Category 999 not found or access denied."):
             service.update_transaction(tx_id=1, user_id=132, data={"category_id": 999})
@@ -356,7 +348,6 @@ class TestUpdateTransaction:
         transaction_uow.transactions.get_by_id_and_user.assert_called_once_with(132, 1)
         transaction_uow.categories.get_cat_by_id_and_user.assert_called_once_with(999, 132)
         transaction_uow.transactions.update_transaction.assert_not_called()
-        transaction_uow.commit.assert_not_called()
 
     @pytest.mark.parametrize("update_data", [
         { "amount": -100 },  # Negative amount
@@ -376,14 +367,13 @@ class TestUpdateTransaction:
 
         transaction_uow.transactions.get_by_id_and_user.return_value = MagicMock(**EXISTING_TX_DATA)
 
-        service = TransactionService()
+        service = TransactionService(transaction_uow)
 
         with pytest.raises(ValidationError):
             service.update_transaction(tx_id=1, user_id=132, data=update_data)
 
         transaction_uow.transactions.get_by_id_and_user.assert_not_called()  # Validation should fail before fetching the transaction
         transaction_uow.transactions.update_transaction.assert_not_called()
-        transaction_uow.commit.assert_not_called()
 
     @pytest.mark.parametrize("update_data", [
         { "amount": None }, 
@@ -395,13 +385,13 @@ class TestUpdateTransaction:
     ])
     def test_update_transaction_empty_data_errors(self, transaction_uow, update_data):
         transaction_uow.transactions.get_by_id_and_user.return_value = MagicMock(**EXISTING_TX_DATA)
-        service = TransactionService()
+        service = TransactionService(transaction_uow)
 
         with pytest.raises(BusinessLogicError, match="No valid fields to update"):
             service.update_transaction(tx_id=1, user_id=132, data=update_data)
 
         transaction_uow.transactions.get_by_id_and_user.assert_not_called()  
         transaction_uow.transactions.update_transaction.assert_not_called()
-        transaction_uow.commit.assert_not_called()
+        transaction_uow.flush.assert_not_called()
 
 

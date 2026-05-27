@@ -103,11 +103,9 @@ class BudgetService:
             logger.info(f"New budget created for user {user_id} in category {category_id}")
 
         self.uow.flush()
-        try:
-            self._clear_related_caches(user_id)
 
-        except Exception as e:
-            logger.error(f"Post-commit action failed: {e}")
+        self._clear_related_caches(user_id)
+
         return result, is_created
 
     def delete_budget(self, user_id, budget_id) -> bool:
@@ -119,13 +117,10 @@ class BudgetService:
 
         self.uow.budget.delete_budget(budget_to_delete)
 
-        try:
-            self._clear_related_caches(user_id)
-            logger.info(f"Budget {budget_id} deleted for user {user_id}")
-        except Exception as e:
-            logger.error(f"Post-commit action failed: {e}")
+        self._clear_related_caches(user_id)
+        logger.info(f"Budget {budget_id} deleted for user {user_id}")
+
         return True
 
-    @staticmethod
-    def _clear_related_caches(user_id):
-        invalidate_cache(f"budgets:{user_id}")
+    def _clear_related_caches(self, user_id):
+        self.uow.on_commit(lambda: invalidate_cache(f"budgets:{user_id}"))

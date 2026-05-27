@@ -68,24 +68,20 @@ class ProfileService:
 
         updated_user = self.uow.profile.update_user(user, payload)
 
-        try:
-            self._clear_related_caches(user_id)
-            logger.info(f"User {user_id} profile updated.")
-        except Exception as e:
-            logger.error(f"Post-commit action failed: {e}")
+        self._clear_related_caches(user_id)
+        logger.info(f"User {user_id} profile updated.")
+
         return updated_user
 
     def delete_user(self, user_id: int) -> bool:
         user_to_delete = self._get_user_or_404(user_id)
         self.uow.profile.delete_user(user_to_delete)
 
-        try:
-            self._clear_related_caches(user_id)
-            invalidate_cache(f"categories:{user_id}")
-            invalidate_cache(f"dashboard:{user_id}:*")
-            logger.info(f"User {user_id} deleted.")
-        except Exception as e:
-            logger.error(f"Post-commit action failed: {e}")
+        self._clear_related_caches(user_id)
+        self.uow.on_commit(lambda: invalidate_cache(f"categories:{user_id}"))
+        self.uow.on_commit(lambda: invalidate_cache(f"dashboard:{user_id}:*"))
+        logger.info(f"User {user_id} deleted.")
+ 
         return True
 
     def change_password(self, user_id: int, data: dict) -> bool:
@@ -105,11 +101,9 @@ class ProfileService:
 
         self.uow.profile.change_password_hash(user_obj, new_hash)
 
-        try:
-            self._clear_related_caches(user_id)
-            logger.info(f"User {user_id} changed password.")
-        except Exception as e:
-            logger.error(f"Post-commit action failed: {e}")
+        self._clear_related_caches(user_id)
+        logger.info(f"User {user_id} changed password.")
+
         return True
 
     def update_mono_token(self, user_id: int, data: dict) -> Users:
@@ -130,11 +124,9 @@ class ProfileService:
         user_obj = self._get_user_or_404(user_id)
         updated_user = self.uow.profile.update_user(user_obj, payload)
 
-        try:
-            self._clear_related_caches(user_id)
-            logger.info(f"User {user_id} updated Monobank token.")
-        except Exception as e:
-            logger.error(f"Post-commit action failed: {e}")
+        self._clear_related_caches(user_id)
+        logger.info(f"User {user_id} updated Monobank token.")
+
         return updated_user
 
     def delete_mono_token(self, user_id: int) -> bool:
@@ -142,11 +134,9 @@ class ProfileService:
         user_obj = self._get_user_or_404(user_id)
         self.uow.profile.delete_monobank_token(user_obj)
 
-        try:
-            self._clear_related_caches(user_id)
-            logger.info(f"User {user_id} deleted Monobank token.")
-        except Exception as e:
-            logger.error(f"Post-commit action failed: {e}")
+        self._clear_related_caches(user_id)
+        logger.info(f"User {user_id} deleted Monobank token.")
+
         return True
 
     def recalculate_initial_point(self, user_id: int) -> Decimal:
@@ -157,14 +147,12 @@ class ProfileService:
         new_initial = real_balance - current_mono_sum
 
         self.uow.profile.setup_initial_balance(user_obj, new_initial)
-        try:
-            invalidate_cache(f"dashboard:{user_id}:*")
-            self._clear_related_caches(user_id)
-        except Exception as e:
-            logger.error(f"Post-commit action failed: {e}")
+
+        self.uow.on_commit(lambda: invalidate_cache(f"dashboard:{user_id}:*"))
+        self._clear_related_caches(user_id)
+        
         logger.info(f"User {user_id}: Initial point recalculated to {new_initial}")
         return Decimal(new_initial)
 
-    @staticmethod
-    def _clear_related_caches(user_id):
-        invalidate_cache(f"profile:{user_id}")
+    def _clear_related_caches(self, user_id: int):
+        self.uow.on_commit(lambda: invalidate_cache(f"profile:{user_id}"))

@@ -17,18 +17,6 @@ def mock_uow_context():
     return mock_context
 
 
-@pytest.fixture(scope='function')
-def patch_uow(mocker, mock_uow_context):
-
-    def _patcher(import_path: str):
-        mock_uow_class = mocker.patch(import_path, autospec=True)
-        
-        mock_uow_class.return_value.__enter__.return_value = mock_uow_context
-        return mock_uow_context
-
-    return _patcher
-
-
 @pytest.fixture(scope='function', autouse=True)
 def mock_redis_client(mocker):
     # Mock redis deco

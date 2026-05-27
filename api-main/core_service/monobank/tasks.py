@@ -15,12 +15,6 @@ def task_sync_monobank_tx(user_id):
         service = MonobankService(uow)
         added_count = service.sync_tx(user_id)
 
-    if added_count > 0:
-        try:
-            MonobankService._clear_related_caches(user_id)
-        except Exception as e:
-                logger.error(f"Post-commit action failed: {e}")
-
     return {
         "added_count": added_count,
         "message": f"Successfully synchronized {added_count} transaction(s)"

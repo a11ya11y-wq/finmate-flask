@@ -8,8 +8,8 @@ from decimal import Decimal
 
 
 @pytest.fixture
-def profile_uow(patch_uow):
-    return patch_uow("core_service.profile.service.UnitOfWork")
+def profile_uow():
+    return MagicMock()
 
 
 
@@ -31,7 +31,7 @@ class TestProfileGet:
 
         profile_uow.profile.get_user_info.return_value = fake_user
 
-        service = ProfileService()
+        service = ProfileService(profile_uow)
 
         user_dict = service.get_user_data(1)
 
@@ -43,7 +43,7 @@ class TestProfileGet:
 
         profile_uow.profile.get_user_info.return_value = None
 
-        service = ProfileService()
+        service = ProfileService(profile_uow)
 
         with pytest.raises(ResourceNotFound, match="User not found."):
             service.get_user_data(999)
@@ -67,7 +67,7 @@ class TestProfileUpdate:
         profile_uow.profile.get_user_info.return_value = user_obj
         profile_uow.profile.get_by_username.return_value = None
 
-        service = ProfileService()
+        service = ProfileService(profile_uow)
 
         service.update_user(1, update_data)
 
@@ -79,7 +79,6 @@ class TestProfileUpdate:
 
         profile_uow.profile.get_user_info.assert_called_once_with(1)
         profile_uow.profile.update_user.assert_called_once_with(user_obj, update_data)
-        profile_uow.commit.assert_called_once()
 
     @pytest.mark.parametrize("update_data", [
         {"username": "1"},  # Username too short
@@ -97,14 +96,13 @@ class TestProfileUpdate:
         user_obj = MagicMock(**VALID_USER_DATA)
         profile_uow.profile.get_user_info.return_value = user_obj
 
-        service = ProfileService()
+        service = ProfileService(profile_uow)
 
         with pytest.raises(ValidationError):
             service.update_user(1, update_data)
 
         profile_uow.profile.get_user_info.assert_not_called()
         profile_uow.profile.update_user.assert_not_called()
-        profile_uow.commit.assert_not_called()
 
     @pytest.mark.parametrize("update_data", [
         {},  # No fields
@@ -121,27 +119,24 @@ class TestProfileUpdate:
         user_obj = MagicMock(**VALID_USER_DATA)
         profile_uow.profile.get_user_info.return_value = user_obj
 
-        service = ProfileService()
+        service = ProfileService(profile_uow)
 
         with pytest.raises(BusinessLogicError, match="No valid fields to update."):
             service.update_user(1, update_data)
 
         profile_uow.profile.get_user_info.assert_not_called()
         profile_uow.profile.update_user.assert_not_called()
-        profile_uow.commit.assert_not_called()
-
     def test_update_user_not_found(self, profile_uow):
         """Test updating a non-existent user"""
         profile_uow.profile.get_user_info.return_value = None
 
-        service = ProfileService()
+        service = ProfileService(profile_uow)
 
         with pytest.raises(ResourceNotFound, match="User not found."):
             service.update_user(999, {"username": "newuser"})
 
         profile_uow.profile.get_user_info.assert_called_once_with(999)
         profile_uow.profile.update_user.assert_not_called()
-        profile_uow.commit.assert_not_called()
 
     def test_update_user_username_taken(self, profile_uow):
         """Test updating username to one that is already taken"""
@@ -151,7 +146,7 @@ class TestProfileUpdate:
         existing_user = MagicMock(id=2, username="existinguser")
         profile_uow.profile.get_by_username.return_value = existing_user
 
-        service = ProfileService()
+        service = ProfileService(profile_uow)
 
         with pytest.raises(BusinessLogicError, match="Username already taken."):
             service.update_user(1, {"username": "existinguser"})
@@ -159,21 +154,19 @@ class TestProfileUpdate:
         profile_uow.profile.get_user_info.assert_called_once_with(1)
         profile_uow.profile.get_by_username.assert_called_once_with("existinguser")
         profile_uow.profile.update_user.assert_not_called()
-        profile_uow.commit.assert_not_called()
 
     def test_update_user_invalid_avatar(self, profile_uow):
         """Test updating avatar to an invalid selection"""
         user_obj = MagicMock(**VALID_USER_DATA)
         profile_uow.profile.get_user_info.return_value = user_obj
 
-        service = ProfileService()
+        service = ProfileService(profile_uow)
 
         with pytest.raises(BusinessLogicError, match="Invalid avatar selection."):
             service.update_user(1, {"avatar": "avatars/default/invalid.svg"})
 
         profile_uow.profile.get_user_info.assert_called_once_with(1)
         profile_uow.profile.update_user.assert_not_called()
-        profile_uow.commit.assert_not_called()
 
 
 class TestDeleteUser:
@@ -183,13 +176,12 @@ class TestDeleteUser:
         user_obj = MagicMock(**VALID_USER_DATA)
         profile_uow.profile.get_user_info.return_value = user_obj
 
-        service = ProfileService()
+        service = ProfileService(profile_uow)
 
         result = service.delete_user(1)
 
         profile_uow.profile.get_user_info.assert_called_once_with(1)
         profile_uow.profile.delete_user.assert_called_once_with(user_obj)
-        profile_uow.commit.assert_called_once()
 
         assert result is True
 
@@ -197,14 +189,13 @@ class TestDeleteUser:
         """Test deleting a non-existent user"""
         profile_uow.profile.get_user_info.return_value = None
 
-        service = ProfileService()
+        service = ProfileService(profile_uow)
 
         with pytest.raises(ResourceNotFound, match="User not found."):
             service.delete_user(999)
 
         profile_uow.profile.get_user_info.assert_called_once_with(999)
         profile_uow.profile.delete_user.assert_not_called()
-        profile_uow.commit.assert_not_called()
 
 
 VALID_PASSWORD_CHANGE_DATA = {
@@ -227,7 +218,7 @@ class TestChangePassword:
 
         mock_hash = mocker.patch("core_service.profile.service.generate_password_hash", return_value="new_hashed_password")
 
-        service = ProfileService()
+        service = ProfileService(profile_uow)
         result = service.change_password(1, VALID_PASSWORD_CHANGE_DATA)
 
         assert result is True
@@ -235,7 +226,6 @@ class TestChangePassword:
         mock_hash.assert_called_once_with("newsecurepassword")
 
         profile_uow.profile.change_password_hash.assert_called_once_with(user_obj, "new_hashed_password")
-        profile_uow.commit.assert_called_once()
 
     def test_change_password_invalid_old_password(self, profile_uow):
         """Test password change with invalid old password"""
@@ -247,14 +237,13 @@ class TestChangePassword:
 
         profile_uow.profile.get_user_info.return_value = user_obj
 
-        service = ProfileService()
+        service = ProfileService(profile_uow)
 
         with pytest.raises(AuthenticationError, match="Invalid old password."):
             service.change_password(1, VALID_PASSWORD_CHANGE_DATA)
 
         profile_uow.profile.get_user_info.assert_called_once_with(1)
         profile_uow.profile.change_password_hash.assert_not_called()
-        profile_uow.commit.assert_not_called()
 
 
     @pytest.mark.parametrize("update_data", [
@@ -275,27 +264,25 @@ class TestChangePassword:
 
         profile_uow.profile.get_user_info.return_value = user_obj
 
-        service = ProfileService()
+        service = ProfileService(profile_uow)
 
         with pytest.raises(ValidationError):
             service.change_password(1, update_data)
 
         profile_uow.profile.get_user_info.assert_not_called()
         profile_uow.profile.change_password_hash.assert_not_called()
-        profile_uow.commit.assert_not_called()
 
     def test_change_password_user_not_found(self, profile_uow):
         """Test password change for a non-existent user"""
         profile_uow.profile.get_user_info.return_value = None
 
-        service = ProfileService()
+        service = ProfileService(profile_uow)
 
         with pytest.raises(ResourceNotFound, match="User not found."):
             service.change_password(999, VALID_PASSWORD_CHANGE_DATA)
 
         profile_uow.profile.get_user_info.assert_called_once_with(999)
         profile_uow.profile.change_password_hash.assert_not_called()
-        profile_uow.commit.assert_not_called()
 
 
 class TestUpdateMonoToken:
@@ -315,12 +302,11 @@ class TestUpdateMonoToken:
         mock_instance.encrypt.return_value = b"fake_encrypted_token"
         profile_uow.profile.get_user_info.return_value = user_obj
 
-        service = ProfileService()
+        service = ProfileService(profile_uow)
         result = service.update_mono_token(1, {"token": "a"*44})
 
         profile_uow.profile.get_user_info.assert_called_once_with(1)
         profile_uow.profile.update_user.assert_called_once_with(user_obj, {'monobank_api_token': b'fake_encrypted_token'})
-        profile_uow.commit.assert_called_once()
 
     @pytest.mark.parametrize("update_data", [
         {"token": "shorttoken"},  # Token too short
@@ -335,14 +321,13 @@ class TestUpdateMonoToken:
 
         profile_uow.profile.get_user_info.return_value = user_obj
 
-        service = ProfileService()
+        service = ProfileService(profile_uow)
 
         with pytest.raises(ValidationError):
             service.update_mono_token(1, update_data)
 
         profile_uow.profile.get_user_info.assert_not_called()
         profile_uow.profile.update_user.assert_not_called()
-        profile_uow.commit.assert_not_called()
 
     def test_update_mono_token_user_not_found(self, profile_uow, mocker):
         """Test MonoToken update for a non-existent user"""
@@ -356,14 +341,13 @@ class TestUpdateMonoToken:
         mock_instance = mock_fernet_class.return_value
         mock_instance.encrypt.return_value = b"fake_encrypted_token"
 
-        service = ProfileService()
+        service = ProfileService(profile_uow)
 
         with pytest.raises(ResourceNotFound, match="User not found."):
             service.update_mono_token(999, {"token": "a"*44})
 
         profile_uow.profile.get_user_info.assert_called_once_with(999)
         profile_uow.profile.update_user.assert_not_called()
-        profile_uow.commit.assert_not_called()
 
 
 class TestDeleteMonoToken:
@@ -374,12 +358,11 @@ class TestDeleteMonoToken:
 
         profile_uow.profile.get_user_info.return_value = user_obj
 
-        service = ProfileService()
+        service = ProfileService(profile_uow)
         result = service.delete_mono_token(1)
 
         profile_uow.profile.get_user_info.assert_called_once_with(1)
         profile_uow.profile.delete_monobank_token.assert_called_once_with(user_obj)
-        profile_uow.commit.assert_called_once()
 
         assert result is True
 
@@ -387,14 +370,13 @@ class TestDeleteMonoToken:
         """Test MonoToken deletion for a non-existent user"""
         profile_uow.profile.get_user_info.return_value = None
 
-        service = ProfileService()
+        service = ProfileService(profile_uow)
 
         with pytest.raises(ResourceNotFound, match="User not found."):
             service.delete_mono_token(999)
 
         profile_uow.profile.get_user_info.assert_called_once_with(999)
         profile_uow.profile.delete_monobank_token.assert_not_called()
-        profile_uow.commit.assert_not_called()
 
 
 class TestRecalculateInitialPoint:
@@ -407,8 +389,8 @@ class TestRecalculateInitialPoint:
         profile_uow.profile.get_user_info.return_value = user_obj
         profile_uow.transactions.get_current_balance_mono.return_value = Decimal("300")
         
-        service = ProfileService()
-        result = service.recalculate_initial_point(profile_uow, user_id)
+        service = ProfileService(profile_uow)
+        result = service.recalculate_initial_point(user_id)
 
         assert result == Decimal("700")
 
@@ -423,9 +405,9 @@ class TestRecalculateInitialPoint:
         profile_uow.profile.get_user_info.return_value = user_obj
         profile_uow.transactions.get_current_balance_mono.return_value = None
         
-        service = ProfileService()
+        service = ProfileService(profile_uow)
         
-        result = service.recalculate_initial_point(profile_uow, user_id)
+        result = service.recalculate_initial_point(user_id)
         
         assert result == Decimal("0")
         profile_uow.profile.setup_initial_balance.assert_called_once_with(user_obj, Decimal("0"))
@@ -434,9 +416,9 @@ class TestRecalculateInitialPoint:
         """Verify that the method raises an error when the user is not found"""
         profile_uow.profile.get_user_info.return_value = None
         
-        service = ProfileService()
+        service = ProfileService(profile_uow)
         
         with pytest.raises(ResourceNotFound, match="User not found."):
-            service.recalculate_initial_point(profile_uow, 999)
+            service.recalculate_initial_point(999)
             
         profile_uow.profile.setup_initial_balance.assert_not_called()
