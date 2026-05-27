@@ -11,16 +11,14 @@ from .tasks import task_sync_monobank_tx
 
 logger = logging.getLogger(__name__)
 
-service = MonobankService()
-
 
 @bp.route('/sync-transactions', methods=["POST"])
 @jwt_required()
 @limiter.limit("2 per minute")
 def sync_transactions():
+    user_id = int(get_jwt_identity())
+    logger.info(f"Initiating Monobank transaction sync for user {user_id}")
     try:
-        user_id = int(get_jwt_identity())
-        logger.info(f"Initiating Monobank transaction sync for user {user_id}")
 
         task = task_sync_monobank_tx.delay(user_id)
 

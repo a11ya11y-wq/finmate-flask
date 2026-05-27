@@ -21,8 +21,11 @@ def profile_key_builder(self, user_id):
 
 class ProfileService:
 
-    def _get_user_or_404(self, uow: UnitOfWork, user_id: int) -> Users:
-        user = uow.profile.get_user_info(user_id)
+    def __init__(self, uow: UnitOfWork):
+        self.uow = uow
+
+    def _get_user_or_404(self, user_id: int) -> Users:
+        user = self.uow.profile.get_user_info(user_id)
 
         if not user:
             logger.warning(f"User entity not found for user_id: {user_id}")
@@ -32,9 +35,8 @@ class ProfileService:
 
     @redis_cache(ttl=3600, key_builder=profile_key_builder)
     def get_user_data(self, user_id: int) -> dict:
-        with UnitOfWork() as uow:
-            user = self._get_user_or_404(uow, user_id)
-            return user.to_dict()
+        user = self._get_user_or_404(user_id)
+        return user.to_dict()
 
     def update_user(self, user_id: int, data: dict) -> Users:
 
@@ -43,31 +45,28 @@ class ProfileService:
         if not payload:
             raise BusinessLogicError("No valid fields to update.")
 
-        with UnitOfWork() as uow:
+        user = self._get_user_or_404(user_id)
 
-            user = self._get_user_or_404(uow, user_id)
+        if 'username' in payload and payload['username'] == user.username:
+            payload.pop('username')
 
-            if 'username' in payload and payload['username'] == user.username:
-                payload.pop('username')
+        if 'avatar' in payload:
+            if payload['avatar'] not in ALLOWED_AVATARS:
+                logger.warning(f"User {user_id} attempted to set invalid avatar: {payload['avatar']}")
+                raise BusinessLogicError("Invalid avatar selection.")
 
-            if 'avatar' in payload:
-                if payload['avatar'] not in ALLOWED_AVATARS:
-                    logger.warning(f"User {user_id} attempted to set invalid avatar: {payload['avatar']}")
-                    raise BusinessLogicError("Invalid avatar selection.")
+        if 'username' in payload:
+            existing = self.uow.profile.get_by_username(payload['username'])
+            if existing:
+                logger.warning(
+                    f"User {user_id} attempted to change username to an already taken one: {payload['username']}")
+                raise BusinessLogicError("Username already taken.")
 
-            if 'username' in payload:
-                existing = uow.profile.get_by_username(payload['username'])
-                if existing:
-                    logger.warning(
-                        f"User {user_id} attempted to change username to an already taken one: {payload['username']}")
-                    raise BusinessLogicError("Username already taken.")
+        if not payload:
+            logger.info(f"User {user_id} update called with no actual changes.")
+            raise BusinessLogicError("No valid fields to update.")
 
-            if not payload:
-                logger.info(f"User {user_id} update called with no actual changes.")
-                raise BusinessLogicError("No valid fields to update.")
-
-            updated_user = uow.profile.update_user(user, payload)
-            uow.commit()
+        updated_user = self.uow.profile.update_user(user, payload)
 
         try:
             self._clear_related_caches(user_id)
@@ -77,11 +76,8 @@ class ProfileService:
         return updated_user
 
     def delete_user(self, user_id: int) -> bool:
-
-        with UnitOfWork() as uow:
-            user_to_delete = self._get_user_or_404(uow, user_id)
-            uow.profile.delete_user(user_to_delete)
-            uow.commit()
+        user_to_delete = self._get_user_or_404(user_id)
+        self.uow.profile.delete_user(user_to_delete)
 
         try:
             self._clear_related_caches(user_id)
@@ -101,16 +97,13 @@ class ProfileService:
 
         new_hash = generate_password_hash(new_password)
 
-        with UnitOfWork() as uow:
+        user_obj = self._get_user_or_404(user_id)
 
-            user_obj = self._get_user_or_404(uow, user_id)
+        if not user_obj.chek_hash_pwd(old_password):
+            logger.warning(f"User {user_id} provided invalid old password for password change.")
+            raise AuthenticationError("Invalid old password.")
 
-            if not user_obj.chek_hash_pwd(old_password):
-                logger.warning(f"User {user_id} provided invalid old password for password change.")
-                raise AuthenticationError("Invalid old password.")
-
-            uow.profile.change_password_hash(user_obj, new_hash)
-            uow.commit()
+        self.uow.profile.change_password_hash(user_obj, new_hash)
 
         try:
             self._clear_related_caches(user_id)
@@ -134,11 +127,8 @@ class ProfileService:
         payload = {
             "monobank_api_token": encrypted_token
         }
-
-        with UnitOfWork() as uow:
-            user_obj = self._get_user_or_404(uow, user_id)
-            updated_user = uow.profile.update_user(user_obj, payload)
-            uow.commit()
+        user_obj = self._get_user_or_404(user_id)
+        updated_user = self.uow.profile.update_user(user_obj, payload)
 
         try:
             self._clear_related_caches(user_id)
@@ -149,10 +139,9 @@ class ProfileService:
 
     def delete_mono_token(self, user_id: int) -> bool:
 
-        with UnitOfWork() as uow:
-            user_obj = self._get_user_or_404(uow, user_id)
-            uow.profile.delete_monobank_token(user_obj)
-            uow.commit()
+        user_obj = self._get_user_or_404(user_id)
+        self.uow.profile.delete_monobank_token(user_obj)
+
         try:
             self._clear_related_caches(user_id)
             logger.info(f"User {user_id} deleted Monobank token.")
@@ -160,14 +149,14 @@ class ProfileService:
             logger.error(f"Post-commit action failed: {e}")
         return True
 
-    def recalculate_initial_point(self, uow: UnitOfWork, user_id: int) -> Decimal:
-        user_obj = self._get_user_or_404(uow, user_id)
+    def recalculate_initial_point(self, user_id: int) -> Decimal:
+        user_obj = self._get_user_or_404(user_id)
         real_balance = Decimal(user_obj.last_real_balance or 0)
-        current_mono_sum = Decimal(uow.transactions.get_current_balance_mono(user_id) or 0)
+        current_mono_sum = Decimal(self.uow.transactions.get_current_balance_mono(user_id) or 0)
 
         new_initial = real_balance - current_mono_sum
-        print(real_balance, current_mono_sum, "new", new_initial)
-        uow.profile.setup_initial_balance(user_obj, new_initial)
+
+        self.uow.profile.setup_initial_balance(user_obj, new_initial)
         try:
             invalidate_cache(f"dashboard:{user_id}:*")
             self._clear_related_caches(user_id)

@@ -5,18 +5,20 @@ from core_service.auth import bp
 from core_service.extensions import limiter
 from core_service.utils.error_parser import parse_exception
 from .service import AuthService
+from core_service.uow import UnitOfWork
 
-service = AuthService()
+
 
 
 @bp.route('/login', methods=['POST'])
 @limiter.limit("5 per minute")
 def login():
+    data = request.get_json()
+    remember_me = data.get('remember_me', False)
     try:
-        data = request.get_json()
-        remember_me = data.get('remember_me', False)
-
-        access_token, refresh_token, delta = service.login_user(data, remember_me)
+        with UnitOfWork() as uow:
+            service = AuthService(uow)
+            access_token, refresh_token, delta = service.login_user(data, remember_me)
         resp = make_response(jsonify({
             "access_token": access_token,
             "message": "Login successful."
@@ -31,8 +33,9 @@ def login():
             secure=is_secure,
             samesite='Lax',
             path='/api/v1/auth/refresh',
-            max_age=delta
+            max_age=int(delta.total_seconds())
         )
+
         return resp
 
     except Exception as e:
@@ -47,7 +50,9 @@ def refresh():
         return jsonify({"error": "Missing refresh token, please login again"}), 401
 
     try:
-        new_access_token, new_refresh_token, token_validity = service.refresh_access_token(refresh_token)
+        with UnitOfWork() as uow:
+            service = AuthService(uow)
+            new_access_token, new_refresh_token, token_validity = service.refresh_access_token(refresh_token)
         resp = jsonify({"access_token": new_access_token})
 
         max_age_seconds = 30 * 24 * 60 * 60
@@ -61,7 +66,7 @@ def refresh():
             secure=is_secure,
             samesite='Lax',
             path='/api/v1/auth/refresh',
-            max_age=token_validity
+            max_age=int(token_validity.total_seconds())
         )
         return resp, 200
 
@@ -75,10 +80,14 @@ def refresh():
 @bp.route('/register', methods=['POST'])
 @limiter.limit("5 per minute")
 def register():
+    data = request.get_json()
     try:
-        data = request.get_json()
-        new_user = service.create_user(data)
-        return jsonify(new_user.to_dict()), 201
+        with UnitOfWork() as uow:
+            service = AuthService(uow)
+            new_user = service.create_user(data)
+            response_data = new_user.to_dict()
+            
+        return jsonify(response_data), 201
 
     except Exception as e:
         return parse_exception(e)
@@ -95,7 +104,9 @@ def logout():
 
         access_token = auth_header.split(" ")[1]
 
-        service.logout_user(access_token)
+        with UnitOfWork() as uow:
+            service = AuthService(uow)
+            service.logout_user(access_token)
 
         resp = make_response(jsonify({"message": "Successfully logged out"}), 200)
     

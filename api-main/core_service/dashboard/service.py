@@ -19,6 +19,9 @@ def dashboard_key_builder(self, user_id, period):
 
 class DashboardService:
 
+    def __init__(self, uow: UnitOfWork):
+        self.uow = uow
+
     @redis_cache(ttl=3600, key_builder=dashboard_key_builder)
     def get_dashboard_data(self, user_id: int, period) -> dict:
 
@@ -28,14 +31,13 @@ class DashboardService:
 
         start_date = self._calculate_start_date(period)
 
-        with UnitOfWork() as uow:
-            user = uow.profile.get_user_info(user_id)
+        user = self.uow.profile.get_user_info(user_id)
 
-            stats = self._get_stats(uow, user, period, start_date)
-            category_chart = self._get_category_chart(uow, user, start_date)
-            balance_dynamics = self._get_balance_dynamics(uow, user, period, start_date)
-            recent_tx = self._get_recent_tx(uow, user, start_date)
-            total_page = self._get_total_count_of_page(uow, user, start_date)
+        stats = self._get_stats(user, period, start_date)
+        category_chart = self._get_category_chart(user, start_date)
+        balance_dynamics = self._get_balance_dynamics(user, period, start_date)
+        recent_tx = self._get_recent_tx(user, start_date)
+        total_page = self._get_total_count_of_page(user, start_date)
 
         return {
             "stats": stats,
@@ -52,28 +54,27 @@ class DashboardService:
     def get_tx_history(self, user_id: int, period, page: int):
         start_date = self._calculate_start_date(period)
         offset = (page - 1) * 15
-        with UnitOfWork() as uow:
-            recent_transactions = uow.transactions.get_recent_transactions(user_id, start_date, limit=15, offset=offset)
-            transactions = [tx.to_dict() for tx in recent_transactions]
+        recent_transactions = self.uow.transactions.get_recent_transactions(user_id, start_date, limit=15, offset=offset)
+        transactions = [tx.to_dict() for tx in recent_transactions]
         return {
             "data": transactions
         }
 
-    def _get_stats(self, uow: UnitOfWork, user: Users, period, start_date) -> dict:
+    def _get_stats(self, user: Users, period, start_date) -> dict:
         today = datetime.now()
         user_id = user.id
 
         # Expense/Income Cards
-        current_income = uow.transactions.get_total_amount(user_id, "income", start_date, today)
-        current_expense = uow.transactions.get_total_amount(user_id, "expense", start_date, today)
+        current_income = self.uow.transactions.get_total_amount(user_id, "income", start_date, today)
+        current_expense = self.uow.transactions.get_total_amount(user_id, "expense", start_date, today)
 
         # Percentage Changes
         prev_start_date = self._calculate_prev_start_date(period, start_date)
         prev_end_date = start_date
 
         if prev_start_date:
-            prev_income = uow.transactions.get_total_amount(user_id, "income", prev_start_date, prev_end_date)
-            prev_expense = uow.transactions.get_total_amount(user_id, "expense", prev_start_date, prev_end_date)
+            prev_income = self.uow.transactions.get_total_amount(user_id, "income", prev_start_date, prev_end_date)
+            prev_expense = self.uow.transactions.get_total_amount(user_id, "expense", prev_start_date, prev_end_date)
         else:
             prev_income = 0.0
             prev_expense = 0.0
@@ -83,7 +84,7 @@ class DashboardService:
 
         # Balance Card
         initial_balance = Decimal(user.initial_balance or 0)
-        current_db_sum = Decimal(uow.transactions.get_current_balance(user_id) or 0)
+        current_db_sum = Decimal(self.uow.transactions.get_current_balance(user_id) or 0)
         balance = initial_balance + current_db_sum
 
         return {
@@ -94,9 +95,8 @@ class DashboardService:
             "expense_percentage_change": expense_pct
         }
 
-    @staticmethod
-    def _get_category_chart(uow: UnitOfWork, user: Users, start_date) -> dict:
-        expenses_by_cat_raw = uow.transactions.get_expense_by_category(user.id, start_date)
+    def _get_category_chart(self, user: Users, start_date) -> dict:
+        expenses_by_cat_raw = self.uow.transactions.get_expense_by_category(user.id, start_date)
         category_labels = []
         category_amounts = []
 
@@ -109,14 +109,14 @@ class DashboardService:
             "data": category_amounts
         }
 
-    def _get_balance_dynamics(self, uow: UnitOfWork, user: Users, period, start_date) -> dict:
-        balance_chart_raw = uow.transactions.get_transactions_for_balance_chart(user.id, start_date)
+    def _get_balance_dynamics(self, user: Users, period, start_date) -> dict:
+        balance_chart_raw = self.uow.transactions.get_transactions_for_balance_chart(user.id, start_date)
 
         # Calculate start point for the graph
         if period == 'all':
             opening_balance = user.initial_balance
         else:
-            opening_balance = uow.transactions.get_opening_balance(user.id, start_date, user.initial_balance)
+            opening_balance = self.uow.transactions.get_opening_balance(user.id, start_date, user.initial_balance)
 
         current_balance_for_chart = float(opening_balance or 0.0)
 
@@ -139,13 +139,12 @@ class DashboardService:
             "data": balance_data
         }
 
-    @staticmethod
-    def _get_recent_tx(uow: UnitOfWork, user: Users, start_date) -> list[Transactions]:
-        recent_transactions = uow.transactions.get_recent_transactions(user.id, start_date)
+    def _get_recent_tx(self, user: Users, start_date) -> list[Transactions]:
+        recent_transactions = self.uow.transactions.get_recent_transactions(user.id, start_date)
         return [tx.to_dict() for tx in recent_transactions]
 
-    def _get_total_count_of_page(self, uow: UnitOfWork, user: Users, start_date) -> int:
-        total_count = uow.transactions.get_total_count_of_tx(user.id, start_date)
+    def _get_total_count_of_page(self, user: Users, start_date) -> int:
+        total_count = self.uow.transactions.get_total_count_of_tx(user.id, start_date)
         total_page = math.ceil(total_count / 15)
         return total_page
 

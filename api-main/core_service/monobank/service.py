@@ -17,38 +17,32 @@ logger = logging.getLogger(__name__)
 
 class MonobankService:
 
-    def __init__(self):
-        self.profile_service = ProfileService()
+    def __init__(self, uow: UnitOfWork):
+        self.profile_service = ProfileService(uow)
+        self.uow = uow
 
     def sync_tx(self, user_id: int) -> int:
 
-        with UnitOfWork() as uow:
-            user = uow.profile.get_user_info(user_id)
-            token_bytes = user.monobank_api_token
+        user = self.uow.profile.get_user_info(user_id)
+        token_bytes = user.monobank_api_token
 
-            if not user or not token_bytes:
-                logger.warning(f"Monobank sync failed: API token not found or access denied for user {user_id}")
-                raise BusinessLogicError("API token not found or user access denied.")
+        if not user or not user.monobank_api_token:
+            logger.warning(f"Monobank sync failed: API token not found or access denied for user {user_id}")
+            raise BusinessLogicError("API token not found or user access denied.")
 
-            api = MonoAPI(encrypted_token_bytes=token_bytes)
+        api = MonoAPI(encrypted_token_bytes=token_bytes)
 
-            client_info = self._get_client_info(api, user_id)
-            account_id, real_card_balance = self._get_card_stats(client_info)
-            uow.profile.update_real_balance(user, real_card_balance)
+        client_info = self._get_client_info(api, user_id)
+        account_id, real_card_balance = self._get_card_stats(client_info)
+        self.uow.profile.update_real_balance(user, real_card_balance)
 
-            thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
-            from_time = int(thirty_days_ago.timestamp())
-            transactions_from_mono = self._get_tx_from_mono(api, user_id, account_id, from_time)
-            added_count = self._add_new_tx_from_mono(uow, user_id, transactions_from_mono)
+        thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
+        from_time = int(thirty_days_ago.timestamp())
+        transactions_from_mono = self._get_tx_from_mono(api, user_id, account_id, from_time)
+        added_count = self._add_new_tx_from_mono(self.uow, user_id, transactions_from_mono)
 
-            calculated_initial_balance = self.profile_service.recalculate_initial_point(uow, user_id)
-            uow.commit()
-
-        if added_count > 0:
-            try:
-                self._clear_related_caches(user_id)
-            except Exception as e:
-                logger.error(f"Post-commit action failed: {e}")
+        calculated_initial_balance = self.profile_service.recalculate_initial_point(user_id)
+        self.uow.flush()
 
         logger.info(f"Balance adjusted. New Initial: {calculated_initial_balance}")
         return added_count
