@@ -37,6 +37,7 @@ def mock_redis_client(mocker):
 
     # Mock cache invalidation 
     mocker.patch("core_service.transactions.service.invalidate_cache")
+    mocker.patch("core_service.profile.service.invalidate_cache")
     mocker.patch("core_service.monobank.service.invalidate_cache")
     mocker.patch("core_service.reports.service.invalidate_cache")
 

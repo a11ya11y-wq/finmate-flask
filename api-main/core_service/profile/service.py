@@ -30,19 +30,16 @@ class ProfileService:
 
         return user
 
-    def get_user_entity(self, user_id: int) -> Users:
-        with UnitOfWork() as uow:
-            return self._get_user_or_404(uow, user_id)
-
     @redis_cache(ttl=3600, key_builder=profile_key_builder)
     def get_user_data(self, user_id: int) -> dict:
-        user = self.get_user_entity(user_id)
-        return user.to_dict()
+        with UnitOfWork() as uow:
+            user = self._get_user_or_404(uow, user_id)
+            return user.to_dict()
 
     def update_user(self, user_id: int, data: dict) -> Users:
 
         validated_data = ProfileUpdateSchema.model_validate(data)
-        payload = validated_data.model_dump(exclude_unset=True)
+        payload = validated_data.model_dump(exclude_unset=True, exclude_none=True)
         if not payload:
             raise BusinessLogicError("No valid fields to update.")
 
@@ -64,6 +61,10 @@ class ProfileService:
                     logger.warning(
                         f"User {user_id} attempted to change username to an already taken one: {payload['username']}")
                     raise BusinessLogicError("Username already taken.")
+
+            if not payload:
+                logger.info(f"User {user_id} update called with no actual changes.")
+                raise BusinessLogicError("No valid fields to update.")
 
             updated_user = uow.profile.update_user(user, payload)
             uow.commit()
