@@ -69,7 +69,7 @@ class CategoryService:
 
         if not cat_to_update:
             logger.warning(f"Attempt to update non-existing category {cat_id} by user {user_id}")
-            raise ResourceNotFound(f"Category {cat_to_update} not found or access denied.")
+            raise ResourceNotFound(f"Category {cat_id} not found or access denied.")
 
         if cat_to_update.name.strip().lower() == "uncategorized":
             if validated_data.name and validated_data.name.strip().lower() != "uncategorized":

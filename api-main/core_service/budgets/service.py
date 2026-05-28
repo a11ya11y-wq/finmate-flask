@@ -108,7 +108,7 @@ class BudgetService:
 
         return result, is_created
 
-    def delete_budget(self, user_id, budget_id) -> bool:
+    def delete_budget(self, user_id: int, budget_id: int) -> bool:
 
         budget_to_delete = self.uow.budget.get_by_id_and_user(budget_id, user_id)
         if not budget_to_delete:
