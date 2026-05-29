@@ -56,41 +56,40 @@ class AuthService:
     def refresh_access_token(self, refresh_token: str) -> tuple:
         try:
             payload = decode_token(refresh_token)
-            user_id = payload.get("sub")
-            is_remember_me = payload.get("remember", False)
-
-            user = self.uow.auth.find_user_by_id(user_id)
-
-            if not user:
-                raise AuthenticationError("User no longer exists")
-
-            if user.refresh_token != refresh_token:
-                raise AuthenticationError("Token revoked or replaced")
-
-            if is_remember_me:
-                refresh_expires = timedelta(days=30)
-            else:
-                refresh_expires = timedelta(days=1)
-
-            new_access_token = create_access_token(
-                identity=str(user.id),
-                expires_delta=timedelta(minutes=30)
-            )
-
-            new_refresh_token = create_refresh_token(
-                identity=str(user.id),
-                expires_delta=refresh_expires,
-                additional_claims={"remember": is_remember_me}
-            )
-
-            self.uow.auth.update_refresh_token(user_id, new_refresh_token)
-
-            logger.info(f"Access token refreshed for user {user_id}")
-            return new_access_token, new_refresh_token, refresh_expires
-
         except Exception as e:
-            logger.warning(f"Failed to refresh access token: {e}")
-            raise AuthenticationError("Invalid refresh token")
+            logger.warning(f"Failed to decode refresh token: {e}")
+            raise AuthenticationError("Invalid or expired refresh token")
+        user_id = payload.get("sub")
+        is_remember_me = payload.get("remember", False)
+
+        user = self.uow.auth.find_user_by_id(user_id)
+
+        if not user:
+            raise AuthenticationError("User no longer exists")
+
+        if user.refresh_token != refresh_token:
+            raise AuthenticationError("Token revoked or replaced")
+
+        if is_remember_me:
+            refresh_expires = timedelta(days=30)
+        else:
+            refresh_expires = timedelta(days=1)
+
+        new_access_token = create_access_token(
+            identity=str(user.id),
+            expires_delta=timedelta(minutes=30)
+        )
+
+        new_refresh_token = create_refresh_token(
+            identity=str(user.id),
+            expires_delta=refresh_expires,
+            additional_claims={"remember": is_remember_me}
+        )
+
+        self.uow.auth.update_refresh_token(user_id, new_refresh_token)
+
+        logger.info(f"Access token refreshed for user {user_id}")
+        return new_access_token, new_refresh_token, refresh_expires
 
     def create_user(self, data: dict) -> Users:
 
@@ -120,21 +119,23 @@ class AuthService:
     def logout_user(self, access_token: str) -> None:
         try:
             payload = decode_token(access_token)
-            jti = payload.get("jti")
-            exp_timestamp = payload.get("exp")
-            user_id = payload.get("sub")
-
-            self.uow.auth.update_refresh_token(user_id, None)
-
-            current_timestamp = datetime.now(timezone.utc).timestamp()
-            ttl = int(exp_timestamp - current_timestamp)
-
-            if ttl > 0:
-                try:
-                    self.redis.setex(f"auth:blacklist:{jti}", ttl, "revoked")
-                except Exception as e:
-                    logger.warning(f"Redis unavailable during logout: {e}")
-
-            logger.info(f"User {user_id} logged out successfully.")
         except Exception as e:
-            logger.exception("Error during logout")
+            logger.warning(f"Failed to decode access token during logout: {e}")
+            raise AuthenticationError("Invalid access token")
+        jti = payload.get("jti")
+        exp_timestamp = payload.get("exp")
+        user_id = payload.get("sub")
+
+        self.uow.auth.update_refresh_token(user_id, None)
+
+        current_timestamp = datetime.now(timezone.utc).timestamp()
+        ttl = int(exp_timestamp - current_timestamp)
+
+        if ttl > 0:
+            try:
+                self.redis.setex(f"auth:blacklist:{jti}", ttl, "revoked")
+            except Exception as e:
+                logger.warning(f"Redis unavailable during logout: {e}")
+                raise RuntimeError("Failed to securely log out due to cache infrastructure error.")
+
+        logger.info(f"User {user_id} logged out successfully.")

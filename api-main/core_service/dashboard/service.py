@@ -102,7 +102,7 @@ class DashboardService:
 
         for name, amount in expenses_by_cat_raw:
             category_labels.append(name or "Uncategorized")
-            category_amounts.append(float(amount) or 0.0)
+            category_amounts.append(float(amount or 0.0))
 
         return {
             "labels": category_labels,
