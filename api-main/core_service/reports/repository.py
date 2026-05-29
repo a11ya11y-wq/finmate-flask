@@ -33,5 +33,5 @@ class ReportRepository:
             return report
         return None
     
-    def get_report_history(self, user_id: int, limit: int = 15) -> list[Reports]:
+    def get_report_history(self, user_id: int, limit: int = 7) -> list[Reports]:
         return Reports.query.filter_by(user_id=user_id).order_by(Reports.created_at.desc()).limit(limit).all()

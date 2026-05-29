@@ -215,5 +215,5 @@ class ReportService:
         return report_history
         
     def _clear_related_caches(self, user_id: int):
-        self.uow.on_commit(lambda: invalidate_cache(f"reports:{user_id}:*"))
+        self.uow.on_commit(lambda: invalidate_cache(f"reports:{user_id}*"))
 
