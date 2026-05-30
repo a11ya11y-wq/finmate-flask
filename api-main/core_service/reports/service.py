@@ -45,7 +45,7 @@ class ReportService:
             if existing_report.status == ReportStatus.PROCESSED:
                 if existing_report.expire_at and datetime.now(timezone.utc) > existing_report.expire_at:
                     logger.info(f"Report {existing_report.id} expired. Generating a new one.")
-                    self.uow.reports.update_report_status(existing_report.id, ReportStatus.EXPIRED)
+                    self.uow.reports.update_report_status(existing_report.id, ReportStatus.EXPIRED, None)
                     report = self.uow.reports.create_report(user_id, start_date, end_date)
                 else:
                     return {
@@ -91,7 +91,7 @@ class ReportService:
             logger.error(f"Failed to enqueue report generation task for user_id: {user_id} with report_id: {report.id}. Error: {str(e)}")
             self.uow.reports.update_report_status(report.id, ReportStatus.FAILED)
             self.uow.flush()
-            raise BusinessLogicError("Failed to start report generation process. Please try again later.")
+            return {"error": "Failed to start report generation process. Please try again later."}, 400
 
         return {
             "id": report.id,
@@ -108,7 +108,7 @@ class ReportService:
 
         if report.status == ReportStatus.PROCESSED:
             if report.expire_at and datetime.now(timezone.utc) > report.expire_at:
-                self.uow.reports.update_report_status(report_id, ReportStatus.EXPIRED)
+                self.uow.reports.update_report_status(report_id, ReportStatus.EXPIRED, None)
                 self.uow.flush()
                 self._clear_related_caches(user_id)
                 return {
@@ -200,18 +200,36 @@ class ReportService:
     def get_report_history(self, user_id: int) -> list[dict]:
         reports = self.uow.reports.get_report_history(user_id)
         report_history = []
+        
+        needs_update = False 
+
         for report in reports:
+            display_status = report.status.value
+            display_url = report.file_url
+
+            if report.status == ReportStatus.PROCESSED and report.expire_at and datetime.now(timezone.utc) > report.expire_at:
+                report.status = ReportStatus.EXPIRED
+                report.file_url = None
+                self.uow.reports.update_report_status(report.id, ReportStatus.EXPIRED, None, report.expire_at)
+                
+                display_status = ReportStatus.EXPIRED.value
+                display_url = None
+                needs_update = True
+                
             report_history.append({
                 "id": report.id,
-                "status": report.status.value,
-
+                "status": display_status,
                 "startDate": report.start_date.isoformat() if report.start_date else None,
                 "endDate": report.end_date.isoformat() if report.end_date else None,
                 "createdAt": report.created_at.isoformat() if report.created_at else None,
-
-                "fileUrl": report.file_url,
+                "fileUrl": display_url,
                 "expireAt": report.expire_at.isoformat() if report.expire_at else None
             })
+            
+        if needs_update:
+            self.uow.flush()
+            self._clear_related_caches(user_id)
+            
         return report_history
         
     def _clear_related_caches(self, user_id: int):

@@ -240,9 +240,9 @@ const ReportsPage = () => {
                     <div className="absolute bottom-10 left-1/3 h-48 w-48 rounded-full bg-cyan-400/10 blur-3xl" />
                 </div>
 
-                <div className="relative grid items-start gap-6 lg:grid-cols-[1fr_1.85fr]">
-                    <div className="flex min-h-[640px] max-h-[640px] flex-col gap-6 min-h-0">
-                        <Card className="relative flex w-full flex-col overflow-hidden bg-[#161b22] shrink-0">
+                <div className="relative grid items-stretch gap-6 lg:grid-cols-[1fr_1.85fr]">
+                    <div className="flex flex-col gap-6">
+                        <Card className="relative flex w-full flex-none h-[375px] flex-col overflow-hidden bg-[#161b22] shrink-0 min-h-0">
                             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-transparent to-emerald-400/10" />
                             <CardHeader className="relative space-y-2">
                                 <div className="flex items-center gap-3">
@@ -257,7 +257,7 @@ const ReportsPage = () => {
                                     </div>
                                 </div>
                             </CardHeader>
-                            <CardContent className="relative flex flex-1 flex-col">
+                            <CardContent className="relative flex flex-col h-full overflow-auto">
                                 {(wizardState === "idle" || wizardState === "error") && (
                                     <div className="flex h-full flex-1 flex-col gap-5">
                                         <div className="space-y-2">
@@ -330,7 +330,7 @@ const ReportsPage = () => {
                                                     Gathering your transactions...
                                                 </p>
                                                 {periodLabel && (
-                                                    <p className="text-sm text-slate-400">Period: {periodLabel}</p>
+                                                    <p className="text-sm text-slate-400 truncate">Period: {periodLabel}</p>
                                                 )}
                                             </div>
                                             <div className="h-2 w-full overflow-hidden rounded-full bg-white/5">
@@ -354,7 +354,7 @@ const ReportsPage = () => {
                                             <div className="space-y-1">
                                                 <p className="text-base font-semibold text-slate-100">Report is ready</p>
                                                 {periodLabel && (
-                                                    <p className="text-sm text-slate-400">Period: {periodLabel}</p>
+                                                    <p className="text-sm text-slate-400 truncate">Period: {periodLabel}</p>
                                                 )}
                                             </div>
                                         </div>
@@ -371,53 +371,53 @@ const ReportsPage = () => {
                             </CardContent>
                         </Card>
 
-                        <Card className="relative flex w-full flex-1 flex-col overflow-hidden">
-                        <CardHeader>
-                            <CardTitle>What's included?</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-3 text-sm text-slate-300">
-                            <div className="flex items-start gap-3">
-                                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-500/15 text-blue-300">
-                                    <i className="bi bi-flag" />
-                                </span>
-                                <div>
-                                    <p className="text-sm font-semibold text-slate-100">Header</p>
-                                    <p className="text-sm text-slate-400">Official FinMate branding and report period.</p>
+                        <Card className="relative flex w-full flex-col overflow-hidden">
+                            <CardHeader>
+                                <CardTitle>What's included?</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-3 text-sm text-slate-300">
+                                <div className="flex items-start gap-3">
+                                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-500/15 text-blue-300">
+                                        <i className="bi bi-flag" />
+                                    </span>
+                                    <div>
+                                        <p className="text-sm font-semibold text-slate-100">Header</p>
+                                        <p className="text-sm text-slate-400">Official FinMate branding and report period.</p>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-500/15 text-blue-300">
-                                    <i className="bi bi-list-ul" />
-                                </span>
-                                <div>
-                                    <p className="text-sm font-semibold text-slate-100">Transactions</p>
-                                    <p className="text-sm text-slate-400">Detailed list of all incomes and expenses.</p>
+                                <div className="flex items-start gap-3">
+                                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-500/15 text-blue-300">
+                                        <i className="bi bi-list-ul" />
+                                    </span>
+                                    <div>
+                                        <p className="text-sm font-semibold text-slate-100">Transactions</p>
+                                        <p className="text-sm text-slate-400">Detailed list of all incomes and expenses.</p>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-500/15 text-blue-300">
-                                    <i className="bi bi-tags" />
-                                </span>
-                                <div>
-                                    <p className="text-sm font-semibold text-slate-100">Categories</p>
-                                    <p className="text-sm text-slate-400">Smart tags for quick expense scanning.</p>
+                                <div className="flex items-start gap-3">
+                                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-500/15 text-blue-300">
+                                        <i className="bi bi-tags" />
+                                    </span>
+                                    <div>
+                                        <p className="text-sm font-semibold text-slate-100">Categories</p>
+                                        <p className="text-sm text-slate-400">Smart tags for quick expense scanning.</p>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-500/15 text-blue-300">
-                                    <i className="bi bi-bank" />
-                                </span>
-                                <div>
-                                    <p className="text-sm font-semibold text-slate-100">Summary</p>
-                                    <p className="text-sm text-slate-400">Final closing balance and totals.</p>
+                                <div className="flex items-start gap-3">
+                                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-500/15 text-blue-300">
+                                        <i className="bi bi-bank" />
+                                    </span>
+                                    <div>
+                                        <p className="text-sm font-semibold text-slate-100">Summary</p>
+                                        <p className="text-sm text-slate-400">Final closing balance and totals.</p>
+                                    </div>
                                 </div>
-                            </div>
-                        </CardContent>
+                            </CardContent>
                         </Card>
                     </div>
 
-                    <Card className="relative flex w-full min-h-[640px] max-h-[640px] flex-col overflow-hidden">
-                        <CardHeader className="space-y-2">
+                    <Card className="relative flex h-full w-full flex-col overflow-hidden">
+                        <CardHeader className="space-y-2 pb-3">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-500/15 text-blue-300">
@@ -437,7 +437,7 @@ const ReportsPage = () => {
                                 )}
                             </div>
                         </CardHeader>
-                        <CardContent className="flex-1 space-y-4 overflow-y-auto pr-1">
+                        <CardContent className="flex-1 space-y-3 overflow-y-auto pt-3 [scrollbar-gutter:stable]">
                             {historyQuery.isLoading && (
                                 <div className="space-y-4">
                                     {[1, 2, 3].map((item) => (
@@ -472,22 +472,22 @@ const ReportsPage = () => {
                                         return (
                                             <div
                                                 key={`report-history-${item.id}`}
-                                                className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3"
+                                                className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 min-h-[64px]"
                                             >
-                                                <div className="space-y-1">
-                                                    <p className="text-sm font-semibold text-slate-100">{rangeLabel}</p>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-semibold text-slate-100 truncate">{rangeLabel}</p>
                                                     <div className="flex items-center gap-2 text-xs text-slate-400">
-                                                        <span className={`rounded-full px-2 py-0.5 ${statusTone}`}>
+                                                        <span className={`rounded-full px-2 py-0.5 min-w-[72px] text-center ${statusTone}`}>
                                                             {status || "UNKNOWN"}
                                                         </span>
                                                         {item.createdAt && (
-                                                            <span>
+                                                            <span className="truncate">
                                                                 Created {new Date(item.createdAt).toLocaleDateString("en-US")}
                                                             </span>
                                                         )}
                                                     </div>
                                                 </div>
-                                                <div>
+                                                <div className="flex-shrink-0">
                                                     {item.fileUrl && status === "PROCESSED" ? (
                                                         <Button
                                                             variant="outline"

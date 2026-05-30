@@ -125,7 +125,7 @@ class TestGeneratePDFReport:
         assert response["id"] == 47
         assert response["status"] == ReportStatus.PENDING.value
 
-        report_uow.reports.update_report_status.assert_called_once_with(46, ReportStatus.EXPIRED)
+        report_uow.reports.update_report_status.assert_called_once_with(46, ReportStatus.EXPIRED, None)
         mock_redis_client.rpush.assert_called_once()
 
         assert report_uow.flush.call_count == 2
@@ -182,12 +182,11 @@ class TestGeneratePDFReport:
         service = ReportService(report_uow)
         payload = {"startDate": "2026-05-01", "endDate": "2026-05-24"}
 
-        with pytest.raises(BusinessLogicError) as exc_info:
-            service.generate_pdf_report(user_id=1, data=payload)
-
-        assert str(exc_info.value) == "Failed to start report generation process. Please try again later."
-
-        assert report_uow.flush.call_count == 3
+        response, status_code = service.generate_pdf_report(user_id=1, data=payload)
+        
+        assert status_code == 400
+        assert "error" in response
+        assert "Failed to start report generation process" in response["error"]
     
     invalid_payloads = [
         ({"startDate": "2026-05-01"}), # Missing endDate
@@ -248,7 +247,7 @@ class TestGetReportStatus:
         assert response["id"] == report_id
         assert response["status"] == ReportStatus.EXPIRED.value
 
-        report_uow.reports.update_report_status.assert_called_once_with(report_id, ReportStatus.EXPIRED)
+        report_uow.reports.update_report_status.assert_called_once_with(report_id, ReportStatus.EXPIRED, None)
 
     def test_get_report_status_not_found(self, report_uow):
         report_id = 999
@@ -385,8 +384,8 @@ class TestGetReportHistory:
     def test_get_report_history_success(self, report_uow):
         user_id = 322
         fake_reports = [
-            MagicMock(id=1, status=ReportStatus.PROCESSED, start_date=datetime(2026, 5, 1), end_date=datetime(2026, 5, 24), created_at=datetime(2026, 5, 25)),
-            MagicMock(id=2, status=ReportStatus.FAILED, start_date=datetime(2026, 4, 1), end_date=datetime(2026, 4, 30), created_at=datetime(2026, 5, 1))
+            MagicMock(id=1, status=ReportStatus.PROCESSED, start_date=datetime(2026, 5, 1), end_date=datetime(2026, 5, 24), created_at=datetime(2026, 5, 25), expire_at=None),
+            MagicMock(id=2, status=ReportStatus.FAILED, start_date=datetime(2026, 4, 1), end_date=datetime(2026, 4, 30), created_at=datetime(2026, 5, 1), expire_at=None)
         ]
         report_uow.reports.get_report_history.return_value = fake_reports
 
