@@ -259,13 +259,14 @@ const ReportsPage = () => {
                             </CardHeader>
                             <CardContent className="relative flex flex-col h-full overflow-auto">
                                 {(wizardState === "idle" || wizardState === "error") && (
-                                    <div className="flex h-full flex-1 flex-col gap-5">
+                                    <div data-testid="generate-report-form" className="flex h-full flex-1 flex-col gap-5">
                                         <div className="space-y-2">
                                             <span className="text-[11px] uppercase tracking-[0.2em] text-slate-500">
                                                 Quick select
                                             </span>
-                                            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-300">
+                                            <div data-testid="report-quick-period-container" className="flex flex-wrap items-center gap-2 text-xs text-slate-300">
                                                 <button
+                                                    data-testid="quick-range-month"
                                                     type="button"
                                                     className="rounded-full border border-blue-500/30 px-3 py-1 text-xs text-blue-100/80 transition hover:border-blue-400/60 hover:bg-blue-500/10 hover:text-blue-100"
                                                     onClick={() => applyQuickRange("month")}
@@ -273,6 +274,7 @@ const ReportsPage = () => {
                                                     This month
                                                 </button>
                                                 <button
+                                                    data-testid="quick-range-year"
                                                     type="button"
                                                     className="rounded-full border border-blue-500/30 px-3 py-1 text-xs text-blue-100/80 transition hover:border-blue-400/60 hover:bg-blue-500/10 hover:text-blue-100"
                                                     onClick={() => applyQuickRange("year")}
@@ -280,6 +282,7 @@ const ReportsPage = () => {
                                                     This year
                                                 </button>
                                                 <button
+                                                    data-testid="quick-range-all"
                                                     type="button"
                                                     className="rounded-full border border-blue-500/30 px-3 py-1 text-xs text-blue-100/80 transition hover:border-blue-400/60 hover:bg-blue-500/10 hover:text-blue-100"
                                                     onClick={() => applyQuickRange("all")}
@@ -295,6 +298,7 @@ const ReportsPage = () => {
                                                     type="date"
                                                     value={startDate}
                                                     onChange={(event) => setStartDate(event.target.value)}
+                                                    data-testid="report-start-date-input"
                                                     disabled={wizardState === "pending"}
                                                 />
                                             </label>
@@ -304,6 +308,7 @@ const ReportsPage = () => {
                                                     type="date"
                                                     value={endDate}
                                                     onChange={(event) => setEndDate(event.target.value)}
+                                                    data-testid="report-end-date-input"
                                                     disabled={wizardState === "pending"}
                                                 />
                                             </label>
@@ -313,14 +318,14 @@ const ReportsPage = () => {
                                                 {statusMessage}
                                             </div>
                                         )}
-                                        <Button className="w-full" onClick={handleGenerate} disabled={!canSubmit}>
+                                        <Button data-testid="generate-report-button" className="w-full" onClick={handleGenerate} disabled={!canSubmit}>
                                             Generate
                                         </Button>
                                     </div>
                                 )}
 
                                 {wizardState === "pending" && (
-                                    <div className="flex h-full flex-1 flex-col text-center">
+                                    <div data-testid="generate-report-form-pending" className="flex h-full flex-1 flex-col text-center">
                                         <div className="space-y-5">
                                             <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl border border-white/10 bg-white/5">
                                                 <div className="h-10 w-10 animate-spin rounded-full border-2 border-blue-400/30 border-t-blue-400" />
@@ -338,7 +343,7 @@ const ReportsPage = () => {
                                             </div>
                                         </div>
                                         <div className="mt-auto">
-                                            <Button variant="ghost" onClick={resetWizard} className="w-full">
+                                            <Button data-testid="generate-report-form-pending-cancel-button" variant="ghost" onClick={resetWizard} className="w-full">
                                                 Cancel
                                             </Button>
                                         </div>
@@ -346,23 +351,23 @@ const ReportsPage = () => {
                                 )}
 
                                 {wizardState === "success" && (
-                                    <div className="flex h-full flex-1 flex-col text-center">
+                                    <div data-testid="generate-report-form-success" className="flex h-full flex-1 flex-col text-center">
                                         <div className="space-y-5">
                                             <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-emerald-500/15 text-emerald-200">
                                                 <i className="bi bi-check-circle-fill text-3xl" />
                                             </div>
                                             <div className="space-y-1">
-                                                <p className="text-base font-semibold text-slate-100">Report is ready</p>
+                                                <p data-testid="generate-report-form-success-title" className="text-base font-semibold text-slate-100">Report is ready</p>
                                                 {periodLabel && (
-                                                    <p className="text-sm text-slate-400 truncate">Period: {periodLabel}</p>
+                                                    <p data-testid="generate-report-form-success-period" className="text-sm text-slate-400 truncate">Period: {periodLabel}</p>
                                                 )}
                                             </div>
                                         </div>
                                         <div className="mt-auto space-y-3">
-                                            <Button className="w-full" onClick={handleDownload}>
+                                            <Button data-testid="download-report-button" className="w-full" onClick={handleDownload}>
                                                 Download PDF
                                             </Button>
-                                            <Button variant="secondary" className="w-full" onClick={resetWizard}>
+                                            <Button variant="secondary" className="w-full" onClick={resetWizard} data-testid="create-new-report-button">
                                                 Create new
                                             </Button>
                                         </div>
@@ -437,7 +442,7 @@ const ReportsPage = () => {
                                 )}
                             </div>
                         </CardHeader>
-                        <CardContent className="flex-1 space-y-3 overflow-y-auto pt-3 [scrollbar-gutter:stable]">
+                        <CardContent data-testid="reports-table" className="flex-1 space-y-3 overflow-y-auto pt-3 [scrollbar-gutter:stable]">
                             {historyQuery.isLoading && (
                                 <div className="space-y-4">
                                     {[1, 2, 3].map((item) => (
@@ -490,6 +495,7 @@ const ReportsPage = () => {
                                                 <div className="flex-shrink-0">
                                                     {item.fileUrl && status === "PROCESSED" ? (
                                                         <Button
+                                                            data-testid={`report-history-download-${item.id}`}
                                                             variant="outline"
                                                             className="h-9 px-3 text-xs"
                                                             onClick={() => window.open(item.fileUrl ?? "", "_blank", "noopener,noreferrer")}
