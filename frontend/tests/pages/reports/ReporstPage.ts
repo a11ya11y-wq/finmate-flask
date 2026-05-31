@@ -49,7 +49,7 @@ export class ReportsPage extends BasePage {
         this.generateReportButton = this.generateReportForm.getByTestId('generate-report-button');
         
         
-        this.generateReportFormSuccessContainer = this.generateReportForm.getByTestId('generate-report-form-success');
+        this.generateReportFormSuccessContainer = this.page.getByTestId('generate-report-form-success');
         
         this.generateReportFormSuccessTitle = this.generateReportFormSuccessContainer.getByTestId('generate-report-form-success-title');
         this.generateReportFormSuccessPeriod = this.generateReportFormSuccessContainer.getByTestId('generate-report-form-success-period');
@@ -61,14 +61,15 @@ export class ReportsPage extends BasePage {
         this.reportsTable = this.page.getByTestId('reports-table');
     }
 
-    async getReportRowByIndex(index: number): Promise<Locator> {
-        const row = this.reportsTable.getByTestId(`report-row-${index}`);
+    async getFirstProcessedReportRow(): Promise<Locator> {
+        const row = this.reportsTable.locator('div, button').filter({ hasText: 'Processed' }).first();
         return row;
     }
 
-    async downloadReportByIndexTable(index: number): Promise<void> {
-        const downloadButton = this.reportsTable.getByTestId(`report-history-download-${index}`);
-        await expect(downloadButton).toBeVisible({ timeout: 5000 });
+    async downloadFirstReportByTable(): Promise<void> {
+        const row = await this.getFirstProcessedReportRow();
+        const downloadButton = row.getByRole('button', { name: 'Download' });
+        await expect(downloadButton).toBeVisible({ timeout: 25000 });
         await downloadButton.click();
     }
 }

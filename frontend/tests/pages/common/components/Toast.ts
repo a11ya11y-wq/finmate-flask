@@ -29,4 +29,10 @@ export class Toast {
         await expect(toast).toBeVisible();
         await expect(toast).toHaveAttribute('data-variant', 'info');
     }
+
+    async expectWarning(message: string) {
+        const toast = this.getToastByMessage(message);
+        await expect(toast).toBeVisible();
+        await expect(toast).toHaveAttribute('data-variant', 'warning');
+    }
 }

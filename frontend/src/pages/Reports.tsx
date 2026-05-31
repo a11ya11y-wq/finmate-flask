@@ -477,6 +477,7 @@ const ReportsPage = () => {
                                         return (
                                             <div
                                                 key={`report-history-${item.id}`}
+                                                data-testid={`report-history-${item.id}`}
                                                 className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 min-h-[64px]"
                                             >
                                                 <div className="flex-1 min-w-0">
