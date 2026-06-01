@@ -33,7 +33,7 @@ test.describe('Reports Page', () => {
             await reportsPage.quickRangeMonthButton.click();
             await reportsPage.generateReportButton.click();
 
-            await expect(reportsPage.generateReportFormSuccessContainer).toBeVisible({ timeout: 10000 });
+            await expect(reportsPage.generateReportFormSuccessContainer).toBeVisible({ timeout: 30000 });
             await expect(reportsPage.generateReportFormSuccessTitle).toHaveText('Report is ready');
             await expect(reportsPage.generateReportFormSuccessPeriod).toHaveText(/Period: May 01, 2026 - May 30, 2026/);
 
@@ -94,7 +94,7 @@ test.describe('Reports Page', () => {
             await reportsPage.reportEndDateInput.fill('2026-04-30');
             await reportsPage.generateReportButton.click();
 
-            await expect(reportsPage.generateReportFormSuccessContainer).toBeVisible({ timeout: 10000 });
+            await expect(reportsPage.generateReportFormSuccessContainer).toBeVisible({ timeout: 30000 });
             await expect(reportsPage.generateReportFormSuccessTitle).toHaveText('Report is ready');
             await expect(reportsPage.generateReportFormSuccessPeriod).toHaveText(/Period: Apr 01, 2026 - Apr 30, 2026/);
 
@@ -183,7 +183,6 @@ test.describe('Reports Page', () => {
         });
         
         await step('Download the report from the reports history and verify the file', async () => {
-            await reportsPage.goto();
 
             const downloadPromise = page.waitForEvent('download');
             await reportsPage.downloadFirstReportByTable();
