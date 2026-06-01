@@ -1,6 +1,10 @@
+import os
+
 import pytest
 from core_service import create_app, db
 
+
+os.environ['FLASK_CONFIG'] = 'testing'
 
 @pytest.fixture(scope='session')
 def app():

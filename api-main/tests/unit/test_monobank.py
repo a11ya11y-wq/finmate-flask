@@ -106,6 +106,17 @@ class TestMonobankService:
 
         mono_env["uow"].transactions.bulk_insert_transactions.assert_not_called()
 
+    def test_sync_tx_missing_user(self, mono_env, app):
+        mono_env["uow"].profile.get_user_info.return_value = None
+
+        service = MonobankService(mono_env["uow"])
+
+        with pytest.raises(BusinessLogicError, match="API token not found or user access denied."):
+            with app.app_context():
+                service.sync_tx(user_id=1)
+
+        mono_env["uow"].transactions.bulk_insert_transactions.assert_not_called()
+
     def test_sync_tx_creates_uncat_and_maps_income(self, mono_env, app):
         INCOME_TX = [{"id": "mono_income_1", "amount": 15000, "description": "Salary", "time": 1700000000, "mcc": 1234}]
         mono_env["client"].get_transactions.return_value = INCOME_TX

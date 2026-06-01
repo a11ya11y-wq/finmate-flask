@@ -24,11 +24,12 @@ class MonobankService:
     def sync_tx(self, user_id: int) -> int:
 
         user = self.uow.profile.get_user_info(user_id)
-        token_bytes = user.monobank_api_token
 
         if not user or not user.monobank_api_token:
             logger.warning(f"Monobank sync failed: API token not found or access denied for user {user_id}")
             raise BusinessLogicError("API token not found or user access denied.")
+
+        token_bytes = user.monobank_api_token
 
         api = MonoAPI(encrypted_token_bytes=token_bytes)
 
