@@ -9,7 +9,7 @@ export const syncTransactions = async () => {
 export const getSyncTask = async (taskId: string) => {
   return apiRequest<{
     task_id: string;
-    status: "PENDING" | "SUCCESS" | "FAILURE";
+    status: "PENDING" | "STARTED" | "SUCCESS" | "FAILURE";
     result: null | { added_count: number; message: string };
   }>(`/monobank/tasks/${taskId}`);
 };
