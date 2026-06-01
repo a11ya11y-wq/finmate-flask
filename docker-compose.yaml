@@ -48,14 +48,12 @@ services:
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
   api-main:
-    image: finmate_api_main
-    build: api-main
+    image: ghcr.io/a11ya11y-wq/finmate-api:latest
     working_dir: /app
     environment:
       - PYTHONPATH=/app
       - FLASK_APP=app.py
-    command: >
-      sh -c "PYTHONPATH=. python3 -m flask db upgrade && gunicorn --bind 0.0.0.0:5000 --workers 3 core_service.wsgi:app"
+    command: sh -c "gunicorn --bind 0.0.0.0:5000 --workers 3 core_service.wsgi:app"
     env_file:
       - .env
     depends_on:
@@ -65,27 +63,27 @@ services:
         condition: service_healthy
 
   celery_worker:
-    image: finmate_api_main
+    image: ghcr.io/a11ya11y-wq/finmate-api:latest
     command: celery -A celery_worker.celery worker --loglevel=info
     env_file:
       - .env
     depends_on:
-      - api-main
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
   report-service:
     container_name: finmate_report_service
-    build:
-      context: ./services/report-service
-      target: production
+    image: ghcr.io/a11ya11y-wq/finmate-report:latest
     env_file:
       - .env
     depends_on:
       redis:
         condition: service_healthy
-
   frontend:
     container_name: frontend
-    build: ./frontend
+    image: ghcr.io/a11ya11y-wq/finmate-frontend:latest
     depends_on:
       - api-main
 

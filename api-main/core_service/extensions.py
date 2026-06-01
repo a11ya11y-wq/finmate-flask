@@ -40,8 +40,9 @@ def init_redis(app):
         return None
     try:
         redis_client = redis.Redis.from_url(redis_url, decode_responses=True)
-        response = redis_client.ping()
-        logger.info(f"Redis connection successful: {response}")
+        if not app.config.get("TESTING"):
+             redis_client.ping()
+        logger.info(f"Redis connection successful to {redis_url}")
         return redis_client
 
     except redis.ConnectionError as e:

@@ -5,6 +5,7 @@ from flask_jwt_extended import create_access_token
 from core_service.models.user_model import Users
 from core_service.models.category_model import Category
 from core_service import extensions
+import os
 
 from core_service import create_app, db
 
@@ -62,9 +63,10 @@ def auth_headers(db_session):
 
 
 @pytest.fixture(scope='function')
-def test_redis():
+def test_redis(app):
 
-    client = redis.Redis(host='redis', port=6379, db=1, decode_responses=True)
+    redis_host = os.environ.get('REDIS_HOST', 'localhost')
+    client = redis.Redis(host=redis_host, port=6379, db=1, decode_responses=True)
 
     client.flushdb()
 

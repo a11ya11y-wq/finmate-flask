@@ -406,7 +406,7 @@ class TestGetReportStatus:
         assert 'error' in response_data
         assert response_data['error'] == "The report generation timed out. Please request a new report."
 
-    def test_get_report_status_pending_no_result(self, client, auth_headers, db_session):
+    def test_get_report_status_pending_no_result(self, client, auth_headers, db_session, test_redis):
         """Test retrieval of report status for a pending report that has no result in Redis."""
         pending_report = Reports(
             user_id=1,
