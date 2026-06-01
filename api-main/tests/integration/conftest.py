@@ -64,7 +64,7 @@ def auth_headers(db_session):
 @pytest.fixture(scope='function')
 def test_redis():
 
-    client = redis.Redis(host='redis', port=6379, db=0, decode_responses=True)
+    client = redis.Redis(host='redis', port=6379, db=1, decode_responses=True)
 
     client.flushdb()
 

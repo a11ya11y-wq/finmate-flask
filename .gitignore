@@ -9,6 +9,7 @@ env/
 
 
 shared_reports
+.pytest_cache/
 
 htmlcov/
 .coverage
