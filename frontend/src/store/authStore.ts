@@ -2,16 +2,21 @@ import { create } from "zustand";
 import type { User } from "../api/types";
 import { getProfile } from "../api/profile";
 import { login as loginRequest, logout as logoutRequest, refresh } from "../api/auth";
+import { queryClient } from "../lib/queryClient";
+import { queryKeys } from "../api/queryKeys";
+
+let restoreSessionPromise: Promise<boolean> | null = null;
 
 type AuthState = {
   accessToken: string | null;
   user: User | null;
   status: "idle" | "loading";
+  isRestoring: boolean;
   setAccessToken: (token: string | null) => void;
   setUser: (user: User | null) => void;
   clearAuth: () => void;
   login: (email: string, password: string, rememberMe: boolean) => Promise<void>;
-  refreshSession: () => Promise<boolean>;
+  restoreSession: () => Promise<boolean>;
   logout: () => Promise<void>;
 };
 
@@ -19,6 +24,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   accessToken: null,
   user: null,
   status: "idle",
+  isRestoring: true,
   setAccessToken: (token) => set({ accessToken: token }),
   setUser: (user) => set({ user }),
   clearAuth: () => set({ accessToken: null, user: null }),
@@ -27,31 +33,50 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const result = await loginRequest({ email, password, remember_me: rememberMe });
       set({ accessToken: result.access_token });
-      const profile = await getProfile();
+      const profile = await queryClient.fetchQuery({
+        queryKey: queryKeys.profile,
+        queryFn: getProfile
+      });
       set({ user: profile, status: "idle" });
     } catch (error) {
       set({ status: "idle" });
       throw error;
     }
   },
-  refreshSession: async () => {
-    set({ status: "loading" });
-    try {
-      const result = await refresh();
-      set({ accessToken: result.access_token });
-      const profile = await getProfile();
-      set({ user: profile, status: "idle" });
-      return true;
-    } catch (error) {
-      set({ status: "idle" });
-      return false;
+  restoreSession: async () => {
+    if (restoreSessionPromise) {
+      return restoreSessionPromise;
     }
+
+    set({ isRestoring: true });
+    restoreSessionPromise = (async () => {
+      try {
+        const result = await refresh();
+        set({ accessToken: result.access_token });
+        const profile = await queryClient.fetchQuery({
+          queryKey: queryKeys.profile,
+          queryFn: getProfile
+        });
+        set({ user: profile });
+        return true;
+      } catch (error) {
+        queryClient.removeQueries({ queryKey: queryKeys.profile });
+        get().clearAuth();
+        return false;
+      } finally {
+        set({ isRestoring: false });
+        restoreSessionPromise = null;
+      }
+    })();
+
+    return restoreSessionPromise;
   },
   logout: async () => {
     const { clearAuth } = get();
     try {
       await logoutRequest();
     } finally {
+      queryClient.removeQueries({ queryKey: queryKeys.profile });
       clearAuth();
     }
   }

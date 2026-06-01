@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import AppShell from "../components/layout/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -11,6 +12,7 @@ import { changePassword, removeMonobankToken, setMonobankToken, updateProfile, d
 import { createCategory, deleteCategory, getCategories, updateCategory } from "../api/categories";
 import type { Category } from "../api/types";
 import { toErrorMessage } from "../api/error";
+import { queryKeys } from "../api/queryKeys";
 import { useAuthStore } from "../store/authStore";
 import { cn } from "../lib/utils";
 import {
@@ -217,11 +219,11 @@ const ProfilePage = () => {
   const [categoryErrors, setCategoryErrors] = useState<Record<string, string>>({});
   const [monoToken, setMonoToken] = useState("");
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isPasswordOpen, setIsPasswordOpen] = useState(false);
   const [isMonobankOpen, setIsMonobankOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [categoryForm, setCategoryForm] = useState({ name: "", mcc_code: "", icon: "bi-tag-fill" });
   const [editCategory, setEditCategory] = useState<Category | null>(null);
   const [editCategorySnapshot, setEditCategorySnapshot] = useState<Category | null>(null);
@@ -229,18 +231,60 @@ const ProfilePage = () => {
   const [deleteCategoryId, setDeleteCategoryId] = useState<number | null>(null);
   const [isDeleteCategoryOpen, setIsDeleteCategoryOpen] = useState(false);
 
-  useEffect(() => {
-    const loadCategories = async () => {
-      try {
-        const response = await getCategories();
-        setCategories(response.data);
-      } catch (err) {
-        toast({ variant: "error", message: toErrorMessage(err) });
-      }
-    };
+  const categoriesQuery = useQuery<{ data: Category[] }>({
+    queryKey: queryKeys.categories,
+    queryFn: getCategories
+  });
 
-    void loadCategories();
-  }, [toast]);
+  const updateProfileMutation = useMutation({
+    mutationFn: updateProfile
+  });
+
+  const changePasswordMutation = useMutation({
+    mutationFn: changePassword
+  });
+
+  const setMonobankTokenMutation = useMutation({
+    mutationFn: setMonobankToken
+  });
+
+  const removeMonobankTokenMutation = useMutation({
+    mutationFn: removeMonobankToken
+  });
+
+  const createCategoryMutation = useMutation({
+    mutationFn: createCategory
+  });
+
+  const updateCategoryMutation = useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: Parameters<typeof updateCategory>[1] }) =>
+      updateCategory(id, payload)
+  });
+
+  const deleteCategoryMutation = useMutation({
+    mutationFn: deleteCategory
+  });
+
+  const deleteProfileMutation = useMutation({
+    mutationFn: deleteProfile
+  });
+
+  const categories = (categoriesQuery.data?.data ?? []) as Category[];
+
+  useEffect(() => {
+    if (categoriesQuery.error) {
+      toast({ variant: "error", message: toErrorMessage(categoriesQuery.error) });
+    }
+  }, [categoriesQuery.error, toast]);
+
+  const updateCategoriesCache = (updater: (current: Category[]) => Category[]) => {
+    queryClient.setQueryData(queryKeys.categories, (current: { data: Category[] } | undefined) => {
+      if (!current) {
+        return current;
+      }
+      return { ...current, data: updater(current.data) };
+    });
+  };
 
   const handleProfileSubmit = async () => {
     const validation = validateForm(profileSchema, profileDraft);
@@ -267,7 +311,7 @@ const ProfilePage = () => {
         setIsProfileOpen(false);
         return;
       }
-      const updated = await updateProfile(validation.data);
+      const updated = await updateProfileMutation.mutateAsync(validation.data);
       setUser(updated);
       setProfileForm(updated);
       toast({ variant: "success", message: "Profile updated" });
@@ -285,7 +329,7 @@ const ProfilePage = () => {
     }
     try {
       setPasswordErrors({});
-      const response = await changePassword(validation.data);
+      const response = await changePasswordMutation.mutateAsync(validation.data);
       toast({ variant: "success", message: response.message });
       setPasswordForm({ old_password: "", new_password: "", confirm_password: "" });
       setIsPasswordOpen(false);
@@ -302,7 +346,7 @@ const ProfilePage = () => {
     }
     try {
       setMonoErrors({});
-      const updated = await setMonobankToken(validation.data.token);
+      const updated = await setMonobankTokenMutation.mutateAsync(validation.data.token);
       setUser(updated);
       toast({ variant: "success", message: "Monobank token saved" });
       setMonoToken("");
@@ -314,7 +358,7 @@ const ProfilePage = () => {
 
   const handleRemoveToken = async () => {
   try {
-    await removeMonobankToken();
+    await removeMonobankTokenMutation.mutateAsync();
     if (user) {
       setUser({ ...user, monobank_token_is_set: false });
     }
@@ -336,13 +380,13 @@ const ProfilePage = () => {
   }
   try {
     setCategoryErrors({});
-    const created = await createCategory({
+    const created = await createCategoryMutation.mutateAsync({
       ...categoryForm,
       name: validation.data.name,
       mcc_code: validation.data.mcc_code,
       icon: validation.data.icon ?? categoryForm.icon
     });
-    setCategories((prev) => [created, ...prev]);
+    updateCategoriesCache((current) => [created, ...current]);
     setCategoryForm({ name: "", mcc_code: "", icon: "bi-tag-fill" });
     setIsAddCategoryOpen(false); // ДОДАНО: закриваємо модалку
     toast({ variant: "success", message: "Category added!" });
@@ -382,12 +426,17 @@ const ProfilePage = () => {
           return;
         }
       }
-      const updated = await updateCategory(editCategory.id, {
+      const updated = await updateCategoryMutation.mutateAsync({
+        id: editCategory.id,
+        payload: {
         name: validation.data.name,
         mcc_code: validation.data.mcc_code ?? "",
         icon: validation.data.icon ?? editCategory.icon
+        }
       });
-      setCategories((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
+      updateCategoriesCache((current) =>
+        current.map((item) => (item.id === updated.id ? updated : item))
+      );
       setIsEditCategoryOpen(false);
       setEditCategory(null);
       setEditCategorySnapshot(null);
@@ -404,8 +453,8 @@ const ProfilePage = () => {
       return;
     }
     try {
-      await deleteCategory(deleteCategoryId);
-      setCategories((prev) => prev.filter((item) => item.id !== deleteCategoryId));
+      await deleteCategoryMutation.mutateAsync(deleteCategoryId);
+      updateCategoriesCache((current) => current.filter((item) => item.id !== deleteCategoryId));
       setIsDeleteCategoryOpen(false);
       setDeleteCategoryId(null);
       
@@ -418,7 +467,7 @@ const ProfilePage = () => {
 
   const handleDeleteAccount = async () => {
     try {
-      await deleteProfile();
+      await deleteProfileMutation.mutateAsync();
       await logout();
     } catch (err) {
       toast({ variant: "error", message: toErrorMessage(err) });

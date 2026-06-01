@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: #2c3e50;
+            margin: 0;
+            padding: 40px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 20px;
+            margin-bottom: 40px;
+        }
+
+        /* Тільки текстовий напис FinMate */
+        .brand-name {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            color: #2c3e50;
+        }
+
+        .brand-name span {
+            color: #3498db;
+        }
+
+        .report-title-section {
+            text-align: right;
+        }
+
+        .report-title-section h1 {
+            margin: 0;
+            font-size: 20px;
+            text-transform: uppercase;
+            color: #7f8c8d;
+            letter-spacing: 1px;
+        }
+
+        .report-meta {
+            margin-top: 5px;
+            color: #bdc3c7;
+            font-size: 12px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 15px 12px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            color: #95a5a6;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 14px 12px;
+            border-bottom: 1px solid #f1f1f1;
+            font-size: 14px;
+        }
+
+        .amount {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: right;
+        }
+
+        .income {
+            color: #27ae60;
+        }
+
+        .expense {
+            color: #e74c3c;
+        }
+
+        .category-tag {
+            background: #f1f3f5;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            color: #7f8c8d;
+        }
+
+        .footer {
+            margin-top: 50px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .total-card {
+            border: 2px solid #2c3e50;
+            padding: 20px;
+            border-radius: 12px;
+            min-width: 200px;
+            text-align: right;
+        }
+
+        .total-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #7f8c8d;
+        }
+
+        .total-amount {
+            font-size: 24px;
+            font-weight: bold;
+            display: block;
+            margin-top: 5px;
+            color: #2c3e50;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="brand-name">Fin<span>Mate</span></div>
+        <div class="report-title-section">
+            <h1>Financial Statement</h1>
+            <div class="report-meta">
+                ID: #{{reportId}} • {{currentDate}}
+            </div>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Title</th>
+                <th>Category</th>
+                <th style="text-align: right;">Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each transactions}}
+            <tr>
+                <td style="color: #95a5a6;">{{this.dateFormatted}}</td>
+                <td style="font-weight: 600;">{{this.title}}</td>
+                <td><span class="category-tag">{{this.category}}</span></td>
+                <td class="amount {{#if this.isExpense}}expense{{else}}income{{/if}}">
+                    {{#if this.isExpense}}-{{else}}+{{/if}}{{this.amountFormatted}}
+                </td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <div class="total-card">
+            <span class="total-label">Closing Balance</span>
+            <span class="total-amount">{{totalBalance}}</span>
+        </div>
+    </div>
+</body>
+
+</html>

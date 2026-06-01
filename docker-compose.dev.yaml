@@ -51,6 +51,7 @@ services:
       - .env
     volumes:
       - ./api-main:/app
+      - ./shared_reports:/app/uploads
     depends_on:
         db:
           condition: service_healthy
@@ -66,6 +67,20 @@ services:
       - ./api-main:/app
     depends_on:
       - api-main
+
+  report-service:
+    build: ./services/report-service
+    container_name: finmate_report_service
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+#        - ./services/report-service:/app
+        - ./shared_reports:/app/uploads
 
   frontend:
     container_name: frontend

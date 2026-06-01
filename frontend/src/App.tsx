@@ -1,10 +1,13 @@
 import AppRoutes from "./routes/AppRoutes";
 import { ToastProvider } from "./components/ui/toast";
+import AuthBootstrap from "./components/auth/AuthBootstrap";
 
 const App = () => {
   return (
     <ToastProvider>
-      <AppRoutes />
+      <AuthBootstrap>
+        <AppRoutes />
+      </AuthBootstrap>
     </ToastProvider>
   );
 };

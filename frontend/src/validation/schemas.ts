@@ -10,7 +10,11 @@ const amountSchema = z
     if (!match) {
       return false;
     }
-    const integerPart = match[1].replace(/^0+(?=\d)/, "") || "0";
+    const integerPartRaw = match[1];
+    if (!integerPartRaw) {
+      return false;
+    }
+    const integerPart = integerPartRaw.replace(/^0+(?=\d)/, "") || "0";
     const decimalPart = match[2] ?? "";
     const totalDigits = integerPart.length + decimalPart.length;
     return integerPart.length <= 8 && decimalPart.length <= 2 && totalDigits <= 10;

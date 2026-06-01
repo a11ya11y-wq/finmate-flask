@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { RegisterPage } from '../pages/auth/RegisterPage';
 import { ApiClient } from '../api/ApiClient';
+import { step } from 'allure-js-commons';
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
@@ -10,29 +11,42 @@ const generateUniqueStr = () => Date.now().toString(36) + Math.random().toString
 test.describe('Register Page Visuals', () => {
     test('Register page should display title correctly', async ({ page }) => {
         const registerPage = new RegisterPage(page);
-        await registerPage.goto();
-        await expect(registerPage.title).toBeVisible();
-        await expect(registerPage.title).toHaveText('Create Account');
+        
+        await step('Navigate to the registration page', async () => {
+            await registerPage.goto();
+        });
+
+        await step('Verify the page title is correct', async () => {
+            await expect(registerPage.title).toBeVisible();
+            await expect(registerPage.title).toHaveText('Create Account');
+        });
     });
 });
 
 test.describe('Register Actions', () => {
     test('User can register with valid credentials', async ({ page }) => {
         const registerPage = new RegisterPage(page);
-        await registerPage.goto();
-
+       
         const uniqueSuffix = generateUniqueStr();
         const email = `newuser_${uniqueSuffix}@example.com`;
         const username = `newuser_${uniqueSuffix}`;
+
+        await step('Navigate to the registration page', async () => {
+            await registerPage.goto();
+        });
         
-        await registerPage.register({
-            username: username,
-            email: email,
-            password: 'Password123!',
-            confirmPassword: 'Password123!'
+        await step('Fill and submit the registration form with valid data', async () => {
+            await registerPage.register({
+                username: username,
+                email: email,
+                password: 'Password123!',
+                confirmPassword: 'Password123!'
+            });
         });
 
-        await expect(page).toHaveURL(/.*\/dashboard/);
+        await step('Verify successful redirection to the dashboard', async () => {
+            await expect(page).toHaveURL(/.*\/dashboard/);
+        });
     });
 
     const clientValidationCases = [
@@ -49,20 +63,26 @@ test.describe('Register Actions', () => {
     ];
     
     for (const data of clientValidationCases) {
-        test('(Client Validation)User cannot register with ' + data.desc, async ({ page }) => {
+        test('(Client Validation) User cannot register with ' + data.desc, async ({ page }) => {
             const registerPage = new RegisterPage(page);
-            await registerPage.goto();
-
-            await registerPage.register({
-                username: data.username,
-                email: data.email,
-                password: data.password,
-                confirmPassword: data.confirmPassword
+            
+            await step('Navigate to the registration page', async () => {
+                await registerPage.goto();
             });
 
-            await expect(registerPage.page).toHaveURL(/.*\/register/);
+            await step(`Attempt to register with: ${data.desc}`, async () => {
+                await registerPage.register({
+                    username: data.username,
+                    email: data.email,
+                    password: data.password,
+                    confirmPassword: data.confirmPassword
+                });
+            });
 
-            await registerPage.expectFieldError(data.field, data.expectedMsg);
+            await step('Verify the user remains on the register page and sees validation error', async () => {
+                await expect(registerPage.page).toHaveURL(/.*\/register/);
+                await registerPage.expectFieldError(data.field, data.expectedMsg);
+            });
         });
     }
 
@@ -79,32 +99,48 @@ test.describe('Register Actions', () => {
             const originalEmail = `uniqueemail_${generateUniqueStr()}@example.com`;
             const originalUsername = `uniqueuser_${generateUniqueStr()}`;
 
-            await api.auth.register({
-                username: originalUsername,
-                email: originalEmail,
-                password: 'Password123!',
-                confirmPassword: 'Password123!'
+            await step('Precondition: Create an existing user via API', async () => {
+                await api.auth.register({
+                    username: originalUsername,
+                    email: originalEmail,
+                    password: 'Password123!',
+                    confirmPassword: 'Password123!'
+                });
             });
 
-            await registerPage.goto();
-
-            await registerPage.register({
-                username: data.fieldToDuplicate === 'email' ? `existinguser_${generateUniqueStr()}` : originalUsername, // Condition ? Value_If_True : Value_If_False
-                email: data.fieldToDuplicate === 'email' ? originalEmail : `existinguser_${generateUniqueStr()}@example.com`,
-                password: 'Password123!',
-                confirmPassword: 'Password123!'
+            await step('Navigate to the registration page', async () => {
+                await registerPage.goto();
             });
 
-            await expect(registerPage.page).toHaveURL(/.*\/register/);
-            await registerPage.toast.expectError(data.expectedMessage);
+            await step(`Attempt to register with the duplicate ${data.desc}`, async () => {
+                await registerPage.register({
+                    username: data.fieldToDuplicate === 'email' ? `existinguser_${generateUniqueStr()}` : originalUsername,
+                    email: data.fieldToDuplicate === 'email' ? originalEmail : `existinguser_${generateUniqueStr()}@example.com`,
+                    password: 'Password123!',
+                    confirmPassword: 'Password123!'
+                });
+            });
+
+            await step('Verify registration fails and error toast is displayed', async () => {
+                await expect(registerPage.page).toHaveURL(/.*\/register/);
+                await registerPage.toast.expectError(data.expectedMessage);
+            });
         });
     }
 
     test('User can navigate to login page from register page', async ({ page }) => {
         const registerPage = new RegisterPage(page);
-        await registerPage.goto();
+        
+        await step('Navigate to the registration page', async () => {
+            await registerPage.goto();
+        });
 
-        await registerPage.signInLink.click();
-        await expect(registerPage.page).toHaveURL(/.*\/login/);
+        await step('Click on the "Sign In" link', async () => {
+            await registerPage.signInLink.click();
+        });
+
+        await step('Verify redirection to the login page', async () => {
+            await expect(registerPage.page).toHaveURL(/.*\/login/);
+        });
     });
 });

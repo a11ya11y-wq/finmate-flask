@@ -21,8 +21,11 @@ def profile_key_builder(self, user_id):
 
 class ProfileService:
 
-    def _get_user_or_404(self, uow: UnitOfWork, user_id: int) -> Users:
-        user = uow.profile.get_user_info(user_id)
+    def __init__(self, uow: UnitOfWork):
+        self.uow = uow
+
+    def _get_user_or_404(self, user_id: int) -> Users:
+        user = self.uow.profile.get_user_info(user_id)
 
         if not user:
             logger.warning(f"User entity not found for user_id: {user_id}")
@@ -30,65 +33,55 @@ class ProfileService:
 
         return user
 
-    def get_user_entity(self, user_id: int) -> Users:
-        with UnitOfWork() as uow:
-            return self._get_user_or_404(uow, user_id)
-
     @redis_cache(ttl=3600, key_builder=profile_key_builder)
     def get_user_data(self, user_id: int) -> dict:
-        user = self.get_user_entity(user_id)
+        user = self._get_user_or_404(user_id)
         return user.to_dict()
 
     def update_user(self, user_id: int, data: dict) -> Users:
 
         validated_data = ProfileUpdateSchema.model_validate(data)
-        payload = validated_data.model_dump(exclude_unset=True)
+        payload = validated_data.model_dump(exclude_unset=True, exclude_none=True)
         if not payload:
             raise BusinessLogicError("No valid fields to update.")
 
-        with UnitOfWork() as uow:
+        user = self._get_user_or_404(user_id)
 
-            user = self._get_user_or_404(uow, user_id)
+        if 'username' in payload and payload['username'] == user.username:
+            payload.pop('username')
 
-            if 'username' in payload and payload['username'] == user.username:
-                payload.pop('username')
+        if 'avatar' in payload:
+            if payload['avatar'] not in ALLOWED_AVATARS:
+                logger.warning(f"User {user_id} attempted to set invalid avatar: {payload['avatar']}")
+                raise BusinessLogicError("Invalid avatar selection.")
 
-            if 'avatar' in payload:
-                if payload['avatar'] not in ALLOWED_AVATARS:
-                    logger.warning(f"User {user_id} attempted to set invalid avatar: {payload['avatar']}")
-                    raise BusinessLogicError("Invalid avatar selection.")
+        if 'username' in payload:
+            existing = self.uow.profile.get_by_username(payload['username'])
+            if existing:
+                logger.warning(
+                    f"User {user_id} attempted to change username to an already taken one: {payload['username']}")
+                raise BusinessLogicError("Username already taken.")
 
-            if 'username' in payload:
-                existing = uow.profile.get_by_username(payload['username'])
-                if existing:
-                    logger.warning(
-                        f"User {user_id} attempted to change username to an already taken one: {payload['username']}")
-                    raise BusinessLogicError("Username already taken.")
+        if not payload:
+            logger.info(f"User {user_id} update called with no actual changes.")
+            raise BusinessLogicError("No valid fields to update.")
 
-            updated_user = uow.profile.update_user(user, payload)
-            uow.commit()
+        updated_user = self.uow.profile.update_user(user, payload)
 
-        try:
-            self._clear_related_caches(user_id)
-            logger.info(f"User {user_id} profile updated.")
-        except Exception as e:
-            logger.error(f"Post-commit action failed: {e}")
+        self._clear_related_caches(user_id)
+        logger.info(f"User {user_id} profile updated.")
+
         return updated_user
 
     def delete_user(self, user_id: int) -> bool:
+        user_to_delete = self._get_user_or_404(user_id)
+        self.uow.profile.delete_user(user_to_delete)
 
-        with UnitOfWork() as uow:
-            user_to_delete = self._get_user_or_404(uow, user_id)
-            uow.profile.delete_user(user_to_delete)
-            uow.commit()
-
-        try:
-            self._clear_related_caches(user_id)
-            invalidate_cache(f"categories:{user_id}")
-            invalidate_cache(f"dashboard:{user_id}:*")
-            logger.info(f"User {user_id} deleted.")
-        except Exception as e:
-            logger.error(f"Post-commit action failed: {e}")
+        self._clear_related_caches(user_id)
+        self.uow.on_commit(lambda: invalidate_cache(f"categories:{user_id}"))
+        self.uow.on_commit(lambda: invalidate_cache(f"dashboard:{user_id}:*"))
+        logger.info(f"User {user_id} deleted.")
+ 
         return True
 
     def change_password(self, user_id: int, data: dict) -> bool:
@@ -100,22 +93,17 @@ class ProfileService:
 
         new_hash = generate_password_hash(new_password)
 
-        with UnitOfWork() as uow:
+        user_obj = self._get_user_or_404(user_id)
 
-            user_obj = self._get_user_or_404(uow, user_id)
+        if not user_obj.chek_hash_pwd(old_password):
+            logger.warning(f"User {user_id} provided invalid old password for password change.")
+            raise AuthenticationError("Invalid old password.")
 
-            if not user_obj.chek_hash_pwd(old_password):
-                logger.warning(f"User {user_id} provided invalid old password for password change.")
-                raise AuthenticationError("Invalid old password.")
+        self.uow.profile.change_password_hash(user_obj, new_hash)
 
-            uow.profile.change_password_hash(user_obj, new_hash)
-            uow.commit()
+        self._clear_related_caches(user_id)
+        logger.info(f"User {user_id} changed password.")
 
-        try:
-            self._clear_related_caches(user_id)
-            logger.info(f"User {user_id} changed password.")
-        except Exception as e:
-            logger.error(f"Post-commit action failed: {e}")
         return True
 
     def update_mono_token(self, user_id: int, data: dict) -> Users:
@@ -133,48 +121,38 @@ class ProfileService:
         payload = {
             "monobank_api_token": encrypted_token
         }
+        user_obj = self._get_user_or_404(user_id)
+        updated_user = self.uow.profile.update_user(user_obj, payload)
 
-        with UnitOfWork() as uow:
-            user_obj = self._get_user_or_404(uow, user_id)
-            updated_user = uow.profile.update_user(user_obj, payload)
-            uow.commit()
+        self._clear_related_caches(user_id)
+        logger.info(f"User {user_id} updated Monobank token.")
 
-        try:
-            self._clear_related_caches(user_id)
-            logger.info(f"User {user_id} updated Monobank token.")
-        except Exception as e:
-            logger.error(f"Post-commit action failed: {e}")
         return updated_user
 
     def delete_mono_token(self, user_id: int) -> bool:
 
-        with UnitOfWork() as uow:
-            user_obj = self._get_user_or_404(uow, user_id)
-            uow.profile.delete_monobank_token(user_obj)
-            uow.commit()
-        try:
-            self._clear_related_caches(user_id)
-            logger.info(f"User {user_id} deleted Monobank token.")
-        except Exception as e:
-            logger.error(f"Post-commit action failed: {e}")
+        user_obj = self._get_user_or_404(user_id)
+        self.uow.profile.delete_monobank_token(user_obj)
+
+        self._clear_related_caches(user_id)
+        logger.info(f"User {user_id} deleted Monobank token.")
+
         return True
 
-    def recalculate_initial_point(self, uow: UnitOfWork, user_id: int) -> Decimal:
-        user_obj = self._get_user_or_404(uow, user_id)
+    def recalculate_initial_point(self, user_id: int) -> Decimal:
+        user_obj = self._get_user_or_404(user_id)
         real_balance = Decimal(user_obj.last_real_balance or 0)
-        current_mono_sum = Decimal(uow.transactions.get_current_balance_mono(user_id) or 0)
+        current_mono_sum = Decimal(self.uow.transactions.get_current_balance_mono(user_id) or 0)
 
         new_initial = real_balance - current_mono_sum
-        print(real_balance, current_mono_sum, "new", new_initial)
-        uow.profile.setup_initial_balance(user_obj, new_initial)
-        try:
-            invalidate_cache(f"dashboard:{user_id}:*")
-            self._clear_related_caches(user_id)
-        except Exception as e:
-            logger.error(f"Post-commit action failed: {e}")
+
+        self.uow.profile.setup_initial_balance(user_obj, new_initial)
+
+        self.uow.on_commit(lambda: invalidate_cache(f"dashboard:{user_id}:*"))
+        self._clear_related_caches(user_id)
+        
         logger.info(f"User {user_id}: Initial point recalculated to {new_initial}")
         return Decimal(new_initial)
 
-    @staticmethod
-    def _clear_related_caches(user_id):
-        invalidate_cache(f"profile:{user_id}")
+    def _clear_related_caches(self, user_id: int):
+        self.uow.on_commit(lambda: invalidate_cache(f"profile:{user_id}"))

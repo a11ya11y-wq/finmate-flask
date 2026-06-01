@@ -4,16 +4,19 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from core_service.utils.error_parser import parse_exception
 from . import bp
 from .service import CategoryService
+from core_service.uow import UnitOfWork
 
-service = CategoryService()
 
 
 @bp.route('/all', methods=['GET'])
 @jwt_required()
 def get_all_categories():
+    user_id = int(get_jwt_identity())
     try:
-        user_id = int(get_jwt_identity())
-        categories_data = service.get_all_categories(user_id)
+        with UnitOfWork() as uow:
+            service = CategoryService(uow)
+            categories_data = service.get_all_categories(user_id)
+            
         return jsonify({"data": categories_data}), 200
 
     except Exception as e:
@@ -23,11 +26,15 @@ def get_all_categories():
 @bp.route('/', methods=['POST'])
 @jwt_required()
 def create_category():
+    user_id = int(get_jwt_identity())
+    data = request.get_json()
     try:
-        user_id = int(get_jwt_identity())
-        data = request.get_json()
-        new_cat = service.create_category(user_id, data)
-        return jsonify(new_cat.to_dict()), 201
+        with UnitOfWork() as uow:
+            service = CategoryService(uow)
+            new_cat = service.create_category(user_id, data)
+            response_data = new_cat.to_dict()
+
+        return jsonify(response_data), 201
 
     except Exception as e:
         return parse_exception(e)
@@ -36,11 +43,15 @@ def create_category():
 @bp.route('/<int:cat_id>', methods=['PUT'])
 @jwt_required()
 def update_category(cat_id: int):
+    user_id = int(get_jwt_identity())
+    data = request.get_json()
     try:
-        user_id = int(get_jwt_identity())
-        data = request.get_json()
-        updated_cat = service.update_category(user_id, data, cat_id)
-        return jsonify(updated_cat.to_dict()), 200
+        with UnitOfWork() as uow:
+            service = CategoryService(uow)
+            updated_cat = service.update_category(user_id, data, cat_id)
+            response_data = updated_cat.to_dict()
+
+        return jsonify(response_data), 200
 
     except Exception as e:
         return parse_exception(e)
@@ -49,9 +60,12 @@ def update_category(cat_id: int):
 @bp.route('/<int:cat_id>', methods=['DELETE'])
 @jwt_required()
 def delete_category(cat_id: int):
+    user_id = int(get_jwt_identity())
     try:
-        user_id = int(get_jwt_identity())
-        service.delete_category(cat_id, user_id)
+        with UnitOfWork() as uow:
+            service = CategoryService(uow)
+            service.delete_category(cat_id, user_id)
+            
         return '', 204
 
     except Exception as e:

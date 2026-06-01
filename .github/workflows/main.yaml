@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [ master ]
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   backend-tests:
     name: Backend Unit Tests (Pytest)
@@ -36,7 +41,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
           cache: 'pip'
 
       - name: Install dependencies
@@ -46,18 +51,26 @@ jobs:
           pip install -r requirements.txt
           pip install pytest pytest-cov
 
-      - name: Run Tests with Pytest
+      - name: Run Tests with Pytest (HTML Report)
         working-directory: ./api-main
         env:
           FLASK_CONFIG: testing 
           TEST_DATABASE_URL: postgresql+psycopg://postgres:password@localhost:5432/finmate_db_test
-          REDIS_URL: redis://localhost:6379/0
+          REDIS_URL: redis://localhost:6379/1
+          REDIS_HOST: localhost
           SECRET_KEY: ${{ secrets.TEST_SECRET_KEY }}
           ENCRYPTION_KEY: ${{ secrets.TEST_ENCRYPTION_KEY }}
           JWT_SECRET_KEY: ${{ secrets.TEST_JWT_SECRET }}
-          FLASK_ENV: testing
         run: |
-          python -m pytest tests/ --cov=. --cov-report=xml
+          # Генеруємо HTML звіт замість XML
+          python -m pytest tests/ --cov=core_service --cov-report=html
+
+      - name: Upload Pytest Coverage Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: api-main/htmlcov/
+          retention-days: 7
 
   e2e-tests:
     name: E2E Tests (Playwright)
@@ -79,11 +92,15 @@ jobs:
           DATABASE_URL=postgresql+psycopg://postgres:password@db:5432/finmate_e2e_db
           TEST_DATABASE_URL=postgresql+psycopg://postgres:password@db:5432/finmate_e2e_db
           SQLALCHEMY_DATABASE_URI=postgresql+psycopg://postgres:password@db:5432/finmate_e2e_db
-          REDIS_URL=redis://redis:6379/0
-          CELERY_BROKER_URL=redis://redis:6379/0
-          CELERY_RESULT_BACKEND=redis://redis:6379/0
-          # Дозволяємо Nginx приймати запити від локального хоста в CI
+          REDIS_URL=redis://redis:6379/1
+          CELERY_BROKER_URL=redis://redis:6379/1
+          CELERY_RESULT_BACKEND=redis://redis:6379/1
           CORS_ORIGINS=http://localhost,http://127.0.0.1
+          DO_SPACES_KEY=${{ secrets.DO_SPACES_KEY }}
+          DO_SPACES_SECRET=${{ secrets.DO_SPACES_SECRET }}
+          DO_SPACES_ENDPOINT=${{ secrets.DO_SPACES_ENDPOINT }}
+          DO_SPACES_REGION=${{ secrets.DO_SPACES_REGION }}
+          DO_SPACES_BUCKET=${{ secrets.DO_SPACES_BUCKET }}
           EOF
 
       - name: Start Database and Redis only
@@ -108,6 +125,7 @@ jobs:
               env_file:
                 - .env
               environment:
+                - REDIS_HOST=redis
                 - PYTHONPATH=/app
                 - FLASK_APP=app.py
                 - FLASK_CONFIG=testing
@@ -117,14 +135,25 @@ jobs:
                 - .env
               environment:
                 - PYTHONPATH=/app
+                - REDIS_HOST=redis
+            report-service:
+              env_file:
+                - .env
+              environment:
+                - DO_SPACES_KEY=${{ secrets.DO_SPACES_KEY }}
+                - DO_SPACES_SECRET=${{ secrets.DO_SPACES_SECRET }}
+                - DO_SPACES_ENDPOINT=${{ secrets.DO_SPACES_ENDPOINT }}
+                - DO_SPACES_REGION=${{ secrets.DO_SPACES_REGION }}
+                - DO_SPACES_BUCKET=${{ secrets.DO_SPACES_BUCKET }}
+                - REDIS_HOST=redis
+                - REPORT_REDIS_URL=redis://redis:6379/1
           EOF
 
-      - name: Start full application stack (Dev + CI Override)
+      - name: Start full application stack
         run: docker compose -f docker-compose.dev.yaml -f docker-compose.ci-override.yaml up -d --build
 
-      - name: Wait for API and Gateway to be ready
+      - name: Wait for API and Gateway
         run: |
-          echo "Waiting for gateway to respond with non-502 status..."
           timeout 60s sh -c 'until [ "$(curl -s -o /dev/null -w "%{http_code}" http://localhost/api/v1/auth/register)" != "502" ]; do sleep 2; done' || (docker compose -f docker-compose.dev.yaml logs api-main && docker compose -f docker-compose.dev.yaml logs gateway && exit 1)
 
       - name: Set up Node.js
@@ -142,32 +171,142 @@ jobs:
         working-directory: ./frontend
         run: npx playwright install --with-deps chromium
 
-      - name: Run Playwright tests (Strict Mode)
+      - name: Run Playwright tests with Allure
         working-directory: ./frontend
         env:
           USER_EMAIL: testingtest@gmail.com
           USER_PASSWORD: 123123
-          # ВИПРАВЛЕНО НА LOCALHOST
           BASE_URL: http://localhost
           VITE_API_URL: http://localhost
           API_URL: http://localhost/api/v1
-        run: npx playwright test
+        run: npx playwright test --reporter=line,allure-playwright
 
-      - name: Upload Playwright Report (On Failure Only)
-        if: failure()
+      - name: Upload Allure Results Artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
-          path: frontend/playwright-report/
+          name: allure-results
+          path: frontend/allure-results/
           retention-days: 7
+
+      - name: Show logs on failure
+        if: failure()
+        run: |
+          echo "--- API MAIN LOGS ---"
+          docker compose -f docker-compose.dev.yaml -f docker-compose.ci-override.yaml logs api-main
+          echo "--- REPORT SERVICE LOGS ---"
+          docker compose -f docker-compose.dev.yaml -f docker-compose.ci-override.yaml logs report-service
 
       - name: Tear down Docker stack
         if: always()
         run: docker compose -f docker-compose.dev.yaml -f docker-compose.ci-override.yaml down -v
 
+  publish-reports:
+    name: Publish Reports to GitHub Pages
+    needs: [backend-tests, e2e-tests]
+    if: always() # Публікуємо звіт навіть якщо тести впали
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Pytest Coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-coverage
+          path: public/coverage
+
+      - name: Download Allure Results
+        uses: actions/download-artifact@v4
+        with:
+          name: allure-results
+          path: allure-results
+
+      - name: Generate Allure HTML Report
+        uses: simple-elf/allure-report-action@master
+        if: always()
+        with:
+          allure_results: allure-results
+          allure_report: public/e2e
+          gh_pages: gh-pages
+          allure_history: allure-history
+
+      - name: Create Index Page
+        run: |
+          cat << EOF > public/index.html
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <title>FinMate Test Reports</title>
+              <style>
+                  body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; background-color: #f4f4f9;}
+                  h1 { color: #333; }
+                  .btn { display: inline-block; padding: 15px 30px; margin: 20px; font-size: 18px; color: white; background-color: #007bff; text-decoration: none; border-radius: 5px; }
+                  .btn:hover { background-color: #0056b3; }
+              </style>
+          </head>
+          <body>
+              <h1>FinMate CI/CD Reports</h1>
+              <a href="coverage/index.html" class="btn">Backend Coverage (Pytest)</a>
+              <a href="e2e/index.html" class="btn">E2E Tests (Allure)</a>
+          </body>
+          </html>
+          EOF
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  build-and-push:
+    name: Build and Push Images to GHCR
+    needs: publish-reports
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      # Переводимо назву репозиторію в нижній регістр (Docker не терпить великих літер)
+      - name: Set lower case repository name
+        run: echo "REPO=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push API & Celery
+        uses: docker/build-push-action@v5
+        with:
+          context: ./api-main
+          push: true
+          tags: ghcr.io/${{ env.REPO }}-api:latest
+
+      - name: Build and push Report Service
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/report-service
+          target: production
+          push: true
+          tags: ghcr.io/${{ env.REPO }}-report:latest
+
+      - name: Build and push Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: ghcr.io/${{ env.REPO }}-frontend:latest
+
   deploy:
     name: Deploy to DigitalOcean
-    needs: e2e-tests
+    needs: build-and-push
     if: github.ref == 'refs/heads/master' && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
@@ -181,9 +320,23 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            # 1. Авторизуємо сервер у GitHub Container Registry
+            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            
             cd /root/finmate-flask
             git pull origin master
-            docker compose down api-main celery-worker
+            
+            # 2. Скачуємо готові зібрані образи (жодних зависань сервера!)
+            docker compose pull
+            
+            # 3. Гасимо старі контейнери додатку (базу не чіпаємо)
+            docker compose down api-main celery_worker report-service frontend
+            
+            # 4. Переконуємось, що БД і Redis живі
             docker compose up -d db redis
-            docker compose run --rm api-main flask db upgrade
-            docker compose up -d --build
+            
+            # 5. Робимо міграції 
+            docker compose run --rm api-main python3 -m flask db upgrade
+            
+            # 6. Запускаємо все на нових образах (прибираємо --build)
+            docker compose up -d

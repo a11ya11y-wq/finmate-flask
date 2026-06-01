@@ -183,7 +183,7 @@ class TestUpdateBudgets:
                                headers=auth_headers,
                                json=BASE_UPDATE_JSON
                                )
-        assert response.status_code == 201
+        assert response.status_code == 200
 
 
     @pytest.mark.parametrize(

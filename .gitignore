@@ -5,6 +5,12 @@ api-main/doc.md
 venv/
 env/
 
+**/uploads/
+
+
+shared_reports
+.pytest_cache/
+
 htmlcov/
 .coverage
 

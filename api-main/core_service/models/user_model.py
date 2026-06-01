@@ -19,6 +19,7 @@ class Users(db.Model):
     budgets = db.relationship('Budget', back_populates='user', lazy=True, cascade="all, delete-orphan")
     categories = db.relationship('Category', back_populates='user', lazy=True, cascade="all, delete-orphan")
     transactions = db.relationship('Transactions', back_populates='user', lazy=True, cascade="all, delete-orphan")
+    reports = db.relationship('Reports', back_populates='user', lazy=True, cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<User {self.username}>"
