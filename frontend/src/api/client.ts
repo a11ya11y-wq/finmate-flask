@@ -1,7 +1,7 @@
 import { useAuthStore } from "../store/authStore";
 import type { ApiError } from "./types";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:5000/api/v1";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api/v1";
 
 const parseError = async (response: Response): Promise<ApiError> => {
   const contentType = response.headers.get("content-type") ?? "";

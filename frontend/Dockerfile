@@ -12,8 +12,8 @@ RUN npm install --legacy-peer-deps
 # Копіюємо весь код та робимо білд (папка dist)
 COPY . .
 
-ARG VITE_API_URL
-ENV VITE_API_URL=$VITE_API_URL
+ARG VITE_API_BASE_URL
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
 RUN npm run build
 
