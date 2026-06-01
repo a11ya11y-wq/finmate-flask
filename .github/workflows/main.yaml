@@ -303,6 +303,8 @@ jobs:
           context: ./frontend
           push: true
           tags: ghcr.io/${{ env.REPO }}-frontend:latest
+          build-args: |
+            VITE_API_URL=https://fin-mate.app/api/v1
 
   deploy:
     name: Deploy to DigitalOcean

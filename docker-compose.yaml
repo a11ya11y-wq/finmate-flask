@@ -48,7 +48,7 @@ services:
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
   api-main:
-    image: ghcr.io/a11ya11y-wq/finmate-api:latest
+    image: ghcr.io/a11ya11y-wq/finmate-flask-api:latest
     working_dir: /app
     environment:
       - PYTHONPATH=/app
@@ -63,7 +63,7 @@ services:
         condition: service_healthy
 
   celery_worker:
-    image: ghcr.io/a11ya11y-wq/finmate-api:latest
+    image: ghcr.io/a11ya11y-wq/finmate-flask-api:latest
     command: celery -A celery_worker.celery worker --loglevel=info
     env_file:
       - .env
@@ -75,7 +75,7 @@ services:
 
   report-service:
     container_name: finmate_report_service
-    image: ghcr.io/a11ya11y-wq/finmate-report:latest
+    image: ghcr.io/a11ya11y-wq/finmate-flask-report:latest
     env_file:
       - .env
     depends_on:
@@ -83,7 +83,7 @@ services:
         condition: service_healthy
   frontend:
     container_name: frontend
-    image: ghcr.io/a11ya11y-wq/finmate-frontend:latest
+    image: ghcr.io/a11ya11y-wq/finmate-flask-frontend:latest
     depends_on:
       - api-main
 
