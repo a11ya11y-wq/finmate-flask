@@ -3,13 +3,9 @@
 ![Status](https://img.shields.io/badge/Status-Production-success?style=for-the-badge)
 ![Live](https://img.shields.io/badge/Live-fin--mate.app-blue?style=for-the-badge&logo=google-chrome&logoColor=white)
 
+## Backend & Architecture
 ![Python](https://img.shields.io/badge/Python-3.11+-blue?style=for-the-badge&logo=python&logoColor=white)
 ![Flask](https://img.shields.io/badge/Flask-2.0+-green?style=for-the-badge&logo=flask&logoColor=white)
-![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
-![Playwright](https://img.shields.io/badge/Playwright-2EAD33?style=for-the-badge&logo=playwright&logoColor=white)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
 ![Pydantic](https://img.shields.io/badge/Pydantic-Validation-e92063?style=for-the-badge&logo=pydantic&logoColor=white)
 ![JWT](https://img.shields.io/badge/JWT-Auth-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
 ![Celery](https://img.shields.io/badge/Celery-Async_Tasks-37814A?style=for-the-badge&logo=celery&logoColor=white)
@@ -17,13 +13,26 @@
 ![Redis](https://img.shields.io/badge/Redis-Cache_%26_Broker-DC382D?style=for-the-badge&logo=redis&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 ![Nginx](https://img.shields.io/badge/Nginx-Reverse_Proxy-009639?style=for-the-badge&logo=nginx&logoColor=white)
-![Coverage](https://img.shields.io/badge/Coverage-80%25-green?style=for-the-badge)
+![NestJS](https://img.shields.io/badge/NestJS-Worker-E0234E?style=for-the-badge&logo=nestjs&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+
+## Frontend & Testing
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+
+![Playwright](https://img.shields.io/badge/Playwright-2EAD33?style=for-the-badge&logo=playwright&logoColor=white)
+![Allure](https://img.shields.io/badge/Allure_Report-FF2424?style=for-the-badge&logo=qameta&logoColor=white)
+![Pytest](https://img.shields.io/badge/Pytest-Testing-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)
+![Coverage](https://img.shields.io/badge/Coverage-90%25-green?style=for-the-badge)
+
 
 ## 🚀 Live Demo
 Check out the application live at: **[https://fin-mate.app](https://fin-mate.app)**
 
 ## Overview
-**FinMate** is a modern full-stack personal finance application designed to help users track income & expenses, manage budgets, and visualize financial health. The project features a robust **Flask** backend, an asynchronous task queue using **Celery**, and a highly responsive, type-safe frontend built with **React** and **TypeScript**.
+**FinMate** is a modern, decoupled personal finance application designed to help users track income & expenses, manage budgets, and visualize financial health. The project employs a **Service-Oriented Architecture (SOA)**, featuring a **Flask** backend for core business logic, **Celery** for background task processing (such as automated bank synchronization), a stateless **NestJS** worker for asynchronous PDF report generation, and a responsive frontend built with **React**.
 
 > **Note:** The frontend architecture and UI logic were developed with the assistance of AI tools (GitHub Copilot), focusing on modern best practices and responsiveness.
 
@@ -36,51 +45,68 @@ Check out the application live at: **[https://fin-mate.app](https://fin-mate.app
 - **Transactions & Categories:** Full CRUD operations for managing finances.
 - **Monobank Integration:** Async synchronization of transactions using **Celery** workers.
 - **Budgets:** Set and track monthly spending limits.
-- **Performance:** **Redis** performs a dual role:
+- **Distributed PDF Reporting (SOA):** A dedicated, stateless **NestJS** worker handles asynchronous financial report rendering to prevent blocking the main API thread.
+- **Performance:** **Redis** is heavily utilized, performing a triple role:
     1.  **Caching:** Stores heavy analytical queries (Dashboard) and user profiles.
     2.  **Message Broker:** Manages the task queue for Celery workers.
+    3.  **Task Queue & State Store:** Manages blocking queues (`BLPOP`) and short-lived execution states (`SETEX` with TTL) for the decoupled PDF Report worker.
 - **Testing & Quality Assurance:**
-    - **Backend Testing:** Comprehensive test suite utilizing **Pytest** with **80% code coverage** for business logic.
-    - **E2E Testing:** Robust End-to-End test coverage using **Playwright** to ensure critical user journeys (authentication, transaction management, API synchronization) function flawlessly across modern browsers.
-    - <details><summary>View Coverage Report</summary><img src="/screenshots/coverage_report.png" alt="Coverage Report"></details>
+    - **Backend Testing:** Comprehensive test suite utilizing **Pytest** with **90% code coverage** for core business logic.
+    - **E2E Testing:** Robust End-to-End test coverage using **Playwright** paired with **Allure Reports** to ensure critical user journeys function flawlessly and provide comprehensive execution history.
 
 ## 🏗 Infrastructure & Deployment
-The project is fully containerized and deployed to a production environment using a robust DevOps stack:
-
+The project is fully containerized and deployed via a GitHub Actions CI/CD pipeline.
 * **Cloud Provider:** DigitalOcean Droplet (Ubuntu Linux).
 * **Containerization:** **Docker & Docker Compose** orchestrate the application services.
-* **Web Server:** **Nginx** serves as a reverse proxy, handling load balancing and static file delivery.
-* **Security:** Full **SSL/HTTPS** support configured via **Certbot (Let's Encrypt)**.
+* **Storage:** DigitalOcean Spaces (S3-compatible) for hosting generated PDF reports.
+* **Web Server:** Nginx as a reverse proxy with Let's Encrypt SSL.
+
+```mermaid
+graph LR
+    Client(["User Browser / React SPA"]) -->|"HTTPS (Load UI & REST)"| Proxy["Nginx: Web Server & Proxy"]
+    Client -.->|"Status Polling"| Proxy
+    
+    subgraph DigitalOcean Droplet
+        Proxy -->|"HTTP"| API["Flask Core API"]
+        
+        API <-->|"SQLAlchemy / UOW"| DB[("PostgreSQL")]
+        API <-->|"Cache & Tokens"| Redis[("Redis")]
+        
+        API -.->|"Celery Broker"| Celery["Celery Workers"]
+        Celery <-->|"Fetch Data"| Mono(["Monobank API"])
+        
+        API -.->|"RPUSH (Tasks)"| Redis
+        Redis -.->|"BLPOP (Queue)"| Worker["NestJS Report Worker"]
+    end
+    
+    Worker -->|"Upload PDF"| S3[("DO Spaces S3")]
+    
+    %% Оновлені кольори для нормального читання в Dark Mode
+    classDef external fill:#4c1d95,stroke:#a78bfa,stroke-width:2px,color:#fff;
+    class Client,Mono,S3 external;
+```
 
 ## 💡 Technical Highlights & Architecture
-This section outlines specific engineering decisions made to ensure scalability and code maintainability.
+This section outlines specific engineering decisions made to ensure scalability, data integrity, and code maintainability.
 
-### 1. Custom Caching Decorators
-To avoid boilerplate code in services, a custom `@redis_cache` decorator was implemented. It handles:
-- Automatic key generation based on function arguments.
-- JSON serialization/deserialization.
-- TTL (Time-To-Live) management.
-- Logging of Cache Hits/Misses for monitoring.
+### 1. Distributed Architecture (SOA) & Background Processing
+The system is decoupled to prevent heavy operations from blocking the main API thread.
+* **Stateless Report Worker:** A dedicated NestJS microservice handles PDF rendering via Playwright. It relies on Redis blocking queues (`BLPOP`) for 0% idle CPU usage and uses `SETEX` for frontend lazy-polling state management.
+* **Celery Integration:** Background workers handle idempotent synchronization with the Monobank API, ensuring seamless external data aggregation.
 
-### 2. Centralized & Unified Error Handling
-Instead of try-except blocks scattered across controllers, a global error handler registry is used. It intercepts exceptions and standardizes responses:
-- **Business Errors:** Custom `FinMateError` exceptions return clear messages to the frontend.
-- **Validation Errors:** `Pydantic` validation errors are parsed into a readable list of field-specific issues.
-- **Consistent JSON Responses:** All HTTP exceptions (404, 500), Authentication failures, and Rate Limit violations (429) return a standardized JSON structure (`{ "error": "...", "message": "..." }`), ensuring the frontend never encounters raw HTML errors.
+### 2. Core Engineering Patterns
+Business logic is strictly decoupled from the database layer and optimized for performance:
+* **Unit of Work & Repository:** A custom UOW context manager encapsulates sessions, guaranteeing transaction atomicity and automatic rollbacks on failure. 
+* **Smart Cache Management:** A custom `@redis_cache` decorator handles TTLs and serialization. Crucially, the UOW utilizes **post-commit hooks** to ensure cache invalidation triggers *only* after a successful Postgres commit, preventing race conditions.
 
-### 3. Advanced JWT Flow
-The authentication system goes beyond simple login:
-- **Refresh Token Rotation:** Every time a refresh token is used, a new pair (Access + Refresh) is issued, and the old refresh token is invalidated in the database.
-- **"Remember Me" Logic:** Dynamic expiration times for tokens based on user preference (1 day vs 30 days).
+### 3. Financial State Management
+To prevent data drift, the application dynamically calculates balances rather than storing static snapshot values.
+* **State Reconciliation:** During Monobank synchronization, the system fetches the absolute real-time card balance. To align the internal database with external reality without corrupting history, it performs a reverse algebraic calculation to retroactively adjust the user's base `initial_balance`.
 
-### 4. Security & Data Protection
-Security is a top priority for financial applications. Beyond standard JWT authentication, FinMate implements:
-- **Fernet Encryption:** Monobank personal tokens are never stored in plain text. They are encrypted using the `cryptography` library before being saved to PostgreSQL and decrypted only in memory during Celery task execution. This protects user financial data in case of a database dump leak.
-
-### 5. API Rate Limiting & DoS Protection
-To protect against brute-force attacks and service abuse, **Flask-Limiter** is integrated using Redis as storage:
-- **Granular Control:** The API implements a "Sphere of Defense" strategy with sane global limits (e.g., 2000 req/day) and strict throttling for critical endpoints (Login, Register, Monobank Sync — e.g., 5 req/min).
-- **Proxy Awareness:** The application is configured with `Werkzeug ProxyFix` to correctly resolve client IP addresses through the Docker/Nginx reverse proxy layer, ensuring accurate limiting in a containerized environment.
+### 4. Enterprise-Grade Security
+* **Advanced JWT Flow:** Implements Refresh Token rotation (preventing replay attacks) and immediate Redis-backed token blacklisting upon logout.
+* **Data Encryption:** External API keys (Monobank) are encrypted via the `cryptography` library (Fernet) before database storage, mitigating risks from potential data leaks.
+* **DoS Protection:** Granular rate limiting via **Flask-Limiter** (backed by Redis), configured with `Werkzeug ProxyFix` to accurately resolve real client IPs through the Docker/Nginx reverse proxy.
 
 ## 🛠 Tech Stack
 
@@ -102,9 +128,10 @@ To protect against brute-force attacks and service abuse, **Flask-Limiter** is i
 - **Validation:** Zod
 - **Data Visualization:** Recharts
 
-### Quality Assurance
-- **Pytest:** Backend unit and integration testing.
-- **Playwright:** End-to-End (E2E) browser automation testing.
+### Quality Assurance & Reporting
+- **Testing Frameworks:** **Pytest** for backend unit/integration testing and **Playwright** for End-to-End (E2E) browser automation.
+- **Code Coverage:** **pytest-cov** is used to measure and enforce test coverage (maintaining ~80% for core business logic) with automated HTML report generation.
+- **Execution Reporting:** **Allure Reports** integrated with Playwright to generate comprehensive, interactive E2E test execution histories (including trace viewers and failure screenshots) published automatically via GitHub Pages.
 
 ## Screenshots
 
@@ -148,15 +175,33 @@ Screenshots are located in `frontend_by_copilot/public/img/screenshots/`.
     POSTGRES_USER="postgres"
     POSTGRES_PASSWORD="password"
     POSTGRES_DB="finmate_db"
-    DATABASE_URL="postgresql+psycopg://postgres:password@db:5432/finmate_db"
+
+    # Api Main (Flask)
+    FLASK_CONFIG=development
+    API_MAIN_DATABASE_URL="postgresql+psycopg://postgres:password@db:5432/finmate_db"
+    CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
 
     # Redis (Cache & Broker)
     REDIS_URL=redis://redis:6379/0
     CELERY_BROKER_URL=redis://redis:6379/0
     CELERY_RESULT_BACKEND=redis://redis:6379/0
 
-    # Networking
-    CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+    # REPORT_SERVICE (NESTJS)
+    REPORT_REDIS_URL=redis://redis:6379/0
+    REDIS_HOST="redis"
+    REDIS_PORT="6379"
+
+    #DigitalOcean Spaces
+    DO_SPACES_KEY=your_spaces_key_here
+    DO_SPACES_SECRET=your_spaces_secret_here
+    DO_SPACES_ENDPOINT=your_spaces_endpoiny_here
+    DO_SPACES_REGION=your_spaces_region_here
+    DO_SPACES_BUCKET=your_spaces_bucket_here
+
+    # Testing Enviroment
+    TEST_DATABASE_URL="postgresql+psycopg://postgres:password@db:5432/finmate_test_db"
+    TEST_REDIS_URL=redis://redis:6379/1
+
     ```
 
 3.  **Run with Docker (Recommended):**
@@ -199,11 +244,11 @@ Screenshots are located in `frontend_by_copilot/public/img/screenshots/`.
 | `POST`            | `/api/v1/transactions/`              | Create transaction                           |
 | `DELETE`          | `/api/v1/transactions/{id}`          | Delete transaction                           |
 | `PUT`             | `/api/v1/transactions/{id}`          | Update transaction                           |
-| `GET`             | `/api/v1/transactions/{id}`          | Getone transactions                          |
+| `GET`             | `/api/v1/transactions/{id}`          | Get one transactions                         |
 | **Categories**    |                                      |                                              |
 | `POST`            | `/api/v1/categories/`                | Create category                              |
 | `DELETE`          | `/api/v1/categories/{id}`            | Delete category                              |
-| `PUT`             | `/api/v1/categories/{id}`           | Update category                              |
+| `PUT`             | `/api/v1/categories/{id}`            | Update category                              |
 | `GET`             | `/api/v1/categories/all`             | Get all categories                           |
 | **Budgets**       |                                      |                                              |
 | `POST`            | `/api/v1/budgets/`                   | Create or update budget                      |
@@ -216,8 +261,12 @@ Screenshots are located in `frontend_by_copilot/public/img/screenshots/`.
 | `POST`            | `/api/v1/profile/change-password`    | Change password                              |
 | `PUT`             | `/api/v1/profile/monobank`           | Add/Update monobank token                    |
 | `DELETE`          | `/api/v1/profile/monobank`           | Remove monobank token                        |
-| **Dashboard**     |                                      |
+| **Dashboard**     |                                      |                                              |
 | `GET`             | `/api/v1/dashboard/`                 | Get dashboard overview data                  |
-| **Monobank Sync** |                                      |
+| **Monobank Sync** |                                      |                                              |
 | `POST`            | `/api/v1/monobank/sync-transactions` | Trigger manual sync of transactions          |
 | `GET`             | `/api/v1/monobank/tasks/{id}`        | Get status of task                           |
+| **Report Service**|                                      |                                              |
+| `POST`            | `/api/v1/report/generate-pdf`        | Trigger pdf-generation                       |
+| `GET`             |`/api/v1/report/generate-pdf/{id}/status`| Get task status                           |
+| `GET`             | `/api/v1/report/history`             | Get history of user report generations       |

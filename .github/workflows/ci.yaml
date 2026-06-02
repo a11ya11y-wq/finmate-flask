@@ -1,10 +1,18 @@
-name: FinMate CI/CD Pipeline
+name: FinMate CI (Testing & Reporting)
 
 on:
   push:
     branches: [ master ]
+    paths-ignore:
+      - 'README.md'
+      - '.gitignore'
+      - 'screenshots/**'
   pull_request:
     branches: [ master ]
+    paths-ignore:
+      - 'README.md'
+      - '.gitignore'
+      - 'screenshots/**'
 
 permissions:
   contents: read
@@ -62,10 +70,10 @@ jobs:
           ENCRYPTION_KEY: ${{ secrets.TEST_ENCRYPTION_KEY }}
           JWT_SECRET_KEY: ${{ secrets.TEST_JWT_SECRET }}
         run: |
-          # Генеруємо HTML звіт замість XML
           python -m pytest tests/ --cov=core_service --cov-report=html
 
       - name: Upload Pytest Coverage Artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: backend-coverage
@@ -204,8 +212,13 @@ jobs:
   publish-reports:
     name: Publish Reports to GitHub Pages
     needs: [backend-tests, e2e-tests]
-    if: always() # Публікуємо звіт навіть якщо тести впали
+    if: always()
     runs-on: ubuntu-latest
+    
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
     steps:
       - name: Download Pytest Coverage
         uses: actions/download-artifact@v4
@@ -259,86 +272,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
-  build-and-push:
-    name: Build and Push Images to GHCR
-    needs: publish-reports
-    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - uses: actions/checkout@v4
-
-      # Переводимо назву репозиторію в нижній регістр (Docker не терпить великих літер)
-      - name: Set lower case repository name
-        run: echo "REPO=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
-
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push API & Celery
-        uses: docker/build-push-action@v5
-        with:
-          context: ./api-main
-          push: true
-          tags: ghcr.io/${{ env.REPO }}-api:latest
-
-      - name: Build and push Report Service
-        uses: docker/build-push-action@v5
-        with:
-          context: ./services/report-service
-          target: production
-          push: true
-          tags: ghcr.io/${{ env.REPO }}-report:latest
-
-      - name: Build and push Frontend
-        uses: docker/build-push-action@v5
-        with:
-          context: ./frontend
-          push: true
-          tags: ghcr.io/${{ env.REPO }}-frontend:latest
-          build-args: |
-            VITE_API_BASE_URL=/api/v1
-
-  deploy:
-    name: Deploy to DigitalOcean
-    needs: build-and-push
-    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            # 1. Авторизуємо сервер у GitHub Container Registry
-            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            
-            cd /root/finmate-flask
-            git pull origin master
-            
-            # 2. Скачуємо готові зібрані образи (жодних зависань сервера!)
-            docker compose pull
-            
-            # 3. Гасимо старі контейнери додатку (базу не чіпаємо)
-            docker compose down api-main celery_worker report-service frontend
-            
-            # 4. Переконуємось, що БД і Redis живі
-            docker compose up -d db redis
-            
-            # 5. Робимо міграції 
-            docker compose run --rm api-main python3 -m flask db upgrade
-            
-            # 6. Запускаємо все на нових образах (прибираємо --build)
-            docker compose up -d
