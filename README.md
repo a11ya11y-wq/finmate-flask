@@ -36,6 +36,83 @@ Check out the application live at: **[https://fin-mate.app](https://fin-mate.app
 
 > **Note:** The frontend architecture and UI logic were developed with the assistance of AI tools (GitHub Copilot), focusing on modern best practices and responsiveness.
 
+## 🛠 Tech Stack
+
+### Backend
+- **Python 3.11+ / Flask:** Core REST API.
+- **Pydantic:** Data validation and schema definition.
+- **Flask-JWT-Extended:** Token management.
+- **Flask-Migrate:** Database migrations.
+- **SQLAlchemy:** ORM for PostgreSQL.
+- **Requests:** HTTP client for external APIs (Monobank).
+- **Celery:** Asynchronous task queue.
+- **Redis:** Cache & Broker.
+
+### Frontend
+- **Framework/UI:** React 18, React Router, TypeScript
+- **Build/Dev:** Vite + `@vitejs/plugin-react`
+- **Styling:** Tailwind CSS, PostCSS, Autoprefixer
+- **State Management:** Zustand
+- **Validation:** Zod
+- **Data Visualization:** Recharts
+
+### Quality Assurance & Reporting
+- **Testing Frameworks:** **Pytest** for backend unit/integration testing and **Playwright** for End-to-End (E2E) browser automation.
+- **Code Coverage:** **pytest-cov** is used to measure and enforce test coverage (maintaining ~80% for core business logic) with automated HTML report generation.
+- **Execution Reporting:** **Allure Reports** integrated with Playwright to generate comprehensive, interactive E2E test execution histories (including trace viewers and failure screenshots) published automatically via GitHub Pages.
+
+## 🏗️ System Architecture
+```mermaid
+flowchart TD
+    Client(["User Browser (React SPA)"])
+    Mono(["Monobank API"])
+    S3[("DO Spaces (S3)")]
+
+    Client ===>|"1. HTTPS (Load Static UI /)"| Proxy["Nginx: Reverse Proxy"]
+    Client ===>|"2. HTTPS (REST /api/v1/*)"| Proxy
+    Client -...->|"3. Download PDF"| S3
+
+    subgraph DigitalOcean Droplet
+        Proxy ===>|"Proxy Pass"| API["Flask Core API"]
+        
+        API <--->|"SQLAlchemy / UOW"| DB[("PostgreSQL")]
+        
+        %% РОЗДІЛЕНІ СТРІЛКИ (Синхронна vs Асинхронна взаємодія)
+        API <--->|"Cache & JWT State"| Redis[("Redis")]
+        API -...->|"Push Async Tasks"| Redis
+        
+        %% Celery читает из Redis и работает с БД
+        Redis -...->|"Consume Task"| Celery["Celery Workers"]
+        Celery <--->|"Read State & Write Txns"| DB
+        Celery -...->|"Task Result / State"| Redis
+        
+        %% NestJS читает из Redis
+        Redis -...->|"BLPOP (Report Queue)"| Worker["NestJS Report Worker"]
+    end
+    
+    Celery <--->|"Fetch Data"| Mono
+    Worker ===>|"Upload PDF"| S3
+    
+    %% Кольори для контрасту
+    classDef external fill:#4c1d95,stroke:#a78bfa,stroke-width:2px,color:#fff;
+    class Client,Mono,S3 external;
+```
+### 🔄 Core Data Flows (Under the Hood)
+
+The diagram above illustrates three distinct interaction patterns within our system:
+
+1. **Synchronous REST Flow (Blocking Requests)**
+   * **Purpose:** UI rendering, Authentication, and standard CRUD operations for categories and budgets.
+   * **How it works:** The browser sends a request to the `Flask API` via `Nginx`. Flask validates the `JWT` and checks the `Redis` cache (synchronously), opens a database transaction via the `UnitOfWork`, persists data to `PostgreSQL`, and returns an HTTP 200/201 response.
+
+2. **Heavy I/O Offloading (Monobank Sync)**
+   * **Purpose:** Background synchronization of thousands of transactions from the external bank API.
+   * **How it works:** Flask does not wait for the bank's response. It pushes a task to `Redis` and immediately returns an HTTP 202 Accepted status to the client. A `Celery Worker` consumes the task, securely fetches data from the `Monobank API`, performs idempotency checks (**using Monobank transaction IDs as unique constraints to prevent duplicates**), and independently executes a bulk insert into the database.
+
+3. **Stateless Microservice Flow (NestJS PDF Generation)**
+   * **Purpose:** Offloading CPU-heavy PDF rendering to prevent the main Python API thread from hanging.
+   * **How it works:** Instead of complex RPC calls, Flask simply pushes payload data into a specific `Redis` queue (`RPUSH`). An isolated `NestJS Worker` listens to this queue using a blocking `BLPOP` command (consuming 0% CPU while idle). Upon receiving data, it renders the PDF, uploads it to `S3 (DO Spaces)`, and the React client downloads the file directly from the object storage bucket, bypassing the backend entirely.
+
 ## Key Features
 - **Secure Authentication:**
     - Implementation of **Access** and **Refresh Tokens**.
@@ -61,31 +138,6 @@ The project is fully containerized and deployed via a GitHub Actions CI/CD pipel
 * **Storage:** DigitalOcean Spaces (S3-compatible) for hosting generated PDF reports.
 * **Web Server:** Nginx as a reverse proxy with Let's Encrypt SSL.
 
-```mermaid
-graph LR
-    Client(["User Browser / React SPA"]) -->|"HTTPS (Load UI & REST)"| Proxy["Nginx: Web Server & Proxy"]
-    Client -.->|"Status Polling"| Proxy
-    
-    subgraph DigitalOcean Droplet
-        Proxy -->|"HTTP"| API["Flask Core API"]
-        
-        API <-->|"SQLAlchemy / UOW"| DB[("PostgreSQL")]
-        API <-->|"Cache & Tokens"| Redis[("Redis")]
-        
-        API -.->|"Celery Broker"| Celery["Celery Workers"]
-        Celery <-->|"Fetch Data"| Mono(["Monobank API"])
-        
-        API -.->|"RPUSH (Tasks)"| Redis
-        Redis -.->|"BLPOP (Queue)"| Worker["NestJS Report Worker"]
-    end
-    
-    Worker -->|"Upload PDF"| S3[("DO Spaces S3")]
-    
-    %% Оновлені кольори для нормального читання в Dark Mode
-    classDef external fill:#4c1d95,stroke:#a78bfa,stroke-width:2px,color:#fff;
-    class Client,Mono,S3 external;
-```
-
 ## 💡 Technical Highlights & Architecture
 This section outlines specific engineering decisions made to ensure scalability, data integrity, and code maintainability.
 
@@ -107,31 +159,6 @@ To prevent data drift, the application dynamically calculates balances rather th
 * **Advanced JWT Flow:** Implements Refresh Token rotation (preventing replay attacks) and immediate Redis-backed token blacklisting upon logout.
 * **Data Encryption:** External API keys (Monobank) are encrypted via the `cryptography` library (Fernet) before database storage, mitigating risks from potential data leaks.
 * **DoS Protection:** Granular rate limiting via **Flask-Limiter** (backed by Redis), configured with `Werkzeug ProxyFix` to accurately resolve real client IPs through the Docker/Nginx reverse proxy.
-
-## 🛠 Tech Stack
-
-### Backend
-- **Python 3.11+ / Flask:** Core REST API.
-- **Pydantic:** Data validation and schema definition.
-- **Flask-JWT-Extended:** Token management.
-- **Flask-Migrate:** Database migrations.
-- **SQLAlchemy:** ORM for PostgreSQL.
-- **Requests:** HTTP client for external APIs (Monobank).
-- **Celery:** Asynchronous task queue.
-- **Redis:** Cache & Broker.
-
-### Frontend
-- **Framework/UI:** React 18, React Router, TypeScript
-- **Build/Dev:** Vite + `@vitejs/plugin-react`
-- **Styling:** Tailwind CSS, PostCSS, Autoprefixer
-- **State Management:** Zustand
-- **Validation:** Zod
-- **Data Visualization:** Recharts
-
-### Quality Assurance & Reporting
-- **Testing Frameworks:** **Pytest** for backend unit/integration testing and **Playwright** for End-to-End (E2E) browser automation.
-- **Code Coverage:** **pytest-cov** is used to measure and enforce test coverage (maintaining ~80% for core business logic) with automated HTML report generation.
-- **Execution Reporting:** **Allure Reports** integrated with Playwright to generate comprehensive, interactive E2E test execution histories (including trace viewers and failure screenshots) published automatically via GitHub Pages.
 
 ## Screenshots
 
@@ -194,7 +221,7 @@ Screenshots are located in `frontend_by_copilot/public/img/screenshots/`.
     #DigitalOcean Spaces
     DO_SPACES_KEY=your_spaces_key_here
     DO_SPACES_SECRET=your_spaces_secret_here
-    DO_SPACES_ENDPOINT=your_spaces_endpoiny_here
+    DO_SPACES_ENDPOINT=your_spaces_endpoint_here
     DO_SPACES_REGION=your_spaces_region_here
     DO_SPACES_BUCKET=your_spaces_bucket_here
 
@@ -244,7 +271,7 @@ Screenshots are located in `frontend_by_copilot/public/img/screenshots/`.
 | `POST`            | `/api/v1/transactions/`              | Create transaction                           |
 | `DELETE`          | `/api/v1/transactions/{id}`          | Delete transaction                           |
 | `PUT`             | `/api/v1/transactions/{id}`          | Update transaction                           |
-| `GET`             | `/api/v1/transactions/{id}`          | Get one transactions                         |
+| `GET`             | `/api/v1/transactions/{id}`          | Get one transaction                          |
 | **Categories**    |                                      |                                              |
 | `POST`            | `/api/v1/categories/`                | Create category                              |
 | `DELETE`          | `/api/v1/categories/{id}`            | Delete category                              |
