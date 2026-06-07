@@ -83,18 +83,17 @@ export const ProfileFormFields = ({ draft, setDraft, errors, onFieldChange }: an
                   setDraft((prev: any) => ({ ...prev, avatar: path }));
                   onFieldChange?.("avatar");
                 }}
-                className={`group relative flex aspect-square items-center justify-center rounded-xl border-2 transition-all ${
-                  isSelected 
-                    ? "border-blue-500 bg-blue-500/10 shadow-[0_0_15px_rgba(59,130,246,0.2)]" 
+                className={`group relative flex aspect-square items-center justify-center rounded-xl border-2 transition-all ${isSelected
+                    ? "border-blue-500 bg-blue-500/10 shadow-[0_0_15px_rgba(59,130,246,0.2)]"
                     : "border-white/5 bg-white/5 hover:border-white/20"
-                }`}
+                  }`}
               >
-                <img 
-                  src={`/${path}`} 
-                  alt="Avatar option" 
-                  className={`h-full w-full p-1 transition-transform duration-300 ${isSelected ? "scale-90" : "group-hover:scale-105"}`} 
+                <img
+                  src={`/${path}`}
+                  alt="Avatar option"
+                  className={`h-full w-full p-1 transition-transform duration-300 ${isSelected ? "scale-90" : "group-hover:scale-105"}`}
                 />
-                
+
                 {/* Індикатор вибору (маленька синя точка) */}
                 {isSelected && (
                   <div className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 shadow-lg">
@@ -153,11 +152,10 @@ export const CategoryFormFields = ({ form, setForm, icons, errors, onFieldChange
           <button
             key={icon}
             type="button"
-            className={`flex h-11 items-center justify-center rounded-xl border transition-all ${
-              form.icon === icon 
-                ? "border-blue-500/50 bg-blue-500/20 text-blue-200 shadow-[0_0_15px_rgba(59,130,246,0.1)]" 
+            className={`flex h-11 items-center justify-center rounded-xl border transition-all ${form.icon === icon
+                ? "border-blue-500/50 bg-blue-500/20 text-blue-200 shadow-[0_0_15px_rgba(59,130,246,0.1)]"
                 : "border-white/10 bg-white/5 text-slate-400 hover:border-white/20"
-            }`}
+              }`}
             onClick={() => {
               setForm((prev: any) => ({ ...prev, icon }));
               onFieldChange?.("icon");
@@ -357,43 +355,43 @@ const ProfilePage = () => {
   };
 
   const handleRemoveToken = async () => {
-  try {
-    await removeMonobankTokenMutation.mutateAsync();
-    if (user) {
-      setUser({ ...user, monobank_token_is_set: false });
-    }
-    toast({ variant: "success", message: "Monobank token removed" });
-    
-    // Закриваємо обидві модалки
-    setIsConfirmMonoDisconnectOpen(false);
-    setIsMonobankOpen(false);
-  } catch (err) {
-    toast({ variant: "error", message: toErrorMessage(err) });
-  }
-};
+    try {
+      await removeMonobankTokenMutation.mutateAsync();
+      if (user) {
+        setUser({ ...user, monobank_token_is_set: false });
+      }
+      toast({ variant: "success", message: "Monobank token removed" });
 
- const handleAddCategory = async () => {
-  const validation = validateForm(categorySchema, categoryForm);
-  if (!validation.success) {
-    setCategoryErrors(validation.fieldErrors ?? {});
-    return;
-  }
-  try {
-    setCategoryErrors({});
-    const created = await createCategoryMutation.mutateAsync({
-      ...categoryForm,
-      name: validation.data.name,
-      mcc_code: validation.data.mcc_code,
-      icon: validation.data.icon ?? categoryForm.icon
-    });
-    updateCategoriesCache((current) => [created, ...current]);
-    setCategoryForm({ name: "", mcc_code: "", icon: "bi-tag-fill" });
-    setIsAddCategoryOpen(false); // ДОДАНО: закриваємо модалку
-    toast({ variant: "success", message: "Category added!" });
-  } catch (err) {
-    toast({ variant: "error", message: toErrorMessage(err) });
-  }
-};
+      // Закриваємо обидві модалки
+      setIsConfirmMonoDisconnectOpen(false);
+      setIsMonobankOpen(false);
+    } catch (err) {
+      toast({ variant: "error", message: toErrorMessage(err) });
+    }
+  };
+
+  const handleAddCategory = async () => {
+    const validation = validateForm(categorySchema, categoryForm);
+    if (!validation.success) {
+      setCategoryErrors(validation.fieldErrors ?? {});
+      return;
+    }
+    try {
+      setCategoryErrors({});
+      const created = await createCategoryMutation.mutateAsync({
+        ...categoryForm,
+        name: validation.data.name,
+        mcc_code: validation.data.mcc_code,
+        icon: validation.data.icon ?? categoryForm.icon
+      });
+      updateCategoriesCache((current) => [created, ...current]);
+      setCategoryForm({ name: "", mcc_code: "", icon: "bi-tag-fill" });
+      setIsAddCategoryOpen(false); // ДОДАНО: закриваємо модалку
+      toast({ variant: "success", message: "Category added!" });
+    } catch (err) {
+      toast({ variant: "error", message: toErrorMessage(err) });
+    }
+  };
 
   const handleEditCategory = async () => {
     if (!editCategory) {
@@ -429,9 +427,9 @@ const ProfilePage = () => {
       const updated = await updateCategoryMutation.mutateAsync({
         id: editCategory.id,
         payload: {
-        name: validation.data.name,
-        mcc_code: validation.data.mcc_code ?? "",
-        icon: validation.data.icon ?? editCategory.icon
+          name: validation.data.name,
+          mcc_code: validation.data.mcc_code ?? "",
+          icon: validation.data.icon ?? editCategory.icon
         }
       });
       updateCategoriesCache((current) =>
@@ -440,7 +438,7 @@ const ProfilePage = () => {
       setIsEditCategoryOpen(false);
       setEditCategory(null);
       setEditCategorySnapshot(null);
-      
+
       // ДОДАНО: Повідомлення про успішне редагування
       toast({ variant: "success", message: "Category updated successfully!" });
     } catch (err) {
@@ -457,7 +455,7 @@ const ProfilePage = () => {
       updateCategoriesCache((current) => current.filter((item) => item.id !== deleteCategoryId));
       setIsDeleteCategoryOpen(false);
       setDeleteCategoryId(null);
-      
+
       // ДОДАНО: Повідомлення про успішне видалення
       toast({ variant: "success", message: "Category deleted successfully!" });
     } catch (err) {
@@ -499,8 +497,7 @@ const ProfilePage = () => {
                   alt="Avatar"
                   className="relative h-28 w-28 rounded-2xl border-2 border-white/10 object-cover shadow-2xl"
                 />
-                <div className={`absolute -bottom-2 -right-2 flex h-10 w-10 items-center justify-center rounded-full border-4 border-[#0b0f17] shadow-xl ${
-                    user?.monobank_token_is_set ? "bg-emerald-500 text-white" : "bg-slate-700 text-slate-300"
+                <div className={`absolute -bottom-2 -right-2 flex h-10 w-10 items-center justify-center rounded-full border-4 border-[#0b0f17] shadow-xl ${user?.monobank_token_is_set ? "bg-emerald-500 text-white" : "bg-slate-700 text-slate-300"
                   }`}>
                   <i className={`bi ${user?.monobank_token_is_set ? "bi-check-circle-fill" : "bi-bank"}`} />
                 </div>
@@ -548,43 +545,43 @@ const ProfilePage = () => {
         <Card data-testid="categories-section" className="surface-card">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Categories</CardTitle>
-            <Button 
-  variant="success" 
-  size="sm" 
-  onClick={() => {
-    setCategoryForm({ name: "", mcc_code: "", icon: "bi-tag-fill" });
-    setCategoryErrors({});
-    setIsAddCategoryOpen(true); // Тепер вона відкриває модалку
-  }}
->
-  <i className="bi bi-plus-lg mr-2" /> Add New
-</Button>
+            <Button
+              variant="success"
+              size="sm"
+              onClick={() => {
+                setCategoryForm({ name: "", mcc_code: "", icon: "bi-tag-fill" });
+                setCategoryErrors({});
+                setIsAddCategoryOpen(true); // Тепер вона відкриває модалку
+              }}
+            >
+              <i className="bi bi-plus-lg mr-2" /> Add New
+            </Button>
           </CardHeader>
           <CardContent>
-             {/* Замість великої форми - акуратний список */}
-             <div className="grid gap-3 sm:grid-cols-2">
-               {categories.map((cat) => (
-                 <div key={cat.id} className="group flex items-center justify-between rounded-2xl border border-white/5 bg-[#0f172a]/40 p-4 transition-all hover:bg-[#121a2b] hover:border-blue-500/30">
-                   <div className="flex min-w-0 items-center gap-4">
-                     <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-500/10 text-blue-400">
-                       <i className={`bi ${cat.icon} text-lg`} />
-                     </div>
-                     <div className="min-w-0">
-                       <p className="truncate text-sm font-bold text-white">{cat.name}</p>
-                       <p className="truncate text-[10px] font-medium uppercase tracking-wider text-slate-500">{cat.mcc_code || "No MCC"}</p>
-                     </div>
-                   </div>
-                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                     <button onClick={() => { setEditCategory(cat); setEditCategorySnapshot(cat); setCategoryErrors({}); setIsEditCategoryOpen(true); }} data-testid="edit-category-button" className="h-8 w-8 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors">
-                       <i className="bi bi-pencil-fill text-xs" />
-                     </button>
-                     <button onClick={() => { setDeleteCategoryId(cat.id); setIsDeleteCategoryOpen(true); }} data-testid="delete-category-button" className="h-8 w-8 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-colors">
-                       <i className="bi bi-trash-fill text-xs" />
-                     </button>
-                   </div>
-                 </div>
-               ))}
-             </div>
+            {/* Замість великої форми - акуратний список */}
+            <div className="grid gap-3 sm:grid-cols-2">
+              {categories.map((cat) => (
+                <div key={cat.id} className="group flex items-center justify-between rounded-2xl border border-white/5 bg-[#0f172a]/40 p-4 transition-all hover:bg-[#121a2b] hover:border-blue-500/30">
+                  <div className="flex min-w-0 items-center gap-4">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-500/10 text-blue-400">
+                      <i className={`bi ${cat.icon} text-lg`} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold text-white">{cat.name}</p>
+                      <p className="truncate text-[10px] font-medium uppercase tracking-wider text-slate-500">{cat.mcc_code || "No MCC"}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => { setEditCategory(cat); setEditCategorySnapshot(cat); setCategoryErrors({}); setIsEditCategoryOpen(true); }} data-testid="edit-category-button" className="h-8 w-8 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors">
+                      <i className="bi bi-pencil-fill text-xs" />
+                    </button>
+                    <button onClick={() => { setDeleteCategoryId(cat.id); setIsDeleteCategoryOpen(true); }} data-testid="delete-category-button" className="h-8 w-8 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-colors">
+                      <i className="bi bi-trash-fill text-xs" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
 
@@ -603,7 +600,7 @@ const ProfilePage = () => {
       </div>
 
       {/* УСІ МОДАЛКИ ПЕРЕВЕДЕНІ НА FormModal ТА ConfirmDeleteModal */}
-      
+
       <FormModal
         isOpen={isProfileOpen}
         onClose={() => setIsProfileOpen(false)}
@@ -747,87 +744,87 @@ const ProfilePage = () => {
         description="Everything will be gone forever. Are you absolutely sure?"
       />
       {/* МОДАЛКА МОНОБАНКУ */}
-<FormModal
-  isOpen={isMonobankOpen}
-  onClose={() => setIsMonobankOpen(false)}
-  onSubmit={handleMonobankSubmit}
-  title="Monobank Integration"
-  type="edit"
-  
->
-  <div className="space-y-4">
-    <div className="rounded-xl border border-blue-500/20 bg-blue-500/10 p-4 text-xs leading-relaxed text-blue-200">
-      <i className="bi bi-info-circle-fill mr-2" />
-      Get your Personal Access Token from <strong>api.monobank.ua</strong>. It allows us to sync your transactions automatically.
-    </div>
-    <div>
-      <label  htmlFor="api-token-input" className="mb-1.5 block text-sm font-medium text-slate-200">API Token</label>
-      <Input 
-        id="api-token-input"
-        placeholder="Paste your token here..." 
-        value={monoToken} 
-        maxLength={44}
-        onChange={(e) => {
-          setMonoToken(e.target.value);
-          setMonoErrors((prev) => {
-            if (!prev.token) {
-              return prev;
-            }
-            const next = { ...prev };
-            delete next.token;
-            return next;
-          });
-        }} 
-        aria-invalid={!!monoErrors.token}
-        className={monoErrors.token ? "border-rose-500/60 focus:border-rose-400/80 focus:ring-rose-500/20" : undefined}
-      />
-      {monoErrors.token && <p data-testid="token-error" className="mt-1 text-xs text-rose-400">{monoErrors.token}</p>}
-    </div>
-    {user?.monobank_token_is_set && (
-    <button 
-      type="button"
-      onClick={() => setIsConfirmMonoDisconnectOpen(true)} // ТЕПЕР ВІДКРИВАЄ ПІДТВЕРДЖЕННЯ
-      className="text-xs font-bold text-rose-400 hover:text-rose-300 transition-colors mt-2"
-    >
-      <i className="bi bi-trash3 mr-1" /> Disconnect Monobank
-    </button>
-  )}
-  </div>
-</FormModal>
-<ConfirmDeleteModal
-  isOpen={isConfirmMonoDisconnectOpen}
-  onClose={() => setIsConfirmMonoDisconnectOpen(false)}
-  onConfirm={handleRemoveToken}
-  title="Disconnect Monobank"
-  description="Are you sure you want to remove your Monobank integration? You will no longer be able to sync your transactions automatically."
-/>
+      <FormModal
+        isOpen={isMonobankOpen}
+        onClose={() => setIsMonobankOpen(false)}
+        onSubmit={handleMonobankSubmit}
+        title="Monobank Integration"
+        type="edit"
 
-{/* МОДАЛКА ДОДАВАННЯ КАТЕГОРІЇ */}
-<FormModal
-  isOpen={isAddCategoryOpen}
-  onClose={() => setIsAddCategoryOpen(false)}
-  onSubmit={handleAddCategory}
-  title="New Category"
-  type="add"
-  submitLabel="Add Category"
->
-  <CategoryFormFields 
-    form={categoryForm} 
-    setForm={setCategoryForm} 
-    icons={iconOptions} 
-    errors={categoryErrors}
-    onFieldChange={(field: string) => {
-      setCategoryErrors((prev) => {
-        if (!prev[field]) {
-          return prev;
-        }
-        const next = { ...prev };
-        delete next[field];
-        return next;
-      });
-    }}
-  />
-</FormModal>
+      >
+        <div className="space-y-4">
+          <div className="rounded-xl border border-blue-500/20 bg-blue-500/10 p-4 text-xs leading-relaxed text-blue-200">
+            <i className="bi bi-info-circle-fill mr-2" />
+            Get your Personal Access Token from <a href="https://api.monobank.ua" target="_blank" rel="noreferrer" className="font-semibold underline underline-offset-2 transition hover:text-blue-100">api.monobank.ua</a>. It allows us to sync your transactions automatically.
+          </div>
+          <div>
+            <label htmlFor="api-token-input" className="mb-1.5 block text-sm font-medium text-slate-200">API Token</label>
+            <Input
+              id="api-token-input"
+              placeholder="Paste your token here..."
+              value={monoToken}
+              maxLength={44}
+              onChange={(e) => {
+                setMonoToken(e.target.value);
+                setMonoErrors((prev) => {
+                  if (!prev.token) {
+                    return prev;
+                  }
+                  const next = { ...prev };
+                  delete next.token;
+                  return next;
+                });
+              }}
+              aria-invalid={!!monoErrors.token}
+              className={monoErrors.token ? "border-rose-500/60 focus:border-rose-400/80 focus:ring-rose-500/20" : undefined}
+            />
+            {monoErrors.token && <p data-testid="token-error" className="mt-1 text-xs text-rose-400">{monoErrors.token}</p>}
+          </div>
+          {user?.monobank_token_is_set && (
+            <button
+              type="button"
+              onClick={() => setIsConfirmMonoDisconnectOpen(true)} // ТЕПЕР ВІДКРИВАЄ ПІДТВЕРДЖЕННЯ
+              className="text-xs font-bold text-rose-400 hover:text-rose-300 transition-colors mt-2"
+            >
+              <i className="bi bi-trash3 mr-1" /> Disconnect Monobank
+            </button>
+          )}
+        </div>
+      </FormModal>
+      <ConfirmDeleteModal
+        isOpen={isConfirmMonoDisconnectOpen}
+        onClose={() => setIsConfirmMonoDisconnectOpen(false)}
+        onConfirm={handleRemoveToken}
+        title="Disconnect Monobank"
+        description="Are you sure you want to remove your Monobank integration? You will no longer be able to sync your transactions automatically."
+      />
+
+      {/* МОДАЛКА ДОДАВАННЯ КАТЕГОРІЇ */}
+      <FormModal
+        isOpen={isAddCategoryOpen}
+        onClose={() => setIsAddCategoryOpen(false)}
+        onSubmit={handleAddCategory}
+        title="New Category"
+        type="add"
+        submitLabel="Add Category"
+      >
+        <CategoryFormFields
+          form={categoryForm}
+          setForm={setCategoryForm}
+          icons={iconOptions}
+          errors={categoryErrors}
+          onFieldChange={(field: string) => {
+            setCategoryErrors((prev) => {
+              if (!prev[field]) {
+                return prev;
+              }
+              const next = { ...prev };
+              delete next[field];
+              return next;
+            });
+          }}
+        />
+      </FormModal>
     </AppShell>
   );
 };

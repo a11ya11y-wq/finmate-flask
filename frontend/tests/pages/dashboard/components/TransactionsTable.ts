@@ -18,7 +18,7 @@ export class TransactionsTable {
         this.page = page;
         this.container = page.getByTestId('transactions-table');
         
-        this.header = this.container.getByRole('heading', { name: 'Transactions' });
+        this.header = this.container.getByRole('heading', { name: 'Transactions', exact: true });
 
         // Pagination
         this.paginationContainer = this.container.getByTestId('transactions-table-pagination');

@@ -68,6 +68,87 @@ const formatShortDate = (value: string) => {
   return date.toLocaleDateString("en-US", { month: "short", day: "2-digit" });
 };
 
+const AnalyticsEmptyState = ({
+  title,
+  description,
+  variant,
+}: {
+  title: string;
+  description: string;
+  variant: "category" | "balance";
+}) => {
+  return (
+    <div className="relative col-span-full flex min-h-[400px] flex-col items-center justify-center overflow-hidden rounded-2xl bg-transparent px-8 py-16 text-center">
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-slate-300/5">
+        {variant === "category" ? (
+          <svg
+            viewBox="0 0 240 240"
+            className="h-64 w-64"
+            fill="none"
+            aria-hidden="true"
+          >
+            <circle cx="120" cy="120" r="86" stroke="currentColor" strokeWidth="14" />
+            <path d="M120 120 L120 34 A86 86 0 0 1 194 76 Z" fill="currentColor" />
+            <path d="M120 120 L194 76 A86 86 0 0 1 169 193 Z" fill="currentColor" />
+            <circle cx="120" cy="120" r="44" fill="#0b0f17" />
+          </svg>
+        ) : (
+          <svg
+            viewBox="0 0 260 180"
+            className="h-52 w-72"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path d="M18 152 H242" stroke="currentColor" strokeWidth="8" strokeLinecap="round" />
+            <path
+              d="M26 138 C48 116 64 128 86 104 C108 80 124 86 146 66 C170 46 190 58 234 28"
+              stroke="currentColor"
+              strokeWidth="12"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <circle cx="26" cy="138" r="8" fill="currentColor" />
+            <circle cx="86" cy="104" r="8" fill="currentColor" />
+            <circle cx="146" cy="66" r="8" fill="currentColor" />
+            <circle cx="234" cy="28" r="8" fill="currentColor" />
+          </svg>
+        )}
+      </div>
+      <div className="relative z-10">
+        <p className="max-w-[26rem] text-lg font-semibold leading-snug text-slate-100 sm:text-xl">
+          {title}
+        </p>
+        <p className="mt-2 max-w-[22rem] text-sm leading-relaxed text-slate-500">
+          {description}
+        </p>
+      </div>
+    </div>
+  );
+};
+
+const TransactionsEmptyState = () => {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-[#0b0f17]/75 px-6 py-10">
+      <div className="flex flex-col items-center gap-5 text-center">
+        <div className="pointer-events-none text-slate-300/20" aria-hidden="true">
+          <svg viewBox="0 0 64 64" className="h-12 w-12" fill="none">
+            <rect x="14" y="10" width="36" height="44" rx="7" stroke="currentColor" strokeWidth="2.5" />
+            <path d="M22 24 H42" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+            <path d="M22 32 H42" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+            <path d="M22 40 H36" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+          </svg>
+        </div>
+        <div className="max-w-2xl space-y-2">
+          <h3 className="text-xl font-bold text-white">No transactions yet</h3>
+          <p className="text-sm leading-relaxed text-slate-400">
+            To automatically sync your expenses, please configure your Monobank API token on the Profile page, or add your first transaction manually.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const DashboardPage = () => {
   // Викликаємо хук на початку компонента
   const { formatWithSymbol } = useCurrency();
@@ -239,6 +320,7 @@ const DashboardPage = () => {
   const data = dashboardQuery.data ?? null;
   const history = historyQuery.data?.data ?? [];
   const categories = categoriesQuery.data?.data ?? [];
+  const dashboardLoading = dashboardQuery.isLoading || dashboardQuery.isFetching;
   const tableLoading = historyQuery.isLoading || historyQuery.isFetching;
 
   useEffect(() => {
@@ -454,12 +536,6 @@ const DashboardPage = () => {
     return { icon: "bi-tag-fill", color: "text-slate-400 bg-slate-500/10" };
   };
 
-  useEffect(() => {
-    if (!tableLoading && history.length === 0) {
-      toast({ variant: "info", message: "No transactions yet." });
-    }
-  }, [history.length, tableLoading, toast]);
-
   return (
     <AppShell>
       <div className="space-y-6">
@@ -468,8 +544,8 @@ const DashboardPage = () => {
           {/* Сам хедер, який динамічно змінює ширину */}
           <div data-testid="dashboard-toolbar"
             className={`flex w-full flex-col gap-4 rounded-2xl border px-6 py-4 transition-all duration-500 lg:flex-row lg:items-center lg:justify-between ${isSticky
-                ? "max-w-[95%] lg:max-w-5xl border-blue-500/70 bg-[#0b0f17]/95 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.7)] backdrop-blur-xl"
-                : "max-w-full border-blue-500/40 bg-[#0b0f17]/60 shadow-sm backdrop-blur-md"
+              ? "max-w-[95%] lg:max-w-5xl border-blue-500/70 bg-[#0b0f17]/95 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.7)] backdrop-blur-xl"
+              : "max-w-full border-blue-500/40 bg-[#0b0f17]/60 shadow-sm backdrop-blur-md"
               }`}
           >
 
@@ -688,6 +764,16 @@ const DashboardPage = () => {
                       return null;
                     };
 
+                    if (!dashboardLoading && activeChartData.length === 0) {
+                      return (
+                        <AnalyticsEmptyState
+                          variant="category"
+                          title="No data for expenses"
+                          description="Appears after your first transaction."
+                        />
+                      );
+                    }
+
                     return (
                       <>
                         {/* ГРАФІК: збільшено висоту блоку до 260px */}
@@ -825,6 +911,16 @@ const DashboardPage = () => {
                       return null;
                     };
 
+                    if (!dashboardLoading && balanceData.length === 0) {
+                      return (
+                        <AnalyticsEmptyState
+                          variant="balance"
+                          title="Balance dynamics is empty"
+                          description="Start tracking to see trends."
+                        />
+                      );
+                    }
+
                     return (
                       <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={balanceData} margin={{ left: 0, right: 10, top: 20, bottom: 0 }}>
@@ -877,7 +973,6 @@ const DashboardPage = () => {
               <CardContent>
                 <div className="mt-2 flex flex-col gap-2.5">
 
-                  {/* НАЗВИ КОЛОНОК (Header Row) */}
                   {history.length > 0 && (
                     <div className="mb-2 hidden items-center justify-between px-4 pb-2 text-xs uppercase tracking-wider text-slate-500 md:flex border-b border-white/5">
                       {/* pl-10 (padding-left) використовуємо, щоб вирівняти слово Title після цифр нумерації */}
@@ -889,8 +984,9 @@ const DashboardPage = () => {
                     </div>
                   )}
 
-                  {/* СПИСОК ТРАНЗАКЦІЙ */}
-                  {history.map((tx, index) => {
+                  {!tableLoading && history.length === 0 ? (
+                    <TransactionsEmptyState />
+                  ) : history.map((tx, index) => {
                     const catStyles = getCategoryStyles(tx.category_name);
                     return (
                       <div

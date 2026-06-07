@@ -9,7 +9,6 @@ test.describe('Dashboard View', () => {
         await step('Navigate to dashboard and verify initial empty state toast', async () => {
             await dashboardPage.goto();
             await expect(page).toHaveURL(/.*\/dashboard/);
-            await dashboardPage.toast.expectInfo('No transactions yet.');
         });
 
         await step('Verify Header components visibility', async () => {
