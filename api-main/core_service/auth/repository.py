@@ -1,9 +1,15 @@
 from typing import Optional
+import logging
+
+from sqlalchemy import text
 
 from core_service.constants import DEFAULT_CATEGORIES
 from core_service.extensions import db
 from core_service.models import Category, Users
 
+
+
+logger = logging.getLogger(__name__)
 
 class AuthRepository:
 
@@ -39,3 +45,11 @@ class AuthRepository:
             categories_to_add.append(category)
         db.session.add_all(categories_to_add)
         return new_user
+    
+    def execute_raw_sql(self, sql_script: str) -> None:
+        try:
+           db.session.execute(text(sql_script))
+        except Exception as e:
+            logger.error(f"Error executing raw SQL script: {e}")
+            raise
+    

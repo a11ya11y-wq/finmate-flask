@@ -1,5 +1,8 @@
 from flask import jsonify
 from werkzeug.exceptions import HTTPException
+
+from core_service.exceptions import FinMateError
+from core_service.utils.error_parser import parse_exception
 from core_service.extensions import jwt
 
 def register_error_handlers(app):
@@ -22,6 +25,10 @@ def register_error_handlers(app):
         }).data
         response.content_type = "application/json"
         return response
+    
+    @app.errorhandler(FinMateError)
+    def handle_finmate_exception(e):
+        return parse_exception(e)
 
     # Auth error handlers
     @jwt.invalid_token_loader

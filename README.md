@@ -31,6 +31,12 @@
 ## 🚀 Live Demo
 Check out the application live at: **[https://fin-mate.app](https://fin-mate.app)**
 
+You can evaluate the application without registering. Just click the **"Try Demo"** button on the login screen or use the following credentials:
+- **Email:** `demo@test.com`
+- **Password:** `pass123123`
+
+> **Note for Reviewers:** The demo environment is completely isolated and self-healing. Upon every demo login, a custom backend script automatically resets the PostgreSQL database and safely invalidates the Redis cache (O(1) deletion for static keys). This guarantees a pristine, wow-effect state with populated transactions and budgets for every new session.
+
 ## Overview
 **FinMate** is a modern, decoupled personal finance application designed to help users track income & expenses, manage budgets, and visualize financial health. The project employs a **Service-Oriented Architecture (SOA)**, featuring a **Flask** backend for core business logic, **Celery** for background task processing (such as automated bank synchronization), a stateless **NestJS** worker for asynchronous PDF report generation, and a responsive frontend built with **React**.
 

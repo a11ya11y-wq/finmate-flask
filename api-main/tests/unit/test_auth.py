@@ -34,6 +34,7 @@ class TestLoginUser:
         
         mock_user = MagicMock(spec=Users)
         mock_user.id = 142
+        mock_user.email = "test@example.com"
         mock_user.password_hash = "hashed_pass"
         auth_uow.auth.find_user_by_email.return_value = mock_user
 
@@ -48,7 +49,11 @@ class TestLoginUser:
         assert expires == timedelta(days=expected_days)
 
         auth_uow.auth.find_user_by_email.assert_called_once_with("test@example.com")
-        mock_create_access.assert_called_once_with(identity="142", expires_delta=timedelta(minutes=30))
+        mock_create_access.assert_called_once_with(
+            identity="142", 
+            expires_delta=timedelta(minutes=30),
+            additional_claims={"email": "test@example.com"}
+        )
         mock_create_refresh.assert_called_once_with(
             identity="142", 
             expires_delta=timedelta(days=expected_days), 

@@ -3,6 +3,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from core_service.profile import bp
 from core_service.utils.error_parser import parse_exception
+from core_service.utils.permissions import prevent_demo_user
 from .service import ProfileService
 from core_service.uow import UnitOfWork
 
@@ -40,6 +41,7 @@ def update_user():
 
 @bp.route('/me', methods=['DELETE'])
 @jwt_required()
+@prevent_demo_user
 def delete_account():
     user_id = int(get_jwt_identity())
     try:
@@ -55,6 +57,7 @@ def delete_account():
 
 @bp.route('/change-password', methods=['POST'])
 @jwt_required()
+@prevent_demo_user
 def change_password():
     user_id = int(get_jwt_identity())
     data = request.get_json()

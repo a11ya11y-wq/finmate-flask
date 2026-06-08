@@ -45,6 +45,20 @@ const LoginPage = () => {
     }
   };
 
+  const handleTryDemo = async () => {
+    const demoEmail = "demo@test.com";
+    const demoPass = "pass123123";
+    setEmail(demoEmail);
+    setPassword(demoPass);
+    try {
+      setErrors({});
+      await login(demoEmail, demoPass, false);
+      navigate("/dashboard");
+    } catch (err) {
+      toast({ variant: "error", message: toErrorMessage(err) });
+    }
+  };
+
   return (
     <div className="auth-body relative flex min-h-screen items-center justify-center px-4">
       <div className="auth-background">
@@ -65,7 +79,7 @@ const LoginPage = () => {
             <div>
               <label className="text-sm font-medium text-slate-200">Email</label>
               <Input
-              id="email-input"
+                id="email-input"
                 type="email"
                 value={email}
                 onChange={(event) => {
@@ -81,7 +95,7 @@ const LoginPage = () => {
             <div>
               <label className="text-sm font-medium text-slate-200">Password</label>
               <Input
-              id="password-input"
+                id="password-input"
                 type="password"
                 value={password}
                 onChange={(event) => {
@@ -105,6 +119,15 @@ const LoginPage = () => {
             </label>
             <Button type="submit" className="w-full" disabled={status === "loading"}>
               {status === "loading" ? "Signing in..." : "Sign in"}
+            </Button>
+            <Button
+              type="button"
+              variant="tonal"
+              className="w-full mt-2"
+              onClick={handleTryDemo}
+              disabled={status === "loading"}
+            >
+              {status === "loading" ? "Signing in..." : "Try Demo"}
             </Button>
           </form>
           <p className="mt-4 text-center text-sm text-slate-400">

@@ -1,6 +1,8 @@
+import os
 import logging
 from datetime import timedelta, datetime, timezone
 
+from sqlalchemy import text
 from flask_jwt_extended import create_access_token, create_refresh_token, decode_token
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -21,6 +23,30 @@ class AuthService:
     @property
     def redis(self):
         return extensions.redis_client
+    
+    def _reset_demo_account(self, user_id: int) -> None:
+        logger.info(f"Triggering reset for demo user ID: {user_id}")
+        try:
+            file_path = os.path.join(os.getcwd(), 'reset_demo.sql') 
+            with open(file_path, 'r', encoding='utf-8') as file:
+                raw_sql = file.read()
+
+            self.uow.auth.execute_raw_sql(raw_sql)
+            self.uow.flush()
+            keys_to_delete = [
+                f"profile:{user_id}",
+                f"categories:{user_id}",
+                f"budgets:{user_id}",
+                f"reports:{user_id}",
+                f"dashboard:{user_id}:week",
+                f"dashboard:{user_id}:month",
+                f"dashboard:{user_id}:all"
+            ]
+            self.redis.delete(*keys_to_delete)
+
+            logger.info(f"Demo account reset. Cleared {len(keys_to_delete)} keys.")
+        except Exception as e:
+            logger.error(f"Failed to reset demo account: {str(e)}")
 
     def login_user(self, data: dict, remember_me: bool = False) -> tuple:
 
@@ -33,9 +59,13 @@ class AuthService:
             raise AuthenticationError("Invalid email or password.")
         user_id = user.id
 
+        if validated_data.email == "demo@test.com":
+            self._reset_demo_account(user_id)
+
         access_token = create_access_token(
             identity=str(user_id),
-            expires_delta=timedelta(minutes=30)
+            expires_delta=timedelta(minutes=30),
+            additional_claims={"email": user.email}
         )
         if remember_me:
             refresh_expires = timedelta(days=30)
@@ -77,7 +107,8 @@ class AuthService:
 
         new_access_token = create_access_token(
             identity=str(user.id),
-            expires_delta=timedelta(minutes=30)
+            expires_delta=timedelta(minutes=30),
+            additional_claims={"email": user.email}
         )
 
         new_refresh_token = create_refresh_token(
