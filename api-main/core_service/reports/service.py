@@ -67,6 +67,13 @@ class ReportService:
 
         transactions = self.uow.transactions.get_tx_by_period(user_id, start_date, end_date)
 
+        # Calculate closing balance for the report period
+        historical_sum_until_end = self.uow.transactions.get_transactions_sum_until_date(user_id, end_date)
+        closing_balance = historical_sum_until_end + user.initial_balance
+
+        # Calculate opening balance for the report period
+        historical_sum_until_start = self.uow.transactions.get_transactions_sum_until_date(user_id, start_date - timedelta(days=1))
+        opening_balance = historical_sum_until_start + user.initial_balance
 
         if not transactions:
             logger.info(f"No transactions found for user_id: {user_id} in the specified period.")
@@ -81,7 +88,9 @@ class ReportService:
                 "username": user.username,
                 "email": user.email
             },
-            "transactions": transactions
+            "transactions": transactions,
+            "openingBalance": str(opening_balance),
+            "closingBalance": str(closing_balance),
         }
 
         try:

@@ -58,6 +58,24 @@ class TransactionRepository:
             })
 
         return formatted_transactions
+    
+    def get_transactions_sum_until_date(self, user_id: int, date) -> Decimal:
+        result = db.session.query(
+        func.coalesce(
+            func.sum(
+                case(
+                    (Transactions.transaction_type == 'income', Transactions.amount),
+                    (Transactions.transaction_type == 'expense', -Transactions.amount),
+                    else_=0
+                )
+            ), 0
+        )
+    ).filter(
+        Transactions.user_id == user_id,
+        func.date(Transactions.created_at) <= date
+    ).scalar()
+
+        return Decimal(result)
 
     def get_recent_transactions(self, user_id: int, period, limit: int = 15, offset: int = 0) -> list[Transactions]:
         query = self.get_base_query(user_id, period)
@@ -67,16 +85,17 @@ class TransactionRepository:
         query = self.get_base_query(user_id, period)
         return query.count()
 
-    def get_total_amount(self, user_id: int, transaction_type, start_date, end_date) -> float:
-        result = db.session.query(func.sum(Transactions.amount)) \
-            .filter(
+    def get_total_amount(self, user_id: int, transaction_type: str, start_date, end_date) -> Decimal:
+        result = db.session.query(
+            func.coalesce(func.sum(Transactions.amount), 0)
+        ).filter(
             Transactions.user_id == user_id,
             Transactions.transaction_type == transaction_type,
-            Transactions.created_at >= start_date,
-            Transactions.created_at <= end_date
+            func.date(Transactions.created_at) >= start_date,
+            func.date(Transactions.created_at) <= end_date
         ).scalar()
 
-        return float(result) if result else 0.0
+        return Decimal(result)
 
     def get_current_balance(self, user_id: int) -> Decimal:
         current_balance = db.session.query(

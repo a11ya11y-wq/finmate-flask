@@ -54,26 +54,57 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
   async generateTxReport(
     reportId: number,
     transactions: ReportTaskPayload['transactions'],
+    closingBalance: string,
+    openingBalance: string,
+    user: ReportTaskPayload['user'],
   ): Promise<string> {
     const templatePath = path.join(process.cwd(), 'templates', 'report.hbs');
     const templateHtml = fs.readFileSync(templatePath, 'utf-8');
-
     const template = Handlebars.compile(templateHtml);
 
-    const totalBalance = transactions.reduce((acc, t) => {
-      return acc + Number(t.amount);
-    }, 0);
+    let totalIncome = 0;
+    let totalExpenses = 0;
+
+    const sortedTransactions = [...transactions].sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+    );
+
+    let runningBalance = Number(openingBalance);
+
+    const formattedTransactions = sortedTransactions.map((t) => {
+      const amountNum = Number(t.amount);
+      const isExpense = amountNum < 0;
+
+      if (isExpense) {
+        totalExpenses += Math.abs(amountNum);
+      } else {
+        totalIncome += amountNum;
+      }
+
+      runningBalance += amountNum;
+
+      return {
+        ...t,
+        dateFormatted: new Date(t.date).toLocaleDateString('en-GB'),
+        amountFormatted: Math.abs(amountNum).toFixed(2),
+        balanceFormatted: runningBalance.toFixed(2),
+        isExpense,
+      };
+    });
+
+    const netCashFlow = totalIncome - totalExpenses;
 
     const htmlContent = template({
       reportId,
       currentDate: new Date().toLocaleDateString('en-GB'),
-      totalBalance: totalBalance.toFixed(2),
-      transactions: transactions.map((t) => ({
-        ...t,
-        dateFormatted: new Date(t.date).toLocaleDateString('en-GB'),
-        amountFormatted: Math.abs(Number(t.amount)).toFixed(2),
-        isExpense: Number(t.amount) < 0,
-      })),
+      openingBalance: Number(openingBalance).toFixed(2),
+      closingBalance: Number(closingBalance).toFixed(2),
+      totalIncome: totalIncome.toFixed(2),
+      totalExpenses: totalExpenses.toFixed(2),
+      netCashFlow: (netCashFlow >= 0 ? '+' : '') + netCashFlow.toFixed(2),
+      isNetFlowPositive: netCashFlow >= 0,
+      user,
+      transactions: formattedTransactions.reverse(),
     });
 
     const context = await this.browser.newContext();
@@ -84,7 +115,7 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
 
       const fileName = `report_${reportId}_${Date.now()}.pdf`;
 
-      const pdfBuffer = await page.pdf({ format: 'A4' });
+      const pdfBuffer = await page.pdf({ format: 'A4', printBackground: true });
 
       const command = new PutObjectCommand({
         Bucket: process.env.DO_SPACES_BUCKET,

@@ -9,27 +9,42 @@
             color: #2c3e50;
             margin: 0;
             padding: 40px;
+            background-color: #ffffff;
         }
 
         .header {
             display: flex;
             justify-content: space-between;
-            align-items: baseline;
-            border-bottom: 3px solid #3498db;
-            padding-bottom: 20px;
-            margin-bottom: 40px;
+            align-items: center;
+            border-bottom: 2px solid #eaedf1;
+            padding-bottom: 24px;
+            margin-bottom: 30px;
         }
 
-        /* Тільки текстовий напис FinMate */
+        .brand-section {
+            display: flex;
+            flex-direction: column;
+        }
+
         .brand-name {
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 800;
-            letter-spacing: -1px;
-            color: #2c3e50;
+            letter-spacing: -0.5px;
+            color: #1a252f;
         }
 
         .brand-name span {
             color: #3498db;
+        }
+
+        .user-badge {
+            margin-top: 8px;
+            font-size: 13px;
+            color: #7f8c8d;
+        }
+
+        .user-badge strong {
+            color: #2c3e50;
         }
 
         .report-title-section {
@@ -38,43 +53,138 @@
 
         .report-title-section h1 {
             margin: 0;
-            font-size: 20px;
+            font-size: 18px;
             text-transform: uppercase;
-            color: #7f8c8d;
-            letter-spacing: 1px;
+            color: #95a5a6;
+            letter-spacing: 1.5px;
         }
 
         .report-meta {
-            margin-top: 5px;
-            color: #bdc3c7;
-            font-size: 12px;
+            margin-top: 6px;
+            color: #7f8c8d;
+            font-size: 13px;
+            font-weight: 500;
         }
 
+        /* Панель карток фінансового стану */
+        .metrics-grid {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 35px;
+        }
+
+        .metric-card {
+            flex: 1;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 14px 16px;
+            text-align: left;
+        }
+
+        .metric-card.highlight {
+            background: #2c3e50;
+            border-color: #2c3e50;
+        }
+
+        .metric-card.highlight .metric-label {
+            color: #95a5a6;
+        }
+
+        .metric-card.highlight .metric-value {
+            color: #ffffff;
+        }
+
+        .metric-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            color: #7f8c8d;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .metric-value {
+            font-size: 18px;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            color: #2c3e50;
+        }
+
+        .metric-value.income-text {
+            color: #27ae60;
+        }
+
+        .metric-value.expense-text {
+            color: #e74c3c;
+        }
+
+        .metric-value.positive {
+            color: #27ae60;
+        }
+
+        .metric-value.negative {
+            color: #e74c3c;
+        }
+
+        /* Сучасна таблиця без грубих меж */
         table {
             width: 100%;
             border-collapse: collapse;
+            margin-bottom: 30px;
         }
 
         th {
             text-align: left;
-            padding: 15px 12px;
-            background: #f8f9fa;
-            border-bottom: 2px solid #dee2e6;
-            color: #95a5a6;
+            padding: 12px 10px;
+            background: #ffffff;
+            border-bottom: 2px solid #1a252f;
+            color: #34495e;
             font-size: 11px;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         td {
-            padding: 14px 12px;
-            border-bottom: 1px solid #f1f1f1;
+            padding: 14px 10px;
+            border-bottom: 1px solid #f2f4f7;
+            font-size: 13px;
+            color: #2c3e50;
+        }
+
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .tx-title {
+            font-weight: 600;
+            color: #1a252f;
+        }
+
+        .category-tag {
+            background: #eef2f5;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 500;
+            color: #627d98;
+            display: inline-block;
+        }
+
+        .amount-col {
+            font-family: 'Courier New', monospace;
+            font-weight: 700;
+            text-align: right;
             font-size: 14px;
         }
 
-        .amount {
+        .balance-col {
             font-family: 'Courier New', monospace;
-            font-weight: bold;
             text-align: right;
+            color: #7f8c8d;
+            font-weight: 500;
         }
 
         .income {
@@ -85,83 +195,84 @@
             color: #e74c3c;
         }
 
-        .category-tag {
-            background: #f1f3f5;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 11px;
-            color: #7f8c8d;
-        }
-
         .footer {
-            margin-top: 50px;
+            margin-top: 60px;
+            border-top: 1px solid #eaedf1;
+            padding-top: 15px;
             display: flex;
-            justify-content: flex-end;
-        }
-
-        .total-card {
-            border: 2px solid #2c3e50;
-            padding: 20px;
-            border-radius: 12px;
-            min-width: 200px;
-            text-align: right;
-        }
-
-        .total-label {
+            justify-content: space-between;
+            align-items: center;
             font-size: 11px;
-            text-transform: uppercase;
-            color: #7f8c8d;
-        }
-
-        .total-amount {
-            font-size: 24px;
-            font-weight: bold;
-            display: block;
-            margin-top: 5px;
-            color: #2c3e50;
+            color: #bdc3c7;
         }
     </style>
 </head>
 
 <body>
     <div class="header">
-        <div class="brand-name">Fin<span>Mate</span></div>
+        <div class="brand-section">
+            <div class="brand-name">Fin<span>Mate</span></div>
+            <div class="user-badge">Prepared for: <strong>{{user.username}}</strong> ({{user.email}})</div>
+        </div>
         <div class="report-title-section">
             <h1>Financial Statement</h1>
             <div class="report-meta">
-                ID: #{{reportId}} • {{currentDate}}
+                Report ID: #{{reportId}} • {{currentDate}}
             </div>
+        </div>
+    </div>
+
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <span class="metric-label">Opening Balance</span>
+            <span class="metric-value">{{openingBalance}}</span>
+        </div>
+        <div class="metric-card">
+            <span class="metric-label">Total Income</span>
+            <span class="metric-value income-text">+{{totalIncome}}</span>
+        </div>
+        <div class="metric-card">
+            <span class="metric-label">Total Expenses</span>
+            <span class="metric-value expense-text">-{{totalExpenses}}</span>
+        </div>
+        <div class="metric-card">
+            <span class="metric-label">Net Cash Flow</span>
+            <span class="metric-value {{#if isNetFlowPositive}}positive{{else}}negative{{/if}}">{{netCashFlow}}</span>
+        </div>
+        <div class="metric-card highlight">
+            <span class="metric-label">Closing Balance</span>
+            <span class="metric-value">{{closingBalance}}</span>
         </div>
     </div>
 
     <table>
         <thead>
             <tr>
-                <th>Date</th>
-                <th>Title</th>
-                <th>Category</th>
-                <th style="text-align: right;">Amount</th>
+                <th style="width: 15%;">Date</th>
+                <th style="width: 40%;">Title</th>
+                <th style="width: 20%;">Category</th>
+                <th style="text-align: right; width: 12%;">Amount</th>
+                <th style="text-align: right; width: 13%;">Balance</th>
             </tr>
         </thead>
         <tbody>
             {{#each transactions}}
             <tr>
-                <td style="color: #95a5a6;">{{this.dateFormatted}}</td>
-                <td style="font-weight: 600;">{{this.title}}</td>
+                <td style="color: #7f8c8d;">{{this.dateFormatted}}</td>
+                <td class="tx-title">{{this.title}}</td>
                 <td><span class="category-tag">{{this.category}}</span></td>
-                <td class="amount {{#if this.isExpense}}expense{{else}}income{{/if}}">
+                <td class="amount-col {{#if this.isExpense}}expense{{else}}income{{/if}}">
                     {{#if this.isExpense}}-{{else}}+{{/if}}{{this.amountFormatted}}
                 </td>
+                <td class="balance-col">{{this.balanceFormatted}}</td>
             </tr>
             {{/each}}
         </tbody>
     </table>
 
     <div class="footer">
-        <div class="total-card">
-            <span class="total-label">Closing Balance</span>
-            <span class="total-amount">{{totalBalance}}</span>
-        </div>
+        <span>Confidential Financial Document</span>
+        <span>Generated automatically by FinMate Service</span>
     </div>
 </body>
 

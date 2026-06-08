@@ -89,12 +89,16 @@ export class ReportWorkerService implements OnModuleInit {
         return;
       }
 
-      const { reportId, transactions } = payload;
+      const { reportId, transactions, closingBalance, openingBalance, user } =
+        payload;
       this.logger.log(`Processing report task for report ID: ${reportId}`);
 
       const fileUrl = await this.pdfService.generateTxReport(
         reportId,
         transactions,
+        closingBalance,
+        openingBalance,
+        user,
       );
       // Store the result with an expiration time
       await this.redis.setex(

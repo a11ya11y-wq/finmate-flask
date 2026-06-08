@@ -59,4 +59,12 @@ export class ReportTaskPayload {
   @IsNotEmpty({ message: 'Transactions are required' })
   @ValidateNested({ each: true })
   transactions!: TransactionDTO[];
+
+  @IsString({ message: 'The opening balance must be a string' })
+  @IsNotEmpty({ message: 'The opening balance is required' })
+  openingBalance!: string;
+
+  @IsString({ message: 'The closing balance must be a string' })
+  @IsNotEmpty({ message: 'The closing balance is required' })
+  closingBalance!: string;
 }
