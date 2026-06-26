@@ -60,12 +60,29 @@ const toDateInput = (value?: string) => {
   return date.toISOString().slice(0, 10);
 };
 
-const formatShortDate = (value: string) => {
+const formatDateTimeForChart = (value: string) => {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
     return value;
   }
-  return date.toLocaleDateString("en-US", { month: "short", day: "2-digit" });
+  return date.toLocaleString("en-US", {
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false
+  });
+
+}; const formatDateOnlyForAxis = (value: string) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+  // Тільки "Jun 20"
+  return date.toLocaleString("en-US", {
+    month: "short",
+    day: "2-digit",
+  });
 };
 
 const AnalyticsEmptyState = ({
@@ -889,8 +906,8 @@ const DashboardPage = () => {
                         return (
                           <div className="z-50 animate-in fade-in duration-300 rounded-xl border border-blue-500/30 bg-[#0b0f17]/95 px-4 py-3 shadow-[0_10px_40px_rgba(0,0,0,0.6)] backdrop-blur-md">
                             <p className="mb-2 text-sm font-bold text-slate-100">
-                              {/* Форматуємо дату, щоб вона виглядала як Apr 23 замість 2026-04-23 */}
-                              {formatShortDate(label)}
+                              {/* Форматуємо дату й час, щоб кожна точка читалась як окрема транзакція */}
+                              {formatDateTimeForChart(label)}
                             </p>
                             <div className="flex items-center gap-2">
                               <span
@@ -935,7 +952,8 @@ const DashboardPage = () => {
                             axisLine={false}
                             tickLine={false}
                             tick={{ fill: "#64748b", fontSize: 12 }}
-                            tickFormatter={formatShortDate}
+                            // ТУТ ЗМІНА:
+                            tickFormatter={formatDateOnlyForAxis}
                             tickMargin={10}
                           />
                           <YAxis

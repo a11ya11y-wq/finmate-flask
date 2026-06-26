@@ -118,25 +118,24 @@ class DashboardService:
         else:
             opening_balance = self.uow.transactions.get_opening_balance(user.id, start_date, user.initial_balance)
 
-        current_balance_for_chart = float(opening_balance or 0.0)
+        current_balance = float(opening_balance or 0.0)
 
-        daily_balances = {}  # date: balance
+        labels = []
+        data = []
+
         for t in balance_chart_raw:
             amount_float = float(t.amount)
             if t.transaction_type == 'income':
-                current_balance_for_chart += amount_float
+                current_balance += amount_float
             else:
-                current_balance_for_chart -= amount_float
+                current_balance -= amount_float
 
-            date_str = t.created_at.strftime('%Y-%m-%d')  # Choose correct time format
-            # Overwrites to keep the end-of-day balance.
-            daily_balances[date_str] = round(current_balance_for_chart, 2)
-
-        balance_labels = list(daily_balances.keys())
-        balance_data = list(daily_balances.values())
+            labels.append(t.created_at.strftime('%Y-%m-%d %H:%M:%S'))
+            data.append(round(current_balance, 2))
+            
         return {
-            "labels": balance_labels,
-            "data": balance_data
+            "labels": labels,
+            "data": data
         }
 
     def _get_recent_tx(self, user: Users, start_date) -> list[Transactions]:
