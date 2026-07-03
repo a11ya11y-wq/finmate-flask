@@ -119,7 +119,7 @@ class TestDashboardService:
 
         dashboard_uow.transactions.get_opening_balance.assert_not_called()
 
-        assert result["labels"] == ['2026-05-28', '2026-05-29']
+        assert result["labels"] == ['2026-05-28 00:00:00', '2026-05-29 00:00:00']
         assert result["data"] == [150.0, 130.0]
 
     def test_get_total_count_of_page(self, dashboard_uow):

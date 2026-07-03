@@ -214,12 +214,14 @@ jobs:
     needs: [backend-tests, e2e-tests]
     if: always()
     runs-on: ubuntu-latest
-    
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
 
     steps:
+
       - name: Download Pytest Coverage
         uses: actions/download-artifact@v4
         with:
@@ -232,13 +234,24 @@ jobs:
           name: allure-results
           path: allure-results
 
+      - name: Get old Allure history
+        uses: actions/checkout@v4
+        continue-on-error: true
+        with:
+          ref: gh-pages
+          path: gh-pages-dir
+
+      - name: Copy Allure history
+        run: |
+          mkdir -p allure-results/history
+          cp -r gh-pages-dir/e2e/history/* allure-results/history/ || true
+
       - name: Generate Allure HTML Report
         uses: simple-elf/allure-report-action@master
         if: always()
         with:
           allure_results: allure-results
           allure_report: public/e2e
-          gh_pages: gh-pages
           allure_history: allure-history
 
       - name: Create Index Page
@@ -264,11 +277,9 @@ jobs:
           </html>
           EOF
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Deploy to GitHub Pages Branch
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: public
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
+          keep_files: false
