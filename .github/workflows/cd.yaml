@@ -66,13 +66,24 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            # 1. Авторизація в реєстрі
             echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             
+            # 2. Перехід в папку та оновлення docker-compose.yaml
             cd /root/finmate-flask
             git pull origin master
             
+            # 3. Стягуємо нові версії образів
             docker compose pull
-            docker compose down api-main celery_worker report-service frontend
+            
+            # 4. Піднімаємо БД і Redis, щоб міграції не впали
             docker compose up -d db redis
+            
+            # 5. Накочуємо міграції бази даних
             docker compose run --rm api-main python3 -m flask db upgrade
-            docker compose up -d
+            
+            # 6. Піднімаємо весь стек (Docker сам перестворить тільки ті контейнери, чиї образи оновилися)
+            docker compose up -d --remove-orphans
+            
+            # 7. Видаляємо старі dangling образи, щоб не забити диск
+            docker image prune -f
