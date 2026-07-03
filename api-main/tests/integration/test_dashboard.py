@@ -95,9 +95,11 @@ class TestGetDashboard:
         bal_chart = charts["balance_dynamics"]
         assert len(bal_chart["labels"]) == len(bal_chart["data"])
 
-        assert len(bal_chart["labels"]) == 1
+        assert len(bal_chart["labels"]) == 2
 
-        assert bal_chart["data"][0] == 750.0
+        assert bal_chart["data"][0] == 1000.0
+
+        assert bal_chart["data"][1] == 750.0
 
     def test_get_dashboard_period_filter(self, client, auth_headers):
         response = client.get("/api/v1/dashboard/?period=week", headers=auth_headers)
