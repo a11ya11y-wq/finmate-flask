@@ -1,0 +1,2 @@
+2026-07-15 18:30:37,533 - core_service.auth.service - WARNING - Failed login attempt for email: non_existing@example.com
+2026-07-15 18:30:37,533 - core_service.utils.error_parser - WARNING - Business error on /api/v1/auth/login: Invalid email or password.

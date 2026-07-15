@@ -1,0 +1,1 @@
+2026-07-15 18:30:40,145 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/transactions/: ['amount: Field required', 'title: Field required', 'transaction_type: Field required', 'category_id: Field required']

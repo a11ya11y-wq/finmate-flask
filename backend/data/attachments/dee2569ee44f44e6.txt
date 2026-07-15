@@ -1,1 +1,0 @@
-2026-07-15 18:21:01,455 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/transactions/: ['category_id: Input should be a valid integer, unable to parse string as an integer']
