@@ -1,0 +1,1 @@
+WARNING  core_service.profile.service:service.py:55 User 1 attempted to set invalid avatar: avatars/default/invalid.svg

@@ -1,0 +1,5 @@
+INFO     core_service.utils.caching:caching.py:73 No cache entries found for pattern: dashboard:1:*
+INFO     core_service.utils.caching:caching.py:73 No cache entries found for pattern: categories:1
+INFO     core_service.utils.caching:caching.py:73 No cache entries found for pattern: budgets:1
+WARNING  core_service.transactions.service:service.py:105 Category 100 not found for update.
+WARNING  core_service.utils.error_parser:error_parser.py:12 Business error on /api/v1/transactions/39: Category 100 not found or access denied.

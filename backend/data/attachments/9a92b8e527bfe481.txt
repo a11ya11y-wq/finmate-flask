@@ -1,0 +1,2 @@
+INFO     core_service.monobank.service:service.py:90 No correct card found in Monobank
+INFO     core_service.monobank.service:service.py:93 Selected Account ID for sync: ACC_ID_001

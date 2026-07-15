@@ -1,0 +1,13 @@
+INFO     core_service.categories.service:service.py:54 New category created for user 1 with name Cat 0
+INFO     core_service.utils.caching:caching.py:73 No cache entries found for pattern: categories:1
+INFO     core_service.utils.caching:caching.py:73 No cache entries found for pattern: dashboard:1:*
+INFO     core_service.categories.service:service.py:54 New category created for user 1 with name Cat 1
+INFO     core_service.utils.caching:caching.py:73 No cache entries found for pattern: categories:1
+INFO     core_service.utils.caching:caching.py:73 No cache entries found for pattern: dashboard:1:*
+INFO     core_service.categories.service:service.py:54 New category created for user 1 with name Cat 2
+INFO     core_service.utils.caching:caching.py:73 No cache entries found for pattern: categories:1
+INFO     core_service.utils.caching:caching.py:73 No cache entries found for pattern: dashboard:1:*
+INFO     core_service.categories.service:service.py:54 New category created for user 1 with name Cat 3
+INFO     core_service.utils.caching:caching.py:73 No cache entries found for pattern: categories:1
+INFO     core_service.utils.caching:caching.py:73 No cache entries found for pattern: dashboard:1:*
+WARNING  core_service.utils.error_parser:error_parser.py:12 Business error on /api/v1/categories/: You have reached the limit of 10 categories

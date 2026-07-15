@@ -1,0 +1,1 @@
+WARNING  core_service.utils.error_parser:error_parser.py:25 Validation error on /api/v1/auth/register: ['username: String should have at least 4 characters']

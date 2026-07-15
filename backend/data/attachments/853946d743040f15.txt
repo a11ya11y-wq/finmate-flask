@@ -1,0 +1,1 @@
+INFO     core_service.profile.service:service.py:72 User 1 profile updated.

@@ -1,0 +1,2 @@
+INFO     core_service.extensions:extensions.py:45 Redis connection successful to redis://localhost:6379/1
+INFO     core_service.auth.service:service.py:147 New user created with ID: 1

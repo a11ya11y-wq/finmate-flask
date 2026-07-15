@@ -1,0 +1,1 @@
+WARNING  core_service.categories.service:service.py:81 Category update failed: duplicate name Existing Category for user 1

@@ -1,0 +1,1 @@
+WARNING  core_service.categories.service:service.py:71 Attempt to update non-existing category 999 by user 1

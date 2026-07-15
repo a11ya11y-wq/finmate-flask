@@ -1,0 +1,3 @@
+2026-07-15 18:21:00,829 - core_service.reports.routes - INFO - Received request to generate PDF report for user 1
+2026-07-15 18:21:00,844 - core_service.reports.service - INFO - Report generation task enqueued for user_id: 1 with report_id: 1
+2026-07-15 18:21:00,844 - core_service.utils.caching - INFO - No cache entries found for pattern: reports:1*

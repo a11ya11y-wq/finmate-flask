@@ -1,0 +1,1 @@
+WARNING  core_service.profile.service:service.py:61 User 1 attempted to change username to an already taken one: existinguser

@@ -1,0 +1,1 @@
+INFO     core_service.budgets.service:service.py:103 New budget created for user 1 in category 2

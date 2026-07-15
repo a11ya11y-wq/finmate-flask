@@ -1,0 +1,3 @@
+INFO     core_service.budgets.service:service.py:103 New budget created for user 1 in category 1
+INFO     core_service.utils.caching:caching.py:73 No cache entries found for pattern: budgets:1
+WARNING  core_service.utils.error_parser:error_parser.py:25 Validation error on /api/v1/budgets/: ['amount: Field required', 'category_id: Field required', 'is_recurring: Field required']

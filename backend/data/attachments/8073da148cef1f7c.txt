@@ -1,0 +1,1 @@
+2026-07-15 18:21:03,279 - core_service.categories.service - WARNING - Category update failed: invalid icon invalid-icon for user 1

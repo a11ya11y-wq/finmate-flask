@@ -1,0 +1,1 @@
+WARNING  core_service.monobank.service:service.py:29 Monobank sync failed: API token not found or access denied for user 1

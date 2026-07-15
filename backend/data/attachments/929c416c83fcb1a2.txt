@@ -1,0 +1,1 @@
+WARNING  core_service.budgets.service:service.py:115 Attempt to delete non-existing budget 999 by user 1

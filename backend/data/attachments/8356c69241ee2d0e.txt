@@ -1,0 +1,1 @@
+WARNING  core_service.categories.service:service.py:34 Category creation failed: invalid icon invalid-icon for user 1

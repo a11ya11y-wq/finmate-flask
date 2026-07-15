@@ -1,0 +1,6 @@
+INFO     core_service.reports.routes:routes.py:23 Received request to generate PDF report for user 1
+INFO     core_service.reports.service:service.py:98 Report generation task enqueued for user_id: 1 with report_id: 3
+INFO     core_service.utils.caching:caching.py:73 No cache entries found for pattern: reports:1*
+INFO     core_service.reports.routes:routes.py:23 Received request to generate PDF report for user 1
+INFO     core_service.reports.service:service.py:43 Existing report found for user_id: 1 in the specified period. Returning existing report.
+WARNING  core_service.utils.error_parser:error_parser.py:12 Business error on /api/v1/report/generate-pdf: Report generation is already in progress for the specified period.

@@ -1,0 +1,11 @@
+INFO     core_service.budgets.service:service.py:103 New budget created for user 1 in category 1
+INFO     core_service.utils.caching:caching.py:73 No cache entries found for pattern: budgets:1
+INFO     core_service.budgets.service:service.py:103 New budget created for user 1 in category 2
+INFO     core_service.utils.caching:caching.py:73 No cache entries found for pattern: budgets:1
+INFO     core_service.budgets.service:service.py:103 New budget created for user 1 in category 3
+INFO     core_service.utils.caching:caching.py:73 No cache entries found for pattern: budgets:1
+INFO     core_service.budgets.service:service.py:103 New budget created for user 1 in category 4
+INFO     core_service.utils.caching:caching.py:73 No cache entries found for pattern: budgets:1
+INFO     core_service.budgets.service:service.py:103 New budget created for user 1 in category 5
+INFO     core_service.utils.caching:caching.py:73 No cache entries found for pattern: budgets:1
+WARNING  core_service.utils.error_parser:error_parser.py:12 Business error on /api/v1/budgets/: You have reached the limit of 5 budgets

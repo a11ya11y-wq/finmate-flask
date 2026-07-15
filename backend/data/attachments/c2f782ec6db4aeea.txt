@@ -1,0 +1,1 @@
+INFO     core_service.auth.service:service.py:172 User 142 logged out successfully.

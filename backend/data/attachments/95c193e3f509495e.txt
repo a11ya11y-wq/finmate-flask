@@ -1,0 +1,1 @@
+INFO     core_service.profile.service:service.py:128 User 1 updated Monobank token.

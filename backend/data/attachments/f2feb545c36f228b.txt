@@ -1,0 +1,1 @@
+WARNING  core_service.utils.error_parser:error_parser.py:25 Validation error on /api/v1/budgets/: ['amount: Field required', 'category_id: Field required', 'is_recurring: Field required']

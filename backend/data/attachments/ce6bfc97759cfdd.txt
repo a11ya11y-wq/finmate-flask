@@ -1,0 +1,1 @@
+INFO     core_service.reports.service:service.py:43 Existing report found for user_id: 1 in the specified period. Returning existing report.

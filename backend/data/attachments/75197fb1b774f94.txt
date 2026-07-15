@@ -1,0 +1,1 @@
+INFO     core_service.budgets.service:service.py:121 Budget 1 deleted for user 1

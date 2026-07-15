@@ -1,0 +1,1 @@
+WARNING  core_service.auth.service:service.py:131 Registration failed: Email test@example.com already exists

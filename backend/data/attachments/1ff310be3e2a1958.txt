@@ -1,0 +1,5 @@
+INFO     core_service.utils.caching:caching.py:73 No cache entries found for pattern: dashboard:1:*
+INFO     core_service.utils.caching:caching.py:73 No cache entries found for pattern: budgets:1
+INFO     core_service.utils.caching:caching.py:73 No cache entries found for pattern: dashboard:1:*
+INFO     core_service.utils.caching:caching.py:73 No cache entries found for pattern: categories:1
+INFO     core_service.utils.caching:caching.py:73 No cache entries found for pattern: budgets:1

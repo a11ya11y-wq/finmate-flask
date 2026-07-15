@@ -1,0 +1,3 @@
+INFO     core_service.reports.routes:routes.py:23 Received request to generate PDF report for user 1
+ERROR    core_service.reports.service:service.py:100 Failed to enqueue report generation task for user_id: 1 with report_id: 9. Error: Redis died
+INFO     core_service.utils.caching:caching.py:73 No cache entries found for pattern: reports:1*

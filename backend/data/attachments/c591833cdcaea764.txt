@@ -1,0 +1,2 @@
+WARNING  core_service.transactions.service:service.py:44 Transaction 100 not found for deletion.
+WARNING  core_service.utils.error_parser:error_parser.py:12 Business error on /api/v1/transactions/100: Transaction 100 not found or access denied.

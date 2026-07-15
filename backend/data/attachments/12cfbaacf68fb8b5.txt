@@ -1,0 +1,1 @@
+2024-01-16 00:00:00,000 - core_service.budgets.service - INFO - Budget updated for user 1 in category 2

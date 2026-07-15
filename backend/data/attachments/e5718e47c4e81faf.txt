@@ -1,0 +1,2 @@
+WARNING  core_service.categories.service:service.py:71 Attempt to update non-existing category 100 by user 1
+WARNING  core_service.utils.error_parser:error_parser.py:12 Business error on /api/v1/categories/100: Category 100 not found or access denied.

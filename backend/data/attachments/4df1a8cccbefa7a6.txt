@@ -1,0 +1,1 @@
+WARNING  core_service.utils.error_parser:error_parser.py:25 Validation error on /api/v1/auth/register: ['email: value is not a valid email address: An email address must have an @-sign.']

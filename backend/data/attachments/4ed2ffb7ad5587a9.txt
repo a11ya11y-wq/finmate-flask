@@ -1,0 +1,4 @@
+INFO     core_service.monobank.service:service.py:90 No correct card found in Monobank
+INFO     core_service.monobank.service:service.py:93 Selected Account ID for sync: ACC_ID_001
+INFO     core_service.monobank.service:service.py:157 No new transactions to add for user 1 from Monobank.
+INFO     core_service.monobank.service:service.py:52 Balance adjusted. New Initial: 1000

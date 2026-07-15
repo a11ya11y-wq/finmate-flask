@@ -1,0 +1,2 @@
+2026-07-15 18:20:57,972 - core_service.extensions - INFO - Redis connection successful to redis://localhost:6379/1
+2026-07-15 18:20:58,207 - core_service.auth.service - INFO - New user created with ID: 1

@@ -1,0 +1,1 @@
+INFO     core_service.profile.service:service.py:154 User 1: Initial point recalculated to 700

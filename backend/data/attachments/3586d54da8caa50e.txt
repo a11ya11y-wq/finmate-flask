@@ -1,0 +1,11 @@
+2026-07-15 18:20:59,201 - core_service.budgets.service - INFO - New budget created for user 1 in category 1
+2026-07-15 18:20:59,204 - core_service.utils.caching - INFO - No cache entries found for pattern: budgets:1
+2026-07-15 18:20:59,208 - core_service.budgets.service - INFO - New budget created for user 1 in category 2
+2026-07-15 18:20:59,211 - core_service.utils.caching - INFO - No cache entries found for pattern: budgets:1
+2026-07-15 18:20:59,215 - core_service.budgets.service - INFO - New budget created for user 1 in category 3
+2026-07-15 18:20:59,218 - core_service.utils.caching - INFO - No cache entries found for pattern: budgets:1
+2026-07-15 18:20:59,223 - core_service.budgets.service - INFO - New budget created for user 1 in category 4
+2026-07-15 18:20:59,226 - core_service.utils.caching - INFO - No cache entries found for pattern: budgets:1
+2026-07-15 18:20:59,233 - core_service.budgets.service - INFO - New budget created for user 1 in category 5
+2026-07-15 18:20:59,236 - core_service.utils.caching - INFO - No cache entries found for pattern: budgets:1
+2026-07-15 18:20:59,242 - core_service.utils.error_parser - WARNING - Business error on /api/v1/budgets/: You have reached the limit of 5 budgets

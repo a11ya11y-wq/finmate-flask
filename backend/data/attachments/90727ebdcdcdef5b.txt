@@ -1,0 +1,1 @@
+WARNING  core_service.transactions.service:service.py:105 Category 999 not found for update.

@@ -1,0 +1,2 @@
+WARNING  core_service.budgets.service:service.py:115 Attempt to delete non-existing budget 100 by user 1
+WARNING  core_service.utils.error_parser:error_parser.py:12 Business error on /api/v1/budgets/100: Budget 100 not found or access denied.

@@ -1,0 +1,2 @@
+INFO     core_service.profile.service:service.py:128 User 1 updated Monobank token.
+INFO     core_service.utils.caching:caching.py:73 No cache entries found for pattern: profile:1

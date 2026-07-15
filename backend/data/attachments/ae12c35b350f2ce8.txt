@@ -1,0 +1,1 @@
+WARNING  core_service.utils.error_parser:error_parser.py:25 Validation error on /api/v1/profile/change-password: ['Value error, New password cannot be the same as old password']

@@ -1,0 +1,1 @@
+WARNING  core_service.categories.service:service.py:47 Category creation failed: duplicate name Food for user 1

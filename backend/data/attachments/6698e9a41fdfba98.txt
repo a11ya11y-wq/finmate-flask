@@ -1,0 +1,1 @@
+INFO     core_service.auth.service:service.py:147 New user created with ID: 99

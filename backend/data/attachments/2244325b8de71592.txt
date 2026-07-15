@@ -1,0 +1,1 @@
+INFO     core_service.categories.service:service.py:118 Category 1 deleted for user 1

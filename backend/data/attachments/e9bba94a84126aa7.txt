@@ -1,0 +1,1 @@
+INFO     core_service.auth.service:service.py:122 Access token refreshed for user 142
