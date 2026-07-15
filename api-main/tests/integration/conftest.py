@@ -10,12 +10,6 @@ from flask_jwt_extended import create_access_token
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 
-def pytest_collection_modifyitems(items):
-    for item in items:
-        item.add_marker(allure.suite("Integration Tests"))
-        item.add_marker(allure.parent_suite("FinMate Backend"))
-
-
 @pytest.fixture(scope="session")
 @allure.title("Prepare DB for tests")
 def init_database(app):

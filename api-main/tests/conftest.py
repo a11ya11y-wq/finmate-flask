@@ -7,6 +7,15 @@ from core_service import create_app, db
 os.environ["FLASK_CONFIG"] = "testing"
 
 
+def pytest_collection_modifyitems(items):
+    for item in items:
+        item.add_marker(allure.parent_suite("FinMate Backend"))
+        if "integration" in str(item.path):
+            item.add_marker(allure.suite("Integration Tests"))
+        elif "unit" in str(item.path):
+            item.add_marker(allure.suite("Unit Tests"))
+
+
 @pytest.fixture(scope="session")
 @allure.title("Initializing a Test Flask Application (Session)")
 def app():
