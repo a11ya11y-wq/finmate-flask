@@ -19,6 +19,9 @@ __pycache__/
 *.pyo
 *.pyd
 
+allure-results/
+api-main/allure-results/
+
 api-main/.idea/
 .idea/
 .vscode/

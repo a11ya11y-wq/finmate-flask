@@ -70,7 +70,7 @@ jobs:
           ENCRYPTION_KEY: ${{ secrets.TEST_ENCRYPTION_KEY }}
           JWT_SECRET_KEY: ${{ secrets.TEST_JWT_SECRET }}
         run: |
-          python -m pytest tests/ --cov=core_service --cov-report=html
+          python -m pytest tests/ --cov=core_service --cov-report=html --alluredir=allure-results
 
       - name: Upload Pytest Coverage Artifact
         if: always()
@@ -78,6 +78,14 @@ jobs:
         with:
           name: backend-coverage
           path: api-main/htmlcov/
+          retention-days: 7
+          
+      - name: Upload Backend Allure Results Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-allure-results
+          path: api-main/allure-results/
           retention-days: 7
 
   e2e-tests:
@@ -221,18 +229,23 @@ jobs:
       id-token: write
 
     steps:
-
       - name: Download Pytest Coverage
         uses: actions/download-artifact@v4
         with:
           name: backend-coverage
           path: public/coverage
 
-      - name: Download Allure Results
+      - name: Download E2E Allure Results
         uses: actions/download-artifact@v4
         with:
           name: allure-results
-          path: allure-results
+          path: e2e-allure-results
+
+      - name: Download Backend Allure Results
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-allure-results
+          path: backend-allure-results
 
       - name: Get old Allure history
         uses: actions/checkout@v4
@@ -243,16 +256,26 @@ jobs:
 
       - name: Copy Allure history
         run: |
-          mkdir -p allure-results/history
-          cp -r gh-pages-dir/e2e/history/* allure-results/history/ || true
+          mkdir -p e2e-allure-results/history
+          cp -r gh-pages-dir/e2e/history/* e2e-allure-results/history/ || true
+          mkdir -p backend-allure-results/history
+          cp -r gh-pages-dir/backend/history/* backend-allure-results/history/ || true
 
-      - name: Generate Allure HTML Report
+      - name: Generate Backend Allure HTML Report
         uses: simple-elf/allure-report-action@master
         if: always()
         with:
-          allure_results: allure-results
+          allure_results: backend-allure-results
+          allure_report: public/backend
+          allure_history: backend-allure-history
+
+      - name: Generate E2E Allure HTML Report
+        uses: simple-elf/allure-report-action@master
+        if: always()
+        with:
+          allure_results: e2e-allure-results
           allure_report: public/e2e
-          allure_history: allure-history
+          allure_history: e2e-allure-history
 
       - name: Create Index Page
         run: |
@@ -272,6 +295,7 @@ jobs:
           <body>
               <h1>FinMate CI/CD Reports</h1>
               <a href="coverage/index.html" class="btn">Backend Coverage (Pytest)</a>
+              <a href="backend/index.html" class="btn">Backend Tests (Allure)</a>
               <a href="e2e/index.html" class="btn">E2E Tests (Allure)</a>
           </body>
           </html>
