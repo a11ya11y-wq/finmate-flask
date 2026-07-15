@@ -4,6 +4,12 @@ import allure
 import pytest
 
 
+def pytest_collection_modifyitems(items):
+    for item in items:
+        item.add_marker(allure.suite("Unit Tests"))
+        item.add_marker(allure.parent_suite("FinMate Backend"))
+
+
 @pytest.fixture(scope="function", autouse=True)
 @allure.title("Mocking Redis Client and Cache Invalidation")
 def mock_redis_client(mocker):

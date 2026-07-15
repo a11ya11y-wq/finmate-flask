@@ -262,6 +262,92 @@ class TestUpdateCategory:
             ):
                 service.update_category(user_id, update_data, cat_id)
 
+    @allure.title("Validation errors on invalid category update")
+    @allure.severity(allure.severity_level.CRITICAL)
+    @pytest.mark.parametrize(
+        "invalid_data",
+        [
+            {"name": ""},  # Empty name
+            {"name": "x" * 51},  # Name too long
+            {"icon": "x" * 51},  # Icon too long
+        ],
+    )
+    def test_update_category_validation_error(self, category_uow, invalid_data):
+        with allure.step("Arrange: Initialize service"):
+            user_id = 1
+            cat_id = 1
+            service = CategoryService(category_uow)
+
+        with allure.step("Act & Assert: Expect ValidationError"):
+            with pytest.raises(ValidationError):
+                service.update_category(user_id, invalid_data, cat_id)
+
+        with allure.step("Assert: Ensure DB was not modified"):
+            category_uow.categories.get_by_id_and_user.assert_not_called()
+            category_uow.categories.update_category.assert_not_called()
+
+    @allure.title("Fail to update category with invalid icon")
+    @allure.severity(allure.severity_level.NORMAL)
+    def test_update_cat_invalid_icon(self, category_uow):
+        with allure.step("Arrange: Initialize service and invalid payload"):
+            user_id = 1
+            cat_id = 1
+            update_data = {"icon": "invalid-icon"}
+            service = CategoryService(category_uow)
+
+        with allure.step("Act & Assert: Expect BusinessLogicError"):
+            with pytest.raises(
+                BusinessLogicError, match="Icon invalid-icon is not allowed"
+            ):
+                service.update_category(user_id, update_data, cat_id)
+
+        with allure.step("Assert: Ensure DB was not modified"):
+            category_uow.categories.get_by_id_and_user.assert_not_called()
+            category_uow.categories.update_category.assert_not_called()
+
+    @allure.title("Fail to update non-existent category")
+    @allure.severity(allure.severity_level.NORMAL)
+    def test_update_category_not_found(self, category_uow):
+        with allure.step("Arrange: Mock category missing"):
+            user_id = 1
+            cat_id = 999
+            update_data = {"name": "Updated Name"}
+            category_uow.categories.get_by_id_and_user.return_value = None
+            service = CategoryService(category_uow)
+
+        with allure.step("Act & Assert: Expect ResourceNotFound"):
+            with pytest.raises(
+                ResourceNotFound, match="Category 999 not found or access denied"
+            ):
+                service.update_category(user_id, update_data, cat_id)
+
+        with allure.step("Assert: Verify DB check was made"):
+            category_uow.categories.get_by_id_and_user.assert_called_once_with(
+                cat_id, user_id
+            )
+            category_uow.categories.update_category.assert_not_called()
+
+    @allure.title("Fail update if no valid changes provided")
+    @allure.severity(allure.severity_level.MINOR)
+    def test_update_category_no_valid_changes(self, category_uow):
+        with allure.step("Arrange: Mock category and empty payload"):
+            user_id = 1
+            cat_id = 1
+            update_data = {}
+            cat_to_update = MagicMock(**SUCCESS_CATEGORY_DATA)
+            category_uow.categories.get_by_id_and_user.return_value = cat_to_update
+            service = CategoryService(category_uow)
+
+        with allure.step("Act & Assert: Expect BusinessLogicError"):
+            with pytest.raises(BusinessLogicError, match="No data provided for update"):
+                service.update_category(user_id, update_data, cat_id)
+
+        with allure.step("Assert: Ensure update was not called"):
+            category_uow.categories.get_by_id_and_user.assert_called_once_with(
+                cat_id, user_id
+            )
+            category_uow.categories.update_category.assert_not_called()
+
 
 @allure.feature("Category Management")
 @allure.story("Delete Category")
@@ -344,3 +430,53 @@ class TestDeleteCategory:
                 match="Cannot delete category. It is associated with existing budgets",
             ):
                 service.delete_category(cat_id, user_id)
+
+    @allure.title("Fail to delete non-existent category")
+    @allure.severity(allure.severity_level.NORMAL)
+    def test_delete_category_not_found(self, category_uow):
+        with allure.step("Arrange: Mock category missing"):
+            user_id = 1
+            cat_id = 999
+            category_uow.categories.get_cat_by_id_and_user.return_value = None
+            service = CategoryService(category_uow)
+
+        with allure.step("Act & Assert: Expect ResourceNotFound"):
+            with pytest.raises(
+                ResourceNotFound, match="Category 999 not found or access denied"
+            ):
+                service.delete_category(cat_id, user_id)
+
+        with allure.step("Assert: Verify DB check was made"):
+            category_uow.categories.get_cat_by_id_and_user.assert_called_once_with(
+                cat_id, user_id
+            )
+            category_uow.categories.delete_category.assert_not_called()
+
+    @allure.title("Fail to delete category with both transactions and budgets")
+    @allure.severity(allure.severity_level.CRITICAL)
+    def test_delete_category_with_related_transactions_and_budgets(self, category_uow):
+        with allure.step("Arrange: Mock existing dependencies"):
+            user_id = 1
+            cat_id = 1
+            cat_to_delete = MagicMock(**SUCCESS_CATEGORY_DATA)
+            category_uow.categories.get_cat_by_id_and_user.return_value = cat_to_delete
+            category_uow.transactions.get_count_by_category.return_value = 5
+            category_uow.budget.get_by_category_and_user.return_value = MagicMock()
+            service = CategoryService(category_uow)
+
+        with allure.step("Act & Assert: Expect BusinessLogicError"):
+            with pytest.raises(
+                BusinessLogicError,
+                match="Cannot delete category. It has 5 related transactions",
+            ):
+                service.delete_category(cat_id, user_id)
+
+        with allure.step("Assert: Verify checks stopped at transactions"):
+            category_uow.categories.get_cat_by_id_and_user.assert_called_once_with(
+                cat_id, user_id
+            )
+            category_uow.transactions.get_count_by_category.assert_called_once_with(
+                user_id, cat_id
+            )
+            category_uow.budget.get_by_category_and_user.assert_not_called()
+            category_uow.categories.delete_category.assert_not_called()
