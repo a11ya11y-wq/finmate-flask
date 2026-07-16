@@ -74,7 +74,7 @@ def auth_headers(db_session):
     return {"Authorization": f"Bearer {access_token}"}
 
 
-@pytest.fixture(scope="function", autouse=True)
+@pytest.fixture(scope="function")
 @allure.title("Izolated Redis client for test")
 def test_redis(app):
 

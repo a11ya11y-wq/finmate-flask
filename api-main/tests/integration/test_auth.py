@@ -158,19 +158,41 @@ class TestLogin:
             assert "Invalid email or password" in str(response.get_json())
 
 
-# @allure.feature("Authentication")
-# @allure.story("Logout User")
-# class TestLogout:
+BASE_TRANSACTION_JSON = {
+    "amount": 100.0,
+    "title": "TEST_TITLE",
+    "transaction_type": "expense",
+    "category_id": 1,
+}
 
-#     @allure.title("Successfully logout user and invalidate JWT token")
-#     @allure.severity(allure.severity_level.BLOCKER)
-#     def test_logout_success(self, client, auth_headers):
-#         with allure.step(
-#             "Act: Send POST to /api/v1/auth/logout with valid auth headers"
-#         ):
-#             response = client.post("/api/v1/auth/logout", headers=auth_headers)
 
-#         with allure.step("Assert: Verify 200 OK and success message"):
-#             assert response.status_code == 200
-#             json_data = response.get_json()
-#             assert "Successfully logged out" in str(json_data)
+@allure.feature("Authentication")
+@allure.story("Logout User")
+class TestLogout:
+
+    @allure.title("Successfully logout user and invalidate JWT token")
+    @allure.severity(allure.severity_level.BLOCKER)
+    def test_logout_success(self, client, auth_headers):
+        with allure.step(
+            "Act: Send POST to /api/v1/auth/logout with valid auth headers"
+        ):
+            response = client.post("/api/v1/auth/logout", headers=auth_headers)
+
+        with allure.step("Assert: Verify 200 OK and success message"):
+            assert response.status_code == 200
+            json_data = response.get_json()
+            assert "Successfully logged out" in str(json_data)
+
+        with allure.step(
+            "Act: Attempt to access protected endpoint with the same token"
+        ):
+            response = client.post(
+                "/api/v1/transactions/",
+                json=BASE_TRANSACTION_JSON,
+                headers=auth_headers,
+            )
+
+        with allure.step("Assert: Verify 401 Unauthorized for subsequent requests"):
+            assert response.status_code == 401
+            json_data = response.get_json()
+            assert "The token has been revoked. Please log in again." in str(json_data)
