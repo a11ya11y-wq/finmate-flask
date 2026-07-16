@@ -7,7 +7,6 @@ from werkzeug.security import generate_password_hash
 
 @allure.feature("Profile Management")
 @allure.story("Retrieve Profile")
-@pytest.mark.usefixtures("db_session")
 class TestGetUser:
 
     @allure.title("Successfully retrieve current user profile")
@@ -31,7 +30,6 @@ class TestGetUser:
 
 @allure.feature("Profile Management")
 @allure.story("Update Profile")
-@pytest.mark.usefixtures("db_session")
 class TestUpdateUser:
 
     @allure.title("Successfully update user profile data")
@@ -70,7 +68,6 @@ class TestUpdateUser:
 
 @allure.feature("Profile Management")
 @allure.story("Delete Account")
-@pytest.mark.usefixtures("db_session")
 class TestDeleteAccount:
 
     @allure.title("Successfully delete user account")
@@ -153,7 +150,6 @@ change_pass_failed_json = [
 
 @allure.feature("Profile Management")
 @allure.story("Change Password")
-@pytest.mark.usefixtures("db_session")
 class TestChangePassword:
 
     @allure.title("Successfully change user password")
@@ -203,7 +199,6 @@ class TestChangePassword:
 
 @allure.feature("Profile Management")
 @allure.story("Update Currency")
-@pytest.mark.usefixtures("db_session")
 class TestChangeCurrency:
 
     @allure.title("Successfully change user currency")
@@ -240,7 +235,6 @@ class TestChangeCurrency:
 
 @allure.feature("Profile Management")
 @allure.story("Monobank Token Management")
-@pytest.mark.usefixtures("db_session")
 class TestChangeToken:
 
     @allure.title("Successfully update Monobank token")

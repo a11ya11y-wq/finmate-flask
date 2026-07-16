@@ -4,7 +4,6 @@ import pytest
 
 @allure.feature("Dashboard")
 @allure.story("Retrieve Dashboard Data")
-@pytest.mark.usefixtures("db_session")
 class TestGetDashboard:
 
     @allure.title("Successfully retrieve default dashboard data")

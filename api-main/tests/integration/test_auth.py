@@ -55,7 +55,6 @@ registered_users = [
 
 @allure.feature("User Management")
 @allure.story("Registration")
-@pytest.mark.usefixtures("db_session")
 class TestRegister:
 
     @allure.title("Successfully register a new user via API")
@@ -105,7 +104,6 @@ class TestRegister:
 
 @allure.feature("Authentication")
 @allure.story("Login User")
-@pytest.mark.usefixtures("db_session")
 class TestLogin:
 
     @allure.title("Successfully login user and receive JWT token")
@@ -160,4 +158,19 @@ class TestLogin:
             assert "Invalid email or password" in str(response.get_json())
 
 
-# TODO: Add and test logout
+# @allure.feature("Authentication")
+# @allure.story("Logout User")
+# class TestLogout:
+
+#     @allure.title("Successfully logout user and invalidate JWT token")
+#     @allure.severity(allure.severity_level.BLOCKER)
+#     def test_logout_success(self, client, auth_headers):
+#         with allure.step(
+#             "Act: Send POST to /api/v1/auth/logout with valid auth headers"
+#         ):
+#             response = client.post("/api/v1/auth/logout", headers=auth_headers)
+
+#         with allure.step("Assert: Verify 200 OK and success message"):
+#             assert response.status_code == 200
+#             json_data = response.get_json()
+#             assert "Successfully logged out" in str(json_data)
