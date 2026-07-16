@@ -124,6 +124,19 @@ class TestLogin:
             json_data = response.get_json()
             assert "access_token" in json_data
 
+        with allure.step("Assert: Verify refresh token is set in HttpOnly cookie"):
+            cookies = response.headers.getlist("Set-Cookie")
+
+            refresh_cookie = next(
+                (c for c in cookies if "finmate_refresh_token" in c), None
+            )
+
+            assert refresh_cookie is not None, "Refresh token cookie is missing"
+            assert "HttpOnly" in refresh_cookie, "Cookie is missing HttpOnly flag!"
+            assert (
+                "Path=/api/v1/auth/refresh" in refresh_cookie
+            ), "Cookie path is incorrect"
+
     @allure.title("Fail login for non-existent user")
     @allure.severity(allure.severity_level.CRITICAL)
     def test_login_no_user(self, client):
@@ -173,26 +186,32 @@ class TestLogout:
     @allure.title("Successfully logout user and invalidate JWT token")
     @allure.severity(allure.severity_level.BLOCKER)
     def test_logout_success(self, client, auth_headers):
-        with allure.step(
-            "Act: Send POST to /api/v1/auth/logout with valid auth headers"
-        ):
-            response = client.post("/api/v1/auth/logout", headers=auth_headers)
+        with allure.step("Act: Send POST to /api/v1/auth/logout"):
+            logout_response = client.post("/api/v1/auth/logout", headers=auth_headers)
 
         with allure.step("Assert: Verify 200 OK and success message"):
-            assert response.status_code == 200
-            json_data = response.get_json()
-            assert "Successfully logged out" in str(json_data)
+            assert logout_response.status_code == 200
+            assert "Successfully logged out" in str(logout_response.get_json())
 
-        with allure.step(
-            "Act: Attempt to access protected endpoint with the same token"
-        ):
-            response = client.post(
+        with allure.step("Assert: Verify refresh token cookie is cleared"):
+            cookies = logout_response.headers.getlist("Set-Cookie")
+            refresh_cookie = next(
+                (c for c in cookies if "finmate_refresh_token" in c), None
+            )
+            assert refresh_cookie is not None, "Clear cookie instruction is missing"
+
+            assert (
+                "finmate_refresh_token=;" in refresh_cookie
+                or 'finmate_refresh_token=""' in refresh_cookie
+            )
+
+        with allure.step("Act: Attempt to access protected endpoint"):
+            tx_response = client.post(
                 "/api/v1/transactions/",
                 json=BASE_TRANSACTION_JSON,
                 headers=auth_headers,
             )
 
         with allure.step("Assert: Verify 401 Unauthorized for subsequent requests"):
-            assert response.status_code == 401
-            json_data = response.get_json()
-            assert "The token has been revoked. Please log in again." in str(json_data)
+            assert tx_response.status_code == 401
+            assert "The token has been revoked" in str(tx_response.get_json())
