@@ -215,3 +215,73 @@ class TestLogout:
         with allure.step("Assert: Verify 401 Unauthorized for subsequent requests"):
             assert tx_response.status_code == 401
             assert "The token has been revoked" in str(tx_response.get_json())
+
+
+@allure.title("Successfully refresh access token using valid refresh token")
+@allure.feature("Authentication")
+@allure.story("Refresh Token")
+class TestRefreshAccessToken:
+
+    @allure.title("Successfully refresh access token")
+    @allure.severity(allure.severity_level.CRITICAL)
+    def test_refresh_success(self, client):
+        with allure.step("Arrange: Register and login to set refresh cookie"):
+            client.post("/api/v1/auth/register", json=BASE_REGISTER_JSON)
+            login_data = {
+                "email": BASE_REGISTER_JSON["email"],
+                "password": BASE_REGISTER_JSON["password"],
+            }
+
+            client.post("/api/v1/auth/login", json=login_data)
+
+        with allure.step("Act: Send POST to /api/v1/auth/refresh"):
+            response = client.post("/api/v1/auth/refresh")
+
+        with allure.step("Assert: Verify 200 OK and new access_token"):
+            assert response.status_code == 200
+            json_data = response.get_json()
+            assert "access_token" in json_data
+
+    @allure.title("Fail refresh without refresh cookie")
+    @allure.severity(allure.severity_level.NORMAL)
+    def test_refresh_no_cookie(self, client):
+        with allure.step("Act: Send POST to /refresh with clean client"):
+            response = client.post("/api/v1/auth/refresh")
+
+        with allure.step("Assert: Verify 401 Unauthorized"):
+            assert response.status_code == 401
+            assert "Session expired, please login again" in str(response.get_json())
+
+    @allure.title("Fail refresh with revoked/logged out token")
+    @allure.severity(allure.severity_level.CRITICAL)
+    def test_refresh_after_logout(self, client):
+        with allure.step("Arrange: Login, save cookie, and logout"):
+            client.post("/api/v1/auth/register", json=BASE_REGISTER_JSON)
+            login_data = {
+                "email": BASE_REGISTER_JSON["email"],
+                "password": BASE_REGISTER_JSON["password"],
+            }
+            login_resp = client.post("/api/v1/auth/login", json=login_data)
+
+            cookies = login_resp.headers.getlist("Set-Cookie")
+            raw_cookie = next((c for c in cookies if "finmate_refresh_token" in c), "")
+            old_token_value = raw_cookie.split("finmate_refresh_token=")[1].split(";")[
+                0
+            ]
+            access_token = login_resp.get_json()["access_token"]
+            client.post(
+                "/api/v1/auth/logout",
+                headers={"Authorization": f"Bearer {access_token}"},
+            )
+
+        with allure.step("Act: Forcefully inject old refresh cookie and send request"):
+            response = client.post(
+                "/api/v1/auth/refresh",
+                headers={"Cookie": f"finmate_refresh_token={old_token_value}"},
+            )
+
+        with allure.step("Assert: Verify 401 Unauthorized for revoked session"):
+            assert response.status_code == 401
+            assert "Missing refresh token, please login again" in str(
+                response.get_json()
+            )
