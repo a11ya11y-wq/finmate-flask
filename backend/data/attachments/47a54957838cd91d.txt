@@ -1,0 +1,1 @@
+2026-07-28 11:36:19,109 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/transactions/: ['amount: Decimal input should have no more than 2 decimal places']

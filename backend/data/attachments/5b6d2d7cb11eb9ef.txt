@@ -1,2 +1,0 @@
-2026-07-15 18:30:39,837 - core_service.reports.service - ERROR - Report 17 marked as success but no fileUrl provided in Redis result.
-2026-07-15 18:30:39,839 - core_service.utils.caching - INFO - No cache entries found for pattern: reports:1*

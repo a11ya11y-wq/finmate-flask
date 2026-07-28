@@ -1,1 +1,0 @@
-2026-07-15 18:30:40,092 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/transactions/: ['created_at: Input should be a valid datetime or date, input is too short']

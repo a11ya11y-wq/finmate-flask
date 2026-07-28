@@ -1,1 +1,0 @@
-2026-07-15 18:30:39,330 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/profile/change-password: ['Value error, New password cannot be the same as old password']
