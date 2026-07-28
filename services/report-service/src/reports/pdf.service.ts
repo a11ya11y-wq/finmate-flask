@@ -20,7 +20,8 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
   constructor() {
     this.s3 = new S3Client({
       endpoint: process.env.DO_SPACES_ENDPOINT,
-      region: process.env.DO_SPACES_REGION || 'us-east-1',
+      region: process.env.DO_SPACES_REGION || 'auto',
+      forcePathStyle: true,
       credentials: {
         accessKeyId: process.env.DO_SPACES_KEY!,
         secretAccessKey: process.env.DO_SPACES_SECRET!,
