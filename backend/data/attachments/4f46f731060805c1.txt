@@ -1,1 +1,0 @@
-2026-07-28 11:36:20,614 - core_service.budgets.service - INFO - Budget 1 deleted for user 1

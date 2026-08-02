@@ -1,0 +1,2 @@
+ERROR    core_service.reports.service:service.py:207 Report 17 marked as success but no fileKey provided in Redis result.
+INFO     core_service.utils.caching:caching.py:73 No cache entries found for pattern: reports:1*

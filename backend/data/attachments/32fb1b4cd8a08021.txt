@@ -1,0 +1,5 @@
+2026-08-02 17:22:02,015 - core_service.reports.routes - INFO - Received request to generate PDF report for user 1
+2026-08-02 17:22:02,018 - core_service.reports.service - INFO - Existing report found for user_id: 1 in the specified period. Returning existing report.
+2026-08-02 17:22:02,018 - core_service.reports.service - INFO - Report 7 expired. Generating a new one.
+2026-08-02 17:22:02,025 - core_service.reports.service - INFO - Report generation task enqueued for user_id: 1 with report_id: 8
+2026-08-02 17:22:02,026 - core_service.utils.caching - INFO - No cache entries found for pattern: reports:1*

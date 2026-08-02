@@ -1,3 +1,0 @@
-2026-07-28 11:36:16,847 - core_service.budgets.service - INFO - New budget created for user 1 in category 1
-2026-07-28 11:36:16,850 - core_service.utils.caching - INFO - No cache entries found for pattern: budgets:1
-2026-07-28 11:36:16,852 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/budgets/: ['amount: Decimal input should have no more than 2 decimal places']

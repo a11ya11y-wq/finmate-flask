@@ -1,0 +1,3 @@
+INFO     core_service.reports.service:service.py:46 Existing report found for user_id: 1 in the specified period. Returning existing report.
+INFO     core_service.reports.service:service.py:55 Report 46 expired. Generating a new one.
+INFO     core_service.reports.service:service.py:125 Report generation task enqueued for user_id: 1 with report_id: 47

@@ -1,1 +1,0 @@
-2026-07-28 11:36:20,660 - core_service.categories.service - INFO - New category created for user 1 with name Food

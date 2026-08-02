@@ -1,0 +1,1 @@
+WARNING  core_service.reports.service:service.py:147 Report with id 999 not found for user_id: 1

@@ -1,0 +1,1 @@
+WARNING  core_service.reports.service:service.py:39 User entity not found for user_id: 999

@@ -1,1 +1,0 @@
-2026-07-28 11:36:22,189 - core_service.reports.service - INFO - Report generation task enqueued for user_id: 1 with report_id: 42

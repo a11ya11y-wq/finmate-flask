@@ -1,0 +1,4 @@
+2026-08-02 17:22:03,457 - core_service.utils.caching - INFO - No cache entries found for pattern: dashboard:1:*
+2026-08-02 17:22:03,457 - core_service.utils.caching - INFO - No cache entries found for pattern: categories:1
+2026-08-02 17:22:03,458 - core_service.utils.caching - INFO - No cache entries found for pattern: budgets:1
+2026-08-02 17:22:03,459 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/transactions/48: ['note: String should have at most 128 characters']

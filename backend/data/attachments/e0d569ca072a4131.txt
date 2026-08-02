@@ -1,0 +1,2 @@
+2026-08-02 17:22:03,531 - core_service.transactions.service - WARNING - Transaction 100 not found for deletion.
+2026-08-02 17:22:03,532 - core_service.utils.error_parser - WARNING - Business error on /api/v1/transactions/100: Transaction 100 not found or access denied.

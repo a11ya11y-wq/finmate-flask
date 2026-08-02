@@ -1,0 +1,1 @@
+INFO     core_service.reports.service:service.py:125 Report generation task enqueued for user_id: 1 with report_id: 42

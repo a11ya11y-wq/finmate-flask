@@ -1,1 +1,0 @@
-INFO     core_service.reports.service:service.py:79 No transactions found for user_id: 1 in the specified period.

@@ -1,2 +1,0 @@
-WARNING  core_service.reports.service:service.py:115 Report with id 999 not found for user_id: 1
-WARNING  core_service.utils.error_parser:error_parser.py:12 Business error on /api/v1/report/generate-pdf/999/status: Report not found or access denied.

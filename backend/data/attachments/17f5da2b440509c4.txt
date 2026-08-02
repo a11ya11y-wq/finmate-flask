@@ -1,1 +1,0 @@
-2026-07-28 11:36:18,128 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/profile/change-password: ['Value error, New password and confirmation do not match']

@@ -1,0 +1,5 @@
+INFO     core_service.reports.routes:routes.py:20 Received request to generate PDF report for user 1
+INFO     core_service.reports.service:service.py:46 Existing report found for user_id: 1 in the specified period. Returning existing report.
+INFO     core_service.reports.service:service.py:55 Report 7 expired. Generating a new one.
+INFO     core_service.reports.service:service.py:125 Report generation task enqueued for user_id: 1 with report_id: 8
+INFO     core_service.utils.caching:caching.py:73 No cache entries found for pattern: reports:1*
