@@ -1,2 +1,0 @@
-2026-08-02 17:52:46,324 - core_service.profile.service - INFO - User 1 deleted Monobank token.
-2026-08-02 17:52:46,325 - core_service.utils.caching - INFO - No cache entries found for pattern: profile:1

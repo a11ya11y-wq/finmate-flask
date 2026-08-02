@@ -1,3 +1,0 @@
-2026-08-02 17:52:44,562 - core_service.budgets.service - INFO - New budget created for user 1 in category 1
-2026-08-02 17:52:44,565 - core_service.utils.caching - INFO - No cache entries found for pattern: budgets:1
-2026-08-02 17:52:44,566 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/budgets/: ['amount: Input should be greater than 0']

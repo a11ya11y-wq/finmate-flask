@@ -1,0 +1,1 @@
+2026-08-02 18:09:08,329 - core_service.monobank.service - WARNING - Monobank sync failed: API token not found or access denied for user 1
