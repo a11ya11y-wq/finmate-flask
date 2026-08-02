@@ -19,12 +19,12 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
 
   constructor() {
     this.s3 = new S3Client({
-      endpoint: process.env.DO_SPACES_ENDPOINT,
-      region: process.env.DO_SPACES_REGION || 'auto',
+      endpoint: process.env.CLOUDFLARE_R2_ENDPOINT,
+      region: process.env.CLOUDFLARE_R2_REGION || 'auto',
       forcePathStyle: true,
       credentials: {
-        accessKeyId: process.env.DO_SPACES_KEY!,
-        secretAccessKey: process.env.DO_SPACES_SECRET!,
+        accessKeyId: process.env.CLOUDFLARE_R2_KEY!,
+        secretAccessKey: process.env.CLOUDFLARE_R2_SECRET!,
       },
     });
   }
@@ -119,17 +119,18 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
       const pdfBuffer = await page.pdf({ format: 'A4', printBackground: true });
 
       const command = new PutObjectCommand({
-        Bucket: process.env.DO_SPACES_BUCKET,
+        Bucket: process.env.CLOUDFLARE_R2_BUCKET,
         Key: fileName,
         Body: pdfBuffer,
-        ACL: 'public-read',
         ContentType: 'application/pdf',
       });
 
       await this.s3.send(command);
-      this.logger.log(`File ${fileName} successfully uploaded to DO Spaces`);
+      this.logger.log(
+        `File ${fileName} successfully uploaded to CLOUDFLARE_R2`,
+      );
 
-      return `${process.env.DO_SPACES_ENDPOINT}/${process.env.DO_SPACES_BUCKET}/${fileName}`; // fileUrl
+      return fileName; // fileKey
     } catch (error) {
       this.logger.error(
         `Failed to generate PDF report: ${error instanceof Error ? error.message : error}`,
