@@ -1,3 +1,0 @@
-2026-08-02 17:22:05,308 - core_service.monobank.service - INFO - Selected Account ID for sync: BLACK_UAH
-2026-08-02 17:22:05,309 - core_service.monobank.service - INFO - No new transactions to add for user 1 from Monobank.
-2026-08-02 17:22:05,309 - core_service.monobank.service - INFO - Balance adjusted. New Initial: 1000

@@ -1,0 +1,2 @@
+2026-08-02 17:52:47,938 - core_service.transactions.service - WARNING - Transaction 1 not found.
+2026-08-02 17:52:47,938 - core_service.utils.error_parser - WARNING - Business error on /api/v1/transactions/1: Transaction 1 not found or access denied.

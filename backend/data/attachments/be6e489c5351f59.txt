@@ -1,0 +1,3 @@
+2026-08-02 17:52:46,605 - core_service.reports.routes - INFO - Received request to generate PDF report for user 999
+2026-08-02 17:52:46,607 - core_service.reports.service - WARNING - User entity not found for user_id: 999
+2026-08-02 17:52:46,608 - core_service.utils.error_parser - WARNING - Business error on /api/v1/report/generate-pdf: User not found.

@@ -1,4 +1,0 @@
-2026-08-02 17:22:03,327 - core_service.utils.caching - INFO - No cache entries found for pattern: dashboard:1:*
-2026-08-02 17:22:03,328 - core_service.utils.caching - INFO - No cache entries found for pattern: categories:1
-2026-08-02 17:22:03,328 - core_service.utils.caching - INFO - No cache entries found for pattern: budgets:1
-2026-08-02 17:22:03,330 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/transactions/43: ['created_at: Input should be a valid datetime or date, day value is outside expected range']

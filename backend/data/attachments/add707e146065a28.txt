@@ -1,0 +1,4 @@
+2026-08-02 17:52:47,802 - core_service.utils.caching - INFO - No cache entries found for pattern: dashboard:1:*
+2026-08-02 17:52:47,802 - core_service.utils.caching - INFO - No cache entries found for pattern: categories:1
+2026-08-02 17:52:47,802 - core_service.utils.caching - INFO - No cache entries found for pattern: budgets:1
+2026-08-02 17:52:47,804 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/transactions/47: ['title: String should have at most 50 characters']

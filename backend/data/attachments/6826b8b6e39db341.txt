@@ -1,0 +1,4 @@
+2026-08-02 17:52:47,497 - core_service.utils.caching - INFO - No cache entries found for pattern: dashboard:1:*
+2026-08-02 17:52:47,498 - core_service.utils.caching - INFO - No cache entries found for pattern: categories:1
+2026-08-02 17:52:47,498 - core_service.utils.caching - INFO - No cache entries found for pattern: budgets:1
+2026-08-02 17:52:47,499 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/transactions/34: ['amount: Input should be a valid decimal']
