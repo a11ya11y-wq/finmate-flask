@@ -117,6 +117,7 @@ jobs:
           CLOUDFLARE_R2_ENDPOINT=${{ secrets.CLOUDFLARE_R2_ENDPOINT }}
           CLOUDFLARE_R2_REGION=${{ secrets.CLOUDFLARE_R2_REGION }}
           CLOUDFLARE_R2_BUCKET=${{ secrets.CLOUDFLARE_R2_BUCKET }}
+          R2_PUBLIC_URL=${{ secrets.R2_PUBLIC_URL }}
           EOF
 
       - name: Start Database and Redis only
@@ -156,11 +157,6 @@ jobs:
               env_file:
                 - .env
               environment:
-                - DO_SPACES_KEY=${{ secrets.DO_SPACES_KEY }}
-                - DO_SPACES_SECRET=${{ secrets.DO_SPACES_SECRET }}
-                - DO_SPACES_ENDPOINT=${{ secrets.DO_SPACES_ENDPOINT }}
-                - DO_SPACES_REGION=${{ secrets.DO_SPACES_REGION }}
-                - DO_SPACES_BUCKET=${{ secrets.DO_SPACES_BUCKET }}
                 - REDIS_HOST=redis
                 - REPORT_REDIS_URL=redis://redis:6379/1
           EOF
