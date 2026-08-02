@@ -1,0 +1,2 @@
+2026-08-02 18:59:54,471 - core_service.reports.routes - INFO - Received request to generate PDF report for user 1
+2026-08-02 18:59:54,472 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/report/generate-pdf: ['endDate: Field required']

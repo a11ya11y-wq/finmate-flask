@@ -1,0 +1,4 @@
+2026-08-02 18:59:53,305 - core_service.categories.service - INFO - New category created for user 1 with name TEST_CAT
+2026-08-02 18:59:53,306 - core_service.utils.caching - INFO - No cache entries found for pattern: categories:1
+2026-08-02 18:59:53,306 - core_service.utils.caching - INFO - No cache entries found for pattern: dashboard:1:*
+2026-08-02 18:59:53,308 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/categories/46: ['name: Input should be a valid string']

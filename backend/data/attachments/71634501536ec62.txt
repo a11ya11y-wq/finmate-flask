@@ -1,0 +1,4 @@
+2026-08-02 18:59:57,373 - core_service.monobank.service - INFO - No correct card found in Monobank
+2026-08-02 18:59:57,373 - core_service.monobank.service - INFO - Selected Account ID for sync: ACC_ID_001
+2026-08-02 18:59:57,374 - core_service.monobank.service - INFO - No new transactions to add for user 1 from Monobank.
+2026-08-02 18:59:57,375 - core_service.monobank.service - INFO - Balance adjusted. New Initial: 1000
