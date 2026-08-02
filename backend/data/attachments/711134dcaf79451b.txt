@@ -1,0 +1,2 @@
+2026-08-02 18:35:15,314 - core_service.profile.service - WARNING - User entity not found for user_id: 99999
+2026-08-02 18:35:15,314 - core_service.utils.error_parser - WARNING - Business error on /api/v1/profile/me: User not found.

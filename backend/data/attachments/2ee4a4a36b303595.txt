@@ -1,0 +1,5 @@
+2026-08-02 18:35:17,149 - core_service.utils.caching - INFO - No cache entries found for pattern: dashboard:1:*
+2026-08-02 18:35:17,149 - core_service.utils.caching - INFO - No cache entries found for pattern: categories:1
+2026-08-02 18:35:17,149 - core_service.utils.caching - INFO - No cache entries found for pattern: budgets:1
+2026-08-02 18:35:17,153 - core_service.transactions.service - WARNING - Category 100 not found for update.
+2026-08-02 18:35:17,154 - core_service.utils.error_parser - WARNING - Business error on /api/v1/transactions/39: Category 100 not found or access denied.
