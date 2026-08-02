@@ -93,7 +93,7 @@ export class ReportWorkerService implements OnModuleInit {
         payload;
       this.logger.log(`Processing report task for report ID: ${reportId}`);
 
-      const fileUrl = await this.pdfService.generateTxReport(
+      const fileKey = await this.pdfService.generateTxReport(
         reportId,
         transactions,
         closingBalance,
@@ -106,7 +106,7 @@ export class ReportWorkerService implements OnModuleInit {
         3600,
         JSON.stringify({
           status: 'success',
-          fileUrl: fileUrl,
+          fileKey: fileKey,
         }),
       );
       this.logger.log(

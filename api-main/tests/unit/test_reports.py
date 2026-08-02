@@ -454,9 +454,12 @@ class TestGetReportStatus:
                 user_id=999,
             )
             report_uow.reports.get_report_by_id.return_value = existing_report
+            mock_updated_report = MagicMock()
+            mock_updated_report.file_url = "http://example.com/report.pdf"
+            report_uow.reports.update_report_status.return_value = mock_updated_report
             result_data = {
                 "status": "success",
-                "fileUrl": "http://example.com/report.pdf",
+                "fileKey": "report.pdf",
             }
             mock_redis_client.get.return_value = json.dumps(result_data)
             service = ReportService(report_uow)
