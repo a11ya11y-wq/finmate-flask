@@ -1,6 +1,7 @@
 import enum
 
 from core_service.extensions import db
+from flask import current_app
 from sqlalchemy import UniqueConstraint
 
 
@@ -29,6 +30,14 @@ class Reports(db.Model):
 
     def __repr__(self):
         return f"<Reports {self.file_key} for user {self.user_id}>"
+
+    @property
+    def file_url(self):
+        if not self.file_key:
+            return None
+
+        base_url = current_app.config.get("R2_PUBLIC_URL", "")
+        return f"{base_url}/{self.file_key}"
 
     def to_dict(self):
         return {

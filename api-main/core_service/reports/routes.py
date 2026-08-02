@@ -1,12 +1,12 @@
-from flask import request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
-
-from core_service.reports import bp
-from core_service.utils.error_parser import parse_exception
-from core_service.reports.service import ReportService
-from core_service.extensions import limiter
-from core_service.uow import UnitOfWork
 import logging
+
+from core_service.extensions import limiter
+from core_service.reports import bp
+from core_service.reports.service import ReportService
+from core_service.uow import UnitOfWork
+from core_service.utils.error_parser import parse_exception
+from flask import jsonify, request
+from flask_jwt_extended import get_jwt_identity, jwt_required
 
 logger = logging.getLogger(__name__)
 
