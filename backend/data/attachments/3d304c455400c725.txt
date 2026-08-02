@@ -1,4 +1,0 @@
-2026-08-02 18:59:52,589 - core_service.budgets.service - INFO - New budget created for user 1 in category 1
-2026-08-02 18:59:52,592 - core_service.utils.caching - INFO - No cache entries found for pattern: budgets:1
-2026-08-02 18:59:52,595 - core_service.budgets.service - INFO - Budget updated for user 1 in category 1
-2026-08-02 18:59:52,598 - core_service.utils.caching - INFO - No cache entries found for pattern: budgets:1

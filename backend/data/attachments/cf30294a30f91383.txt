@@ -1,0 +1,1 @@
+2026-08-02 21:06:40,443 - core_service.auth.service - WARNING - Registration failed: Email test@example.com already exists
