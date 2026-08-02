@@ -8,18 +8,15 @@ from core_service.extensions import limiter
 from core_service.uow import UnitOfWork
 import logging
 
-
-
 logger = logging.getLogger(__name__)
 
 
-
-@bp.route("/generate-pdf", methods=['POST'])
+@bp.route("/generate-pdf", methods=["POST"])
 @jwt_required()
 @limiter.limit("2 per minute")
 def generate_pdf_report():
     user_id = int(get_jwt_identity())
-    data = request.get_json() # startDate and endDate
+    data = request.get_json()  # startDate and endDate
     logger.info(f"Received request to generate PDF report for user {user_id}")
     try:
 
@@ -32,7 +29,8 @@ def generate_pdf_report():
     except Exception as e:
         return parse_exception(e)
 
-@bp.route("/generate-pdf/<int:report_id>/status", methods=['GET'])
+
+@bp.route("/generate-pdf/<int:report_id>/status", methods=["GET"])
 @jwt_required()
 def get_report_status(report_id):
     user_id = int(get_jwt_identity())
@@ -46,7 +44,8 @@ def get_report_status(report_id):
     except Exception as e:
         return parse_exception(e)
 
-@bp.route("/history", methods=['GET'])
+
+@bp.route("/history", methods=["GET"])
 @jwt_required()
 def get_report_history():
     user_id = int(get_jwt_identity())
@@ -58,5 +57,3 @@ def get_report_history():
 
     except Exception as e:
         return parse_exception(e)
-    
-    
