@@ -112,11 +112,11 @@ jobs:
           CELERY_BROKER_URL=redis://redis:6379/1
           CELERY_RESULT_BACKEND=redis://redis:6379/1
           CORS_ORIGINS=http://localhost,http://127.0.0.1
-          DO_SPACES_KEY=${{ secrets.DO_SPACES_KEY }}
-          DO_SPACES_SECRET=${{ secrets.DO_SPACES_SECRET }}
-          DO_SPACES_ENDPOINT=${{ secrets.DO_SPACES_ENDPOINT }}
-          DO_SPACES_REGION=${{ secrets.DO_SPACES_REGION }}
-          DO_SPACES_BUCKET=${{ secrets.DO_SPACES_BUCKET }}
+          CLOUDFLARE_R2_KEY=${{ secrets.CLOUDFLARE_R2_KEY }}
+          CLOUDFLARE_R2_SECRET=${{ secrets.CLOUDFLARE_R2_SECRET }}
+          CLOUDFLARE_R2_ENDPOINT=${{ secrets.CLOUDFLARE_R2_ENDPOINT }}
+          CLOUDFLARE_R2_REGION=${{ secrets.CLOUDFLARE_R2_REGION }}
+          CLOUDFLARE_R2_BUCKET=${{ secrets.CLOUDFLARE_R2_BUCKET }}
           EOF
 
       - name: Start Database and Redis only
