@@ -1,4 +1,0 @@
-2026-08-02 21:06:40,070 - core_service.utils.caching - INFO - No cache entries found for pattern: dashboard:1:*
-2026-08-02 21:06:40,070 - core_service.utils.caching - INFO - No cache entries found for pattern: categories:1
-2026-08-02 21:06:40,071 - core_service.utils.caching - INFO - No cache entries found for pattern: budgets:1
-2026-08-02 21:06:40,072 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/transactions/46: ['amount: Decimal input should have no more than 2 decimal places']

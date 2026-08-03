@@ -1,0 +1,3 @@
+INFO     core_service.auth.service:service.py:147 New user created with ID: 7
+INFO     core_service.auth.service:service.py:83 User 7 logged in successfully.
+INFO     core_service.auth.service:service.py:172 User 7 logged out successfully.

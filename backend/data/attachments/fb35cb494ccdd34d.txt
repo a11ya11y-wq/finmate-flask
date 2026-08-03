@@ -1,0 +1,4 @@
+INFO     core_service.budgets.service:service.py:103 New budget created for user 1 in category 1
+INFO     core_service.utils.caching:caching.py:73 No cache entries found for pattern: budgets:1
+INFO     core_service.budgets.service:service.py:121 Budget 19 deleted for user 1
+INFO     core_service.utils.caching:caching.py:73 No cache entries found for pattern: budgets:1

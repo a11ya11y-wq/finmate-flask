@@ -1,0 +1,1 @@
+ERROR    core_service.utils.caching:caching.py:16 Error in @redis_cache for dummy_func : key_builder function is required.

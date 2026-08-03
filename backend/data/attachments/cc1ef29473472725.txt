@@ -1,0 +1,1 @@
+WARNING  core_service.utils.caching:caching.py:61 Redis client not initialized. Cannot invalidate cache.

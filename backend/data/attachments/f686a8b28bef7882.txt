@@ -1,4 +1,0 @@
-INFO     core_service.utils.caching:caching.py:73 No cache entries found for pattern: dashboard:1:*
-INFO     core_service.utils.caching:caching.py:73 No cache entries found for pattern: categories:1
-INFO     core_service.utils.caching:caching.py:73 No cache entries found for pattern: budgets:1
-WARNING  core_service.utils.error_parser:error_parser.py:25 Validation error on /api/v1/transactions/46: ['amount: Decimal input should have no more than 2 decimal places']

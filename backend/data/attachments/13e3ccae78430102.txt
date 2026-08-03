@@ -1,1 +1,0 @@
-2026-08-02 21:06:38,647 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/profile/monobank: ['token: Field required']

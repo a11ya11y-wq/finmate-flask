@@ -1,0 +1,1 @@
+2026-08-03 15:47:27,117 - core_service.profile.service - WARNING - User 1 provided invalid old password for password change.

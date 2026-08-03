@@ -1,0 +1,4 @@
+INFO     core_service.auth.service:service.py:28 Triggering reset for demo user ID: 9999
+INFO     core_service.auth.service:service.py:47 Demo account reset. Cleared 7 keys.
+INFO     core_service.auth.service:service.py:83 User 9999 logged in successfully.
+WARNING  core_service.utils.error_parser:error_parser.py:12 Business error on /api/v1/profile/me: This action is prohibited for the demo account.

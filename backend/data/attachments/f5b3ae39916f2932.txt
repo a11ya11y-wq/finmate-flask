@@ -1,1 +1,0 @@
-2026-08-02 21:06:39,472 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/transactions/: ['amount: Input should be a valid decimal']

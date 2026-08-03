@@ -1,0 +1,1 @@
+ERROR    core_service.utils.caching:caching.py:57 Key pattern must be provided for cache invalidation.

@@ -1,0 +1,3 @@
+INFO     core_service.auth.service:service.py:28 Triggering reset for demo user ID: 9999
+INFO     core_service.auth.service:service.py:47 Demo account reset. Cleared 7 keys.
+INFO     core_service.auth.service:service.py:83 User 9999 logged in successfully.

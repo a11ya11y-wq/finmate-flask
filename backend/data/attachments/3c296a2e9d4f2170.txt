@@ -1,0 +1,1 @@
+2026-08-03 15:47:25,001 - core_service.auth.service - INFO - New user created with ID: 99
