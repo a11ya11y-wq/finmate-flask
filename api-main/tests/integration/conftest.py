@@ -95,3 +95,24 @@ def test_redis(app):
         client.flushdb()
         client.close()
         extensions.redis_client = original_redis
+
+
+@pytest.fixture(scope="session", autouse=True)
+@allure.title("Create a Demo user in DB")
+def demo_user_seed(app, init_database):
+
+    with app.app_context():
+        from core_service.models.user_model import Users
+        from werkzeug.security import generate_password_hash
+
+        with allure.step("Insert demo user directly via SQLAlchemy"):
+            existing_demo = Users.query.filter_by(email="demo@test.com").first()
+            if not existing_demo:
+                demo_user = Users(
+                    id=9999,
+                    username="Live Demo",
+                    email="demo@test.com",
+                    password_hash=generate_password_hash("pass123123"),
+                )
+                init_database.session.add(demo_user)
+                init_database.session.commit()

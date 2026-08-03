@@ -114,6 +114,35 @@ class TestLoginUser:
             with pytest.raises(AuthenticationError, match="Invalid email or password."):
                 auth_service.login_user(VALID_LOGIN_DATA)
 
+    @allure.title("Login successful for demo user and triggers reset")
+    @allure.severity(allure.severity_level.BLOCKER)
+    def test_login_user_demo_account(self, auth_service, auth_uow, mocker):
+        with allure.step("Arrange: Mock demo user"):
+            mock_user = MagicMock(spec=Users)
+            mock_user.id = 142
+            mock_user.email = "demo@test.com"
+            mock_user.password_hash = "hashed_pass"
+            auth_uow.auth.find_user_by_email.return_value = mock_user
+
+            mocker.patch(
+                "core_service.auth.service.check_password_hash", return_value=True
+            )
+            mocker.patch(
+                "core_service.auth.service.create_access_token",
+                return_value="access_jwt",
+            )
+            mocker.patch(
+                "core_service.auth.service.create_refresh_token",
+                return_value="refresh_jwt",
+            )
+            mock_reset = mocker.patch.object(auth_service, "_reset_demo_account")
+
+        with allure.step("Act: Call login_user with demo email"):
+            auth_service.login_user({"email": "demo@test.com", "password": "password123"})
+            
+        with allure.step("Assert: Verify reset was triggered"):
+            mock_reset.assert_called_once_with(142)
+
 
 @allure.feature("Authentication")
 @allure.story("Refresh Token")
@@ -287,3 +316,40 @@ class TestLogoutUser:
         with allure.step("Assert: Verify refresh token wiped but Redis was not called"):
             auth_uow.auth.update_refresh_token.assert_called_once_with(142, None)
             auth_service.redis.setex.assert_not_called()
+
+
+@allure.feature("Authentication")
+@allure.story("Demo Account")
+class TestDemoAccountReset:
+    
+    @allure.title("Successfully reset demo account")
+    def test_reset_demo_account_success(self, auth_service, auth_uow, mocker):
+        with allure.step("Arrange: Mock file read and uow execution"):
+            mock_open = mocker.patch("builtins.open", mocker.mock_open(read_data="mocked sql"))
+            mocker.patch("os.path.join", return_value="/mocked/path/reset_demo.sql")
+            
+        with allure.step("Act: Call _reset_demo_account"):
+            auth_service._reset_demo_account(142)
+            
+        with allure.step("Assert: SQL executed and redis cleared"):
+            auth_uow.auth.execute_raw_sql.assert_called_once_with("mocked sql")
+            auth_uow.flush.assert_called_once()
+            auth_service.redis.delete.assert_called_once()
+            
+            deleted_keys = auth_service.redis.delete.call_args[0]
+            assert "profile:142" in deleted_keys
+            assert len(deleted_keys) == 7
+
+    @allure.title("Reset demo account handles exceptions gracefully")
+    def test_reset_demo_account_exception(self, auth_service, auth_uow, mocker):
+        with allure.step("Arrange: Force an exception during sql execution"):
+            mocker.patch("builtins.open", mocker.mock_open(read_data="mocked sql"))
+            auth_uow.auth.execute_raw_sql.side_effect = Exception("DB Error")
+            mock_logger = mocker.patch("core_service.auth.service.logger.error")
+            
+        with allure.step("Act: Call _reset_demo_account"):
+            auth_service._reset_demo_account(142)
+            
+        with allure.step("Assert: Exception is caught and logged"):
+            mock_logger.assert_called_once()
+            assert "Failed to reset demo account: DB Error" in mock_logger.call_args[0][0]

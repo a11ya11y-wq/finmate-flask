@@ -170,6 +170,30 @@ class TestLogin:
             assert response.status_code == 401
             assert "Invalid email or password" in str(response.get_json())
 
+    @allure.title("Successfully login demo user and trigger reset")
+    @allure.severity(allure.severity_level.BLOCKER)
+    def test_login_demo_user(self, client):
+        with allure.step("Arrange: Prepare demo credentials"):
+            login_data = {
+                "email": "demo@test.com",
+                "password": "pass123123",
+            }
+            
+        with allure.step("Act: Send POST to /api/v1/auth/login"):
+            response = client.post("/api/v1/auth/login", json=login_data)
+            
+        with allure.step("Assert: Verify 200 OK and presence of access_token"):
+            assert response.status_code == 200
+            json_data = response.get_json()
+            assert "access_token" in json_data
+            
+        with allure.step("Assert: Verify categories are seeded"):
+            headers = {"Authorization": f"Bearer {json_data['access_token']}"}
+            cat_resp = client.get("/api/v1/categories/all", headers=headers)
+            assert cat_resp.status_code == 200
+            json_resp = cat_resp.get_json()
+            assert len(json_resp["data"]) > 0
+
 
 BASE_TRANSACTION_JSON = {
     "amount": 100.0,
