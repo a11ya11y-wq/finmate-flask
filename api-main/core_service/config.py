@@ -10,6 +10,8 @@ class Config:
     CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND")
     REDIS_URL = os.environ.get("REDIS_URL")
     JWT_BLOCKLIST_TOKEN_CHECKS = ["access", "refresh"]
+    R2_PUBLIC_URL = os.environ.get("R2_PUBLIC_URL")
+    CLOUDFLARE_R2_BUCKET = os.environ.get("CLOUDFLARE_R2_BUCKET")
 
 
 class DevelopmentConfig(Config):

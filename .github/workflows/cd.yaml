@@ -33,6 +33,7 @@ jobs:
           context: ./api-main
           push: true
           tags: ghcr.io/${{ env.REPO }}-api:latest
+          provenance: false
 
       - name: Build and push Report Service
         uses: docker/build-push-action@v5
@@ -41,6 +42,7 @@ jobs:
           target: production
           push: true
           tags: ghcr.io/${{ env.REPO }}-report:latest
+          provenance: false
 
       - name: Build and push Frontend
         uses: docker/build-push-action@v5
@@ -48,6 +50,7 @@ jobs:
           context: ./frontend
           push: true
           tags: ghcr.io/${{ env.REPO }}-frontend:latest
+          provenance: false
           build-args: |
             VITE_API_BASE_URL=/api/v1
 
@@ -71,7 +74,8 @@ jobs:
             
             # 2. Перехід в папку та оновлення docker-compose.yaml
             cd /root/finmate-flask
-            git pull origin master
+            git fetch origin
+            git reset --hard origin/master
             
             # 3. Стягуємо нові версії образів
             docker compose pull

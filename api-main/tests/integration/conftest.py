@@ -17,11 +17,7 @@ def init_database(app):
         with allure.step("Drop and create all tables"):
             db.drop_all()
             db.create_all()
-
         yield db
-
-        with allure.step("Drop all tables after tests"):
-            db.drop_all()
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -74,7 +70,7 @@ def auth_headers(db_session):
     return {"Authorization": f"Bearer {access_token}"}
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="function", autouse=True)
 @allure.title("Izolated Redis client for test")
 def test_redis(app):
 

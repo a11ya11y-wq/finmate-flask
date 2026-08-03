@@ -1,4 +1,5 @@
 import json
+import os
 from datetime import datetime, timedelta, timezone
 
 import allure
@@ -33,6 +34,8 @@ def arrange_tx(db_session):
         db_session.add_all([tx1, tx2])
         db_session.flush()
 
+
+S3_URL = os.environ.get("R2_PUBLIC_URL")
 
 CREATE_REPORT_PAYLOAD = {"startDate": "2024-01-01", "endDate": "2026-01-31"}
 
@@ -186,7 +189,7 @@ class TestGenerateReport:
                 start_date="2024-01-01",
                 end_date="2026-01-31",
                 status=ReportStatus.PROCESSED,
-                file_url="http://example.com/report.pdf",
+                file_key="report.pdf",
             )
             db_session.add(report)
             db_session.flush()
@@ -202,7 +205,7 @@ class TestGenerateReport:
             assert response.status_code == 200
             response_data = response.get_json()
             assert response_data["status"] == ReportStatus.PROCESSED.value
-            assert response_data["fileUrl"] == "http://example.com/report.pdf"
+            assert response_data["fileUrl"] == f"{S3_URL}/report.pdf"
             assert response_data["id"] == report.id
 
     @allure.title("Start new report generation if previous attempt FAILED")
@@ -253,7 +256,7 @@ class TestGenerateReport:
                 start_date="2024-01-01",
                 end_date="2026-01-31",
                 status=ReportStatus.PROCESSED,
-                file_url="http://example.com/expired_report.pdf",
+                file_key="expired_report.pdf",
                 expire_at=datetime.now(timezone.utc) - timedelta(days=1),
             )
             db_session.add(expired_report)
@@ -348,7 +351,7 @@ class TestGetReportStatus:
                 start_date="2024-01-01",
                 end_date="2026-01-31",
                 status=ReportStatus.PROCESSED,
-                file_url="http://example.com/report.pdf",
+                file_key="report.pdf",
             )
             db_session.add(report)
             db_session.flush()
@@ -358,11 +361,11 @@ class TestGetReportStatus:
                 f"api/v1/report/generate-pdf/{report.id}/status", headers=auth_headers
             )
 
-        with allure.step("Assert: Verify 200 OK and fileUrl presence"):
+        with allure.step("Assert: Verify 200 OK and fileKey presence"):
             assert response.status_code == 200
             response_data = response.get_json()
             assert response_data["status"] == ReportStatus.PROCESSED.value
-            assert response_data["fileUrl"] == "http://example.com/report.pdf"
+            assert response_data["fileUrl"] == f"{S3_URL}/report.pdf"
 
     @allure.title("Fail to retrieve status for non-existent report")
     @allure.severity(allure.severity_level.NORMAL)
@@ -413,7 +416,7 @@ class TestGetReportStatus:
                 start_date="2024-01-01",
                 end_date="2026-01-31",
                 status=ReportStatus.PROCESSED,
-                file_url="http://example.com/expired_report.pdf",
+                file_key="expired_report.pdf",
                 expire_at=datetime.now(timezone.utc) - timedelta(days=1),
             )
             db_session.add(expired_report)
@@ -544,7 +547,7 @@ class TestGetReportStatus:
                 json.dumps(
                     {
                         "status": "success",
-                        "fileUrl": "http://example.com/generated_report.pdf",
+                        "fileKey": "generated_report.pdf",
                     }
                 ),
             )
@@ -559,7 +562,7 @@ class TestGetReportStatus:
             assert response.status_code == 200
             response_data = response.get_json()
             assert response_data["status"] == ReportStatus.PROCESSED.value
-            assert response_data["fileUrl"] == "http://example.com/generated_report.pdf"
+            assert response_data["fileUrl"] == f"{S3_URL}/generated_report.pdf"
 
     @allure.title("Handle Redis worker error (Status: error) and update DB to FAILED")
     @allure.severity(allure.severity_level.CRITICAL)
@@ -647,13 +650,14 @@ class TestGetReportHistory:
                 start_date=datetime(2024, 1, 1),
                 end_date=datetime(2026, 1, 31),
                 status=ReportStatus.PROCESSED,
-                file_url="http://example.com/report1.pdf",
+                file_key="report1.pdf",
             )
             report2 = Reports(
                 user_id=1,
                 start_date=datetime(2023, 1, 1),
                 end_date=datetime(2023, 12, 31),
                 status=ReportStatus.FAILED,
+                file_key=None,
             )
             db_session.add_all([report1, report2])
             db_session.flush()
@@ -666,7 +670,7 @@ class TestGetReportHistory:
             response_data = response.get_json()
             assert len(response_data) == 2
             assert response_data[0]["status"] == ReportStatus.PROCESSED.value
-            assert response_data[0]["fileUrl"] == "http://example.com/report1.pdf"
+            assert response_data[0]["fileUrl"] == f"{S3_URL}/report1.pdf"
             assert response_data[1]["status"] == ReportStatus.FAILED.value
 
     @allure.title("Fail to fetch report history without authorization")
@@ -703,7 +707,7 @@ class TestGetReportHistory:
                 start_date=datetime(2024, 1, 1),
                 end_date=datetime(2026, 1, 31),
                 status=ReportStatus.PROCESSED,
-                file_url="http://example.com/expired_report.pdf",
+                file_key="expired_report.pdf",
                 expire_at=datetime.now(timezone.utc) - timedelta(days=1),
             )
             valid_report = Reports(
@@ -711,7 +715,7 @@ class TestGetReportHistory:
                 start_date=datetime(2024, 1, 1),
                 end_date=datetime(2026, 1, 31),
                 status=ReportStatus.PROCESSED,
-                file_url="http://example.com/valid_report.pdf",
+                file_key="valid_report.pdf",
                 expire_at=datetime.now(timezone.utc) + timedelta(days=3),
             )
             db_session.add_all([expired_report, valid_report])
@@ -727,7 +731,7 @@ class TestGetReportHistory:
             assert response_data[0]["status"] == ReportStatus.EXPIRED.value
             assert response_data[0]["fileUrl"] is None
             assert response_data[1]["status"] == ReportStatus.PROCESSED.value
-            assert response_data[1]["fileUrl"] == "http://example.com/valid_report.pdf"
+            assert response_data[1]["fileUrl"] == f"{S3_URL}/valid_report.pdf"
 
     @allure.title("Correctly fetch report history containing mixed statuses")
     @allure.severity(allure.severity_level.NORMAL)
@@ -752,7 +756,7 @@ class TestGetReportHistory:
                 start_date=datetime(2024, 1, 1),
                 end_date=datetime(2026, 1, 31),
                 status=ReportStatus.PROCESSED,
-                file_url="http://example.com/processed_report.pdf",
+                file_key="processed_report.pdf",
             )
 
             db_session.add_all([pending_report, failed_report, processed_report])
@@ -770,6 +774,4 @@ class TestGetReportHistory:
             assert response_data[1]["status"] == ReportStatus.FAILED.value
             assert response_data[1]["fileUrl"] is None
             assert response_data[2]["status"] == ReportStatus.PROCESSED.value
-            assert (
-                response_data[2]["fileUrl"] == "http://example.com/processed_report.pdf"
-            )
+            assert response_data[2]["fileUrl"] == f"{S3_URL}/processed_report.pdf"
