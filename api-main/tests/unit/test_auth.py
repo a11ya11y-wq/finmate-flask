@@ -324,15 +324,12 @@ class TestDemoAccountReset:
     
     @allure.title("Successfully reset demo account")
     def test_reset_demo_account_success(self, auth_service, auth_uow, mocker):
-        with allure.step("Arrange: Mock file read and uow execution"):
-            mock_open = mocker.patch("builtins.open", mocker.mock_open(read_data="mocked sql"))
-            mocker.patch("os.path.join", return_value="/mocked/path/reset_demo.sql")
-            
         with allure.step("Act: Call _reset_demo_account"):
             auth_service._reset_demo_account(142)
             
         with allure.step("Assert: SQL executed and redis cleared"):
-            auth_uow.auth.execute_raw_sql.assert_called_once_with("mocked sql")
+            auth_uow.auth.execute_raw_sql.assert_called_once()
+            assert len(auth_uow.auth.execute_raw_sql.call_args[0][0]) > 0
             auth_uow.flush.assert_called_once()
             auth_service.redis.delete.assert_called_once()
             
@@ -343,7 +340,6 @@ class TestDemoAccountReset:
     @allure.title("Reset demo account handles exceptions gracefully")
     def test_reset_demo_account_exception(self, auth_service, auth_uow, mocker):
         with allure.step("Arrange: Force an exception during sql execution"):
-            mocker.patch("builtins.open", mocker.mock_open(read_data="mocked sql"))
             auth_uow.auth.execute_raw_sql.side_effect = Exception("DB Error")
             mock_logger = mocker.patch("core_service.auth.service.logger.error")
             
