@@ -42,7 +42,6 @@ CREATE_REPORT_PAYLOAD = {"startDate": "2024-01-01", "endDate": "2026-01-31"}
 
 @allure.feature("Reporting")
 @allure.story("Generate PDF Report")
-@pytest.mark.usefixtures("db_session")
 class TestGenerateReport:
 
     @allure.title("Successfully initiate report generation and queue in Redis")

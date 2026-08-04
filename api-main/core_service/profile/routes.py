@@ -24,6 +24,7 @@ def get_user_profile():
 
 @bp.route('/me', methods=['PUT'])
 @jwt_required()
+@prevent_demo_user
 def update_user():
     user_id = int(get_jwt_identity())
     data = request.get_json()

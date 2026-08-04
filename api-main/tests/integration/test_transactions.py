@@ -89,7 +89,6 @@ create_tx_failed_json = [
 
 @allure.feature("Transaction Management")
 @allure.story("Create Transaction")
-@pytest.mark.usefixtures("db_session")
 class TestCreateTransactions:
 
     @allure.title("Successfully create transaction via API")
@@ -206,7 +205,6 @@ update_tx_failed_json = [
 
 @allure.feature("Transaction Management")
 @allure.story("Update Transaction")
-@pytest.mark.usefixtures("db_session")
 class TestUpdateTransactions:
 
     @allure.title("Successfully update transaction via API")
@@ -270,7 +268,6 @@ class TestUpdateTransactions:
 
 @allure.feature("Transaction Management")
 @allure.story("Delete Transaction")
-@pytest.mark.usefixtures("db_session")
 class TestDeleteTransactions:
 
     @allure.title("Successfully delete transaction via API")

@@ -1,11 +1,12 @@
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
+import logging
+
+import redis
+from celery import Celery
 from flask_jwt_extended import JWTManager
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-import redis
-from celery import Celery
-import logging
+from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy
 
 logger = logging.getLogger(__name__)
 
@@ -16,11 +17,10 @@ celery = Celery()
 redis_client = None
 
 limiter = Limiter(
-    key_func=get_remote_address,
-    default_limits=["2000 per day", "500 per hour"]
+    key_func=get_remote_address, default_limits=["2000 per day", "500 per hour"]
 )
 
-    
+
 def init_limiter(app):
     if app.config.get("TESTING"):
         app.config["RATELIMIT_STORAGE_URI"] = "memory://"
@@ -30,10 +30,11 @@ def init_limiter(app):
 
     limiter.init_app(app)
 
+
 def init_redis(app):
     global redis_client
 
-    redis_url = app.config.get('REDIS_URL')
+    redis_url = app.config.get("REDIS_URL")
     if not redis_url:
         logger.warning("Redis disabled (no REDIS_URL)")
         redis_client = None
@@ -41,7 +42,7 @@ def init_redis(app):
     try:
         redis_client = redis.Redis.from_url(redis_url, decode_responses=True)
         if not app.config.get("TESTING"):
-             redis_client.ping()
+            redis_client.ping()
         logger.info(f"Redis connection successful to {redis_url}")
         return redis_client
 
@@ -49,6 +50,14 @@ def init_redis(app):
         logger.error(f"Redis connection error: {e}")
         redis_client = None
         return None
+
+
+@jwt.token_in_blocklist_loader
+def check_if_token_is_revoked(jwt_header, jwt_payload: dict):
+    jti = jwt_payload["jti"]
+
+    token_in_redis = redis_client.get(f"auth:blacklist:{jti}")
+    return token_in_redis is not None
 
 
 def init_celery(app):

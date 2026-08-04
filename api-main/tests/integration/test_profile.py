@@ -7,7 +7,6 @@ from werkzeug.security import generate_password_hash
 
 @allure.feature("Profile Management")
 @allure.story("Retrieve Profile")
-@pytest.mark.usefixtures("db_session")
 class TestGetUser:
 
     @allure.title("Successfully retrieve current user profile")
@@ -31,7 +30,6 @@ class TestGetUser:
 
 @allure.feature("Profile Management")
 @allure.story("Update Profile")
-@pytest.mark.usefixtures("db_session")
 class TestUpdateUser:
 
     @allure.title("Successfully update user profile data")
@@ -70,7 +68,6 @@ class TestUpdateUser:
 
 @allure.feature("Profile Management")
 @allure.story("Delete Account")
-@pytest.mark.usefixtures("db_session")
 class TestDeleteAccount:
 
     @allure.title("Successfully delete user account")
@@ -153,7 +150,6 @@ change_pass_failed_json = [
 
 @allure.feature("Profile Management")
 @allure.story("Change Password")
-@pytest.mark.usefixtures("db_session")
 class TestChangePassword:
 
     @allure.title("Successfully change user password")
@@ -203,7 +199,6 @@ class TestChangePassword:
 
 @allure.feature("Profile Management")
 @allure.story("Update Currency")
-@pytest.mark.usefixtures("db_session")
 class TestChangeCurrency:
 
     @allure.title("Successfully change user currency")
@@ -240,7 +235,6 @@ class TestChangeCurrency:
 
 @allure.feature("Profile Management")
 @allure.story("Monobank Token Management")
-@pytest.mark.usefixtures("db_session")
 class TestChangeToken:
 
     @allure.title("Successfully update Monobank token")
@@ -290,3 +284,50 @@ class TestChangeToken:
             response = client.delete("/api/v1/profile/monobank", headers=auth_headers)
         with allure.step("Assert: Verify 204 No Content"):
             assert response.status_code == 204
+
+
+@allure.feature("Profile Management")
+@allure.story("Demo Account Restrictions")
+class TestDemoAccountPermissions:
+
+    @pytest.fixture(scope="function")
+    def demo_headers(self, client):
+        login_data = {"email": "demo@test.com", "password": "pass123123"}
+        response = client.post("/api/v1/auth/login", json=login_data)
+        access_token = response.get_json()["access_token"]
+        return {"Authorization": f"Bearer {access_token}"}
+
+    @allure.title("Demo user cannot update profile")
+    @allure.severity(allure.severity_level.CRITICAL)
+    def test_demo_user_cannot_update_profile(self, client, demo_headers):
+        with allure.step("Act: Send PUT to /api/v1/profile/me"):
+            response = client.put(
+                "/api/v1/profile/me",
+                headers=demo_headers,
+                json={"username": "NEW NAME"},
+            )
+        with allure.step("Assert: Verify 403 Forbidden"):
+            assert response.status_code == 403
+            assert "prohibited for the demo account" in str(response.get_json())
+
+    @allure.title("Demo user cannot change password")
+    @allure.severity(allure.severity_level.CRITICAL)
+    def test_demo_user_cannot_change_password(self, client, demo_headers):
+        with allure.step("Act: Send POST to /api/v1/profile/change-password"):
+            response = client.post(
+                "/api/v1/profile/change-password",
+                headers=demo_headers,
+                json={"old_password": "pass123123", "new_password": "NewPassword123", "confirm_password": "NewPassword123"},
+            )
+        with allure.step("Assert: Verify 403 Forbidden"):
+            assert response.status_code == 403
+            assert "prohibited for the demo account" in str(response.get_json())
+
+    @allure.title("Demo user cannot delete account")
+    @allure.severity(allure.severity_level.CRITICAL)
+    def test_demo_user_cannot_delete_account(self, client, demo_headers):
+        with allure.step("Act: Send DELETE to /api/v1/profile/me"):
+            response = client.delete("/api/v1/profile/me", headers=demo_headers)
+        with allure.step("Assert: Verify 403 Forbidden"):
+            assert response.status_code == 403
+            assert "prohibited for the demo account" in str(response.get_json())
