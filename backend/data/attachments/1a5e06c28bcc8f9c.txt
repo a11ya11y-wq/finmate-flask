@@ -1,0 +1,4 @@
+2026-08-04 23:39:01,991 - core_service.utils.caching - INFO - No cache entries found for pattern: dashboard:1:*
+2026-08-04 23:39:01,991 - core_service.utils.caching - INFO - No cache entries found for pattern: categories:1
+2026-08-04 23:39:01,991 - core_service.utils.caching - INFO - No cache entries found for pattern: budgets:1
+2026-08-04 23:39:01,993 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/transactions/96: ['title: String should have at least 1 character']

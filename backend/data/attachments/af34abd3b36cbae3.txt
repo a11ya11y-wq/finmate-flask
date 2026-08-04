@@ -1,0 +1,1 @@
+2026-08-04 23:38:58,531 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/budgets/: ['amount: Field required', 'category_id: Field required', 'is_recurring: Field required']

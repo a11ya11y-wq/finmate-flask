@@ -1,0 +1,3 @@
+2026-08-04 23:39:04,911 - core_service.reports.service - INFO - Existing report found for user_id: 1 in the specified period. Returning existing report.
+2026-08-04 23:39:04,912 - core_service.reports.service - INFO - Report 46 expired. Generating a new one.
+2026-08-04 23:39:04,914 - core_service.reports.service - INFO - Report generation task enqueued for user_id: 1 with report_id: 47

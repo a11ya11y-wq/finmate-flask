@@ -1,2 +1,0 @@
-2026-08-03 15:47:22,671 - core_service.profile.service - WARNING - User 1 provided invalid old password for password change.
-2026-08-03 15:47:22,672 - core_service.utils.error_parser - WARNING - Business error on /api/v1/profile/change-password: Invalid old password.

@@ -1,0 +1,2 @@
+2026-08-04 23:38:59,526 - core_service.categories.service - WARNING - Attempt to delete non-existing category 100 by user 1
+2026-08-04 23:38:59,526 - core_service.utils.error_parser - WARNING - Business error on /api/v1/categories/100: Category 100 not found or access denied.

@@ -1,0 +1,1 @@
+2026-08-04 23:39:04,900 - core_service.reports.service - INFO - Existing report found for user_id: 1 in the specified period. Returning existing report.

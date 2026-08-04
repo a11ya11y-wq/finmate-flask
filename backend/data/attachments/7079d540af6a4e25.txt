@@ -1,1 +1,0 @@
-2026-08-03 15:47:25,945 - core_service.categories.service - WARNING - Category creation failed: duplicate name Food for user 1

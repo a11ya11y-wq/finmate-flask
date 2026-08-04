@@ -1,1 +1,0 @@
-2026-08-03 15:47:22,729 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/profile/change-password: ['old_password: Field required', 'new_password: Field required', 'confirm_password: Field required']

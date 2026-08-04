@@ -1,0 +1,1 @@
+2026-08-04 23:39:01,462 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/transactions/: ["transaction_type: Input should be 'income' or 'expense'"]

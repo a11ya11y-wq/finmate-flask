@@ -1,0 +1,1 @@
+2026-08-04 23:39:01,445 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/transactions/: ['amount: Input should be greater than 0']
