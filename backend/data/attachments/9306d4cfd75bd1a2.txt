@@ -1,0 +1,1 @@
+2026-08-08 17:45:31,581 - core_service.profile.service - INFO - User 1 updated Monobank token.

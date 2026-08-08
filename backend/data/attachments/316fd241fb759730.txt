@@ -1,0 +1,1 @@
+2026-08-08 17:45:29,189 - core_service.auth.service - WARNING - Failed login attempt for email: test@example.com

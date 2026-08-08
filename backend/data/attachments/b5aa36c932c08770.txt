@@ -1,1 +1,0 @@
-2026-08-04 23:39:04,490 - core_service.profile.service - WARNING - User 1 attempted to set invalid avatar: avatars/default/invalid.svg

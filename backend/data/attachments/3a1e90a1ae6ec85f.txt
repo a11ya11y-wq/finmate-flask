@@ -1,0 +1,1 @@
+2026-08-08 17:45:29,467 - core_service.auth.service - WARNING - Registration failed: Username testuser already exists

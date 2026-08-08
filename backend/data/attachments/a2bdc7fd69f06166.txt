@@ -1,1 +1,0 @@
-2026-08-04 23:38:58,395 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/budgets/: ['amount: Input should be greater than 0']
