@@ -185,6 +185,8 @@ const BudgetsPage = () => {
       toast({ variant: "success", message: "Budget deleted successfully!" });
     } catch (err) {
       toast({ variant: "error", message: toErrorMessage(err) });
+      setIsDeleteOpen(false);
+      setDeleteId(null);
     }
   };
 
@@ -225,9 +227,9 @@ const BudgetsPage = () => {
           </CardContent>
         </Card>
 
-        <div className="grid items-stretch gap-6 lg:grid-cols-[360px_1fr]">
+        <div className="grid items-start gap-6 lg:grid-cols-[360px_1fr]">
           {/* ФОРМА */}
-          <Card data-testid="budgets-form-container" className="surface-card sticky top-24 h-full">
+          <Card data-testid="budgets-form-container" className="surface-card lg:sticky lg:top-24 h-fit">
             <CardHeader>
               <CardTitle>Create budget</CardTitle>
             </CardHeader>
@@ -316,9 +318,9 @@ const BudgetsPage = () => {
           </Card>
 
           {/* СПИСОК КАРТОК БЮДЖЕТІВ */}
-          <div className="grid h-full auto-rows-fr items-stretch gap-4 md:grid-cols-2">
+          <div className="grid h-fit auto-rows-max items-start gap-4 md:grid-cols-2">
             {!loading && budgets.length === 0 && (
-              <div className="surface-card col-span-full flex h-full min-h-0 flex-col items-center justify-center px-8 py-16 text-center">
+              <div className="surface-card col-span-full flex min-h-[300px] flex-col items-center justify-center px-8 py-12 text-center">
                 <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-3xl border border-white/10 bg-black/20 text-slate-500 shadow-[0_0_40px_rgba(59,130,246,0.08)]">
                   <i className="bi bi-piggy-bank text-5xl" />
                 </div>
@@ -387,6 +389,7 @@ const BudgetsPage = () => {
         isOpen={isDeleteOpen}
         onClose={() => setIsDeleteOpen(false)}
         onConfirm={handleDelete}
+        title="Delete Budget"
         description="Are you sure you want to delete this budget? This action cannot be undone."
       />
     </AppShell>

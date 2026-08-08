@@ -1024,114 +1024,114 @@ const DashboardPage = () => {
                   {!tableLoading && history.length === 0 ? (
                     <TransactionsEmptyState />
                   ) : history.map((tx, index) => {
-                    const catStyles = getCategoryStyles(tx.category_name);
-                    return (
-                      <div
-                        key={tx.id}
-                        data-testid="transaction-row"
-                        onClick={() => setOpenMenuId(null)}
-                        className="group relative rounded-xl border border-white/5 bg-[#0f172a]/40 transition-all duration-300 hover:border-blue-500/30 hover:bg-[#121a2b]"
-                      >
-                        {/* === МОБІЛЬНИЙ LAYOUT (до md) === */}
-                        <div className="flex items-center gap-3 p-3 md:hidden">
-                          {/* Іконка категорії */}
-                          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${catStyles.color}`}>
-                            <i className={`bi ${catStyles.icon} text-sm`} />
-                          </div>
+                        const catStyles = getCategoryStyles(tx.category_name);
+                        return (
+                          <div
+                            key={tx.id}
+                            data-testid="transaction-row"
+                            onClick={() => setOpenMenuId(null)}
+                            className="group relative rounded-xl border border-white/5 bg-[#0f172a]/40 transition-all duration-300 hover:border-blue-500/30 hover:bg-[#121a2b]"
+                          >
+                            {/* === МОБІЛЬНИЙ LAYOUT (до md) === */}
+                            <div className="flex items-center gap-3 p-3 md:hidden">
+                              {/* Іконка категорії */}
+                              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${catStyles.color}`}>
+                                <i className={`bi ${catStyles.icon} text-sm`} />
+                              </div>
 
-                          {/* Назва + Категорія */}
-                          <div className="flex min-w-0 flex-1 flex-col">
-                            <span className="truncate text-sm font-bold text-slate-100">{tx.title}</span>
-                            <span className="truncate text-xs text-slate-500">{tx.category_name}</span>
-                          </div>
+                              {/* Назва + Категорія */}
+                              <div className="flex min-w-0 flex-1 flex-col">
+                                <span className="truncate text-sm font-bold text-slate-100">{tx.title}</span>
+                                <span className="truncate text-xs text-slate-500">{tx.category_name}</span>
+                              </div>
 
-                          {/* Сума + Дата */}
-                          <div className="flex flex-col items-end shrink-0">
-                            <span className={`text-sm font-black ${tx.transaction_type === "income" ? "text-emerald-400" : "text-rose-400"}`}>
-                              {tx.transaction_type === "income" ? "+" : "-"}{formatWithSymbol(tx.amount)}
-                            </span>
-                            <span className="text-xs text-slate-500">{formatTxDate(tx.created_at)}</span>
-                          </div>
+                              {/* Сума + Дата */}
+                              <div className="flex flex-col items-end shrink-0">
+                                <span className={`text-sm font-black ${tx.transaction_type === "income" ? "text-emerald-400" : "text-rose-400"}`}>
+                                  {tx.transaction_type === "income" ? "+" : "-"}{formatWithSymbol(tx.amount)}
+                                </span>
+                                <span className="text-xs text-slate-500">{formatTxDate(tx.created_at)}</span>
+                              </div>
 
-                          {/* Кнопка ⋯ */}
-                          <div className="relative shrink-0">
-                            <button
-                              className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-600 hover:bg-white/10 hover:text-slate-300 transition-colors"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setOpenMenuId(openMenuId === tx.id ? null : tx.id);
-                              }}
-                            >
-                              <i className="bi bi-three-dots-vertical text-sm" />
-                            </button>
-                            {openMenuId === tx.id && (
-                              <div
-                                className="absolute right-0 top-8 z-50 min-w-[130px] rounded-xl border border-white/10 bg-[#0f172a] p-1.5 shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
-                                onClick={(e) => e.stopPropagation()}
-                              >
+                              {/* Кнопка ⋯ */}
+                              <div className="relative shrink-0">
                                 <button
-                                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-blue-400 hover:bg-blue-500/10 transition-colors"
-                                  onClick={() => { openEditModal(tx); setOpenMenuId(null); }}
+                                  className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-600 hover:bg-white/10 hover:text-slate-300 transition-colors"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setOpenMenuId(openMenuId === tx.id ? null : tx.id);
+                                  }}
                                 >
-                                  <i className="bi bi-pencil-fill text-xs" /> Edit
+                                  <i className="bi bi-three-dots-vertical text-sm" />
+                                </button>
+                                {openMenuId === tx.id && (
+                                  <div
+                                    className="absolute right-0 top-8 z-50 min-w-[130px] rounded-xl border border-white/10 bg-[#0f172a] p-1.5 shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <button
+                                      className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-blue-400 hover:bg-blue-500/10 transition-colors"
+                                      onClick={() => { openEditModal(tx); setOpenMenuId(null); }}
+                                    >
+                                      <i className="bi bi-pencil-fill text-xs" /> Edit
+                                    </button>
+                                    <button
+                                      className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-rose-400 hover:bg-rose-500/10 transition-colors"
+                                      onClick={() => { setDeleteTx(tx); setIsDeleteOpen(true); setOpenMenuId(null); }}
+                                    >
+                                      <i className="bi bi-trash-fill text-xs" /> Delete
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* === ДЕСКТОПНИЙ LAYOUT (від md) === */}
+                            <div className="hidden md:flex items-center justify-between p-4 hover:-translate-y-[1px] hover:shadow-[inset_3px_0_0_#3b82f6,inset_-3px_0_0_#3b82f6,0_8px_20px_rgba(0,0,0,0.3)]">
+                              {/* 1. Нумерація + Тайтл */}
+                              <div className="flex w-[35%] min-w-0 items-center gap-4">
+                                <span className="w-6 text-center text-sm font-medium text-slate-600 transition-colors group-hover:text-blue-400">
+                                  {index + 1}
+                                </span>
+                                <div className="flex min-w-0 flex-col">
+                                  <span className="truncate text-base font-bold tracking-wide text-slate-100 transition-colors group-hover:text-white">{tx.title}</span>
+                                  {tx.note && <span className="mt-0.5 text-xs text-slate-500">{tx.note}</span>}
+                                </div>
+                              </div>
+                              {/* 2. Категорія */}
+                              <div className="flex w-[18%] min-w-0 items-center gap-2">
+                                <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${catStyles.color}`}>
+                                  <i className={`bi ${catStyles.icon} text-xs`} />
+                                </div>
+                                <span className="truncate text-xs font-semibold text-slate-300">{tx.category_name}</span>
+                              </div>
+                              {/* 3. Сума */}
+                              <div className="flex w-[15%] justify-end">
+                                <span className={`text-base font-black tracking-widest ${tx.transaction_type === "income" ? "text-emerald-400" : "text-rose-500"}`}>
+                                  {tx.transaction_type === "income" ? "+" : "-"}{formatWithSymbol(tx.amount)}
+                                </span>
+                              </div>
+                              {/* 4. Дата */}
+                              <div className="flex w-[15%] flex-col items-end">
+                                <span className="text-sm font-medium text-slate-300">{formatTxDate(tx.created_at)}</span>
+                                <span className="mt-0.5 text-xs text-slate-500">{formatTxDay(tx.created_at)}</span>
+                              </div>
+                              {/* 5. Кнопки */}
+                              <div className="flex w-[10%] justify-end gap-2">
+                                <button
+                                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-blue-500/20 bg-blue-500/10 text-blue-400 transition-all hover:bg-blue-500/20"
+                                  onClick={() => openEditModal(tx)} title="Edit"
+                                >
+                                  <i className="bi bi-pencil-fill text-sm" />
                                 </button>
                                 <button
-                                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-rose-400 hover:bg-rose-500/10 transition-colors"
-                                  onClick={() => { setDeleteTx(tx); setIsDeleteOpen(true); setOpenMenuId(null); }}
+                                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-rose-500/20 bg-rose-500/10 text-rose-400 transition-all hover:bg-rose-500/20"
+                                  onClick={() => { setDeleteTx(tx); setIsDeleteOpen(true); }} title="Delete"
                                 >
-                                  <i className="bi bi-trash-fill text-xs" /> Delete
+                                  <i className="bi bi-trash-fill text-sm" />
                                 </button>
                               </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* === ДЕСКТОПНИЙ LAYOUT (від md) === */}
-                        <div className="hidden md:flex items-center justify-between p-4 hover:-translate-y-[1px] hover:shadow-[inset_3px_0_0_#3b82f6,inset_-3px_0_0_#3b82f6,0_8px_20px_rgba(0,0,0,0.3)]">
-                          {/* 1. Нумерація + Тайтл */}
-                          <div className="flex w-[35%] min-w-0 items-center gap-4">
-                            <span className="w-6 text-center text-sm font-medium text-slate-600 transition-colors group-hover:text-blue-400">
-                              {index + 1}
-                            </span>
-                            <div className="flex min-w-0 flex-col">
-                              <span className="truncate text-base font-bold tracking-wide text-slate-100 transition-colors group-hover:text-white">{tx.title}</span>
-                              {tx.note && <span className="mt-0.5 text-xs text-slate-500">{tx.note}</span>}
                             </div>
-                          </div>
-                          {/* 2. Категорія */}
-                          <div className="flex w-[18%] min-w-0 items-center gap-2">
-                            <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${catStyles.color}`}>
-                              <i className={`bi ${catStyles.icon} text-xs`} />
-                            </div>
-                            <span className="truncate text-xs font-semibold text-slate-300">{tx.category_name}</span>
-                          </div>
-                          {/* 3. Сума */}
-                          <div className="flex w-[15%] justify-end">
-                            <span className={`text-base font-black tracking-widest ${tx.transaction_type === "income" ? "text-emerald-400" : "text-rose-500"}`}>
-                              {tx.transaction_type === "income" ? "+" : "-"}{formatWithSymbol(tx.amount)}
-                            </span>
-                          </div>
-                          {/* 4. Дата */}
-                          <div className="flex w-[15%] flex-col items-end">
-                            <span className="text-sm font-medium text-slate-300">{formatTxDate(tx.created_at)}</span>
-                            <span className="mt-0.5 text-xs text-slate-500">{formatTxDay(tx.created_at)}</span>
-                          </div>
-                          {/* 5. Кнопки */}
-                          <div className="flex w-[10%] justify-end gap-2">
-                            <button
-                              className="flex h-9 w-9 items-center justify-center rounded-lg border border-blue-500/20 bg-blue-500/10 text-blue-400 transition-all hover:bg-blue-500/20"
-                              onClick={() => openEditModal(tx)} title="Edit"
-                            >
-                              <i className="bi bi-pencil-fill text-sm" />
-                            </button>
-                            <button
-                              className="flex h-9 w-9 items-center justify-center rounded-lg border border-rose-500/20 bg-rose-500/10 text-rose-400 transition-all hover:bg-rose-500/20"
-                              onClick={() => { setDeleteTx(tx); setIsDeleteOpen(true); }} title="Delete"
-                            >
-                              <i className="bi bi-trash-fill text-sm" />
-                            </button>
-                          </div>
-                        </div>
                       </div>
                     );
                   })}
