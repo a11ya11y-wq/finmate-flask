@@ -14,9 +14,9 @@ type ModalProps = {
 };
 
 const sizeClasses: Record<NonNullable<ModalProps["size"]>, string> = {
-  sm: "max-w-[420px]", // Звузили для ідеального вигляду форми
-  md: "max-w-2xl",
-  lg: "max-w-4xl"
+  sm: "sm:max-w-[420px]", // На мобільному без обмежень, на десктопі вузька
+  md: "sm:max-w-2xl",
+  lg: "sm:max-w-4xl"
 };
 
 const variantClasses: Record<NonNullable<ModalProps["variant"]>, string> = {
@@ -29,18 +29,27 @@ const Modal = ({ isOpen, title, onClose, children, footer, size = "sm", variant 
   useEffect(() => {
     if (!isOpen) return undefined;
 
+    // Вимірюємо ширину скролбара щоб компенсувати зсув при overflow:hidden
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    document.body.style.overflow = "hidden";
+    document.body.style.paddingRight = `${scrollbarWidth}px`;
+
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
     };
 
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
+    };
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 backdrop-blur-[2px]">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 backdrop-blur-[2px]">
       <button
         type="button"
         aria-label="Close modal"
@@ -49,13 +58,15 @@ const Modal = ({ isOpen, title, onClose, children, footer, size = "sm", variant 
       />
       <div
         className={cn(
-          "relative w-full overflow-hidden rounded-2xl border border-white/10 bg-[#11151f] shadow-[0_20px_60px_rgba(0,0,0,0.7)] border-t-[4px] animate-in fade-in zoom-in-95 duration-200",
+          "relative w-full overflow-hidden rounded-2xl border border-white/10 bg-[#11151f] border-t-[4px] flex flex-col",
+          "shadow-[0_20px_60px_rgba(0,0,0,0.7)] animate-in fade-in zoom-in-95 duration-200",
+          "max-h-[90vh]",
           sizeClasses[size],
           variantClasses[variant]
         )}
       >
         {title && (
-          <div className="flex items-center justify-between px-6 pt-5 pb-2">
+          <div className="flex shrink-0 items-center justify-between px-6 pt-5 pb-2">
             <h3 className="text-lg font-bold text-slate-100">{title}</h3>
             <button
               type="button"
@@ -66,8 +77,8 @@ const Modal = ({ isOpen, title, onClose, children, footer, size = "sm", variant 
             </button>
           </div>
         )}
-        <div className="px-6 py-4">{children}</div>
-        {footer && <div className="bg-black/20 px-6 py-4">{footer}</div>}
+        <div className="flex-1 overflow-y-auto px-6 py-4">{children}</div>
+        {footer && <div className="shrink-0 bg-black/20 px-6 py-4">{footer}</div>}
       </div>
     </div>,
     document.body
