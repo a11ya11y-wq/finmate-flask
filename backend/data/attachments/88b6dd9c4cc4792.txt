@@ -1,0 +1,4 @@
+2026-08-08 18:10:43,993 - core_service.utils.caching - INFO - No cache entries found for pattern: dashboard:1:*
+2026-08-08 18:10:43,993 - core_service.utils.caching - INFO - No cache entries found for pattern: categories:1
+2026-08-08 18:10:43,993 - core_service.utils.caching - INFO - No cache entries found for pattern: budgets:1
+2026-08-08 18:10:43,995 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/transactions/97: ["transaction_type: Input should be 'income' or 'expense'"]

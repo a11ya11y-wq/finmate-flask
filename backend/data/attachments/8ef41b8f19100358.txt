@@ -1,0 +1,3 @@
+2026-08-08 18:10:43,060 - core_service.reports.routes - INFO - Received request to generate PDF report for user 1
+2026-08-08 18:10:43,066 - core_service.reports.service - INFO - No transactions found for user_id: 1 in the specified period.
+2026-08-08 18:10:43,068 - core_service.utils.error_parser - WARNING - Business error on /api/v1/report/generate-pdf: No transactions found for the specified period for report.

@@ -1,0 +1,1 @@
+2026-08-08 18:10:40,868 - core_service.auth.service - INFO - User 1 logged out successfully.

@@ -1,3 +1,0 @@
-2026-08-08 17:45:24,557 - core_service.auth.service - INFO - New user created with ID: 6
-2026-08-08 17:45:24,645 - core_service.auth.service - INFO - User 6 logged in successfully.
-2026-08-08 17:45:24,651 - core_service.auth.service - INFO - Access token refreshed for user 6
