@@ -1,1 +1,0 @@
-2026-08-08 18:10:41,256 - core_service.utils.error_parser - WARNING - Business error on /api/v1/budgets/: Category 100 not found or access denied.

@@ -1,0 +1,1 @@
+2026-08-08 23:38:54,041 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/categories/: ['name: Field required']

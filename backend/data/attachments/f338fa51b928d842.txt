@@ -1,0 +1,2 @@
+2026-08-08 23:38:55,201 - core_service.profile.service - INFO - User 1 profile updated.
+2026-08-08 23:38:55,203 - core_service.utils.caching - INFO - No cache entries found for pattern: profile:1

@@ -1,1 +1,0 @@
-2026-08-08 18:10:44,543 - core_service.auth.service - INFO - User 142 logged out successfully.
