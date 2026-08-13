@@ -1,1 +1,0 @@
-2026-08-13 10:32:57,752 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/auth/register: ['username: String should have at least 4 characters']

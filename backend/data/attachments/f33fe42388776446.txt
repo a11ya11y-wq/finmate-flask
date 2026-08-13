@@ -1,1 +1,0 @@
-2026-08-13 10:33:04,578 - core_service.budgets.service - WARNING - Attempt to delete non-existing budget 999 by user 1

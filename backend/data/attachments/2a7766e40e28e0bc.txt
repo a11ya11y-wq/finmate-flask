@@ -1,0 +1,5 @@
+2026-08-13 10:54:28,918 - core_service.categories.service - INFO - New category created for user 1 with name UniqueName
+2026-08-13 10:54:28,919 - core_service.utils.caching - INFO - No cache entries found for pattern: categories:1
+2026-08-13 10:54:28,919 - core_service.utils.caching - INFO - No cache entries found for pattern: dashboard:1:*
+2026-08-13 10:54:28,923 - core_service.categories.service - WARNING - Category creation failed: duplicate name UniqueName for user 1
+2026-08-13 10:54:28,924 - core_service.utils.error_parser - WARNING - Business error on /api/v1/categories/: Category with name UniqueName already exists.

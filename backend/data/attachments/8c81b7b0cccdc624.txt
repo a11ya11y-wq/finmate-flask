@@ -1,4 +1,0 @@
-2026-08-13 10:33:01,752 - core_service.auth.service - INFO - Triggering reset for demo user ID: 9999
-2026-08-13 10:33:01,755 - core_service.auth.service - INFO - Demo account reset. Cleared 7 keys.
-2026-08-13 10:33:01,756 - core_service.auth.service - INFO - User 9999 logged in successfully.
-2026-08-13 10:33:01,761 - core_service.utils.error_parser - WARNING - Business error on /api/v1/profile/change-password: This action is prohibited for the demo account.

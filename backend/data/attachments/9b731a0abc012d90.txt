@@ -1,0 +1,1 @@
+2026-08-13 10:54:28,169 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/budgets/: ['is_recurring: Input should be a valid boolean, unable to interpret input']

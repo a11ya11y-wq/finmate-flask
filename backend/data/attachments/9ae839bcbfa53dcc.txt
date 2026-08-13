@@ -1,0 +1,1 @@
+2026-08-13 10:54:31,397 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/transactions/: ['created_at: Input should be a valid datetime or date, month value is outside expected range of 1-12']
