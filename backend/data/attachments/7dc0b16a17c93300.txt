@@ -1,1 +1,0 @@
-2026-08-13 10:17:14,610 - core_service.utils.caching - INFO - No cache entries found for pattern: dummy:*

@@ -1,0 +1,2 @@
+2026-08-13 10:32:59,840 - core_service.budgets.service - WARNING - Attempt to delete non-existing budget 100 by user 1
+2026-08-13 10:32:59,841 - core_service.utils.error_parser - WARNING - Business error on /api/v1/budgets/100: Budget 100 not found or access denied.

@@ -1,1 +1,0 @@
-2026-08-13 10:17:07,265 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/auth/register: ['Value error, Passwords do not match.']

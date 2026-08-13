@@ -1,3 +1,0 @@
-2026-08-13 10:17:09,210 - core_service.budgets.service - INFO - New budget created for user 1 in category 1
-2026-08-13 10:17:09,213 - core_service.utils.caching - INFO - No cache entries found for pattern: budgets:1
-2026-08-13 10:17:09,217 - core_service.utils.error_parser - WARNING - Business error on /api/v1/budgets/: Category 100 not found or access denied.
