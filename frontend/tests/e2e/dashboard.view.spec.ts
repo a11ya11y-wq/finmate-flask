@@ -36,12 +36,12 @@ test.describe('Dashboard View', () => {
             await expect(dashboardPage.currentBalanceCard.badge).toHaveText('Healthy');
             // Total Income Card
             await expect(dashboardPage.totalIncomeCard.container).toBeVisible();
-            await expect(dashboardPage.totalIncomeCard.title).toHaveText('Total Income');
+            await expect(dashboardPage.totalIncomeCard.title).toHaveText('Income');
             await expect(dashboardPage.totalIncomeCard.amount).toHaveText('$0.00');
             await expect(dashboardPage.totalIncomeCard.badge).toHaveText('0%');
             // Total Expense Card
             await expect(dashboardPage.totalExpenseCard.container).toBeVisible();
-            await expect(dashboardPage.totalExpenseCard.title).toHaveText('Total Expense');
+            await expect(dashboardPage.totalExpenseCard.title).toHaveText('Expense');
             await expect(dashboardPage.totalExpenseCard.amount).toHaveText('$0.00');
             await expect(dashboardPage.totalExpenseCard.badge).toHaveText('0%');
         });
