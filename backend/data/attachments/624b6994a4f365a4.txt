@@ -1,0 +1,13 @@
+2026-08-13 10:17:09,658 - core_service.categories.service - INFO - New category created for user 1 with name Cat 0
+2026-08-13 10:17:09,659 - core_service.utils.caching - INFO - No cache entries found for pattern: categories:1
+2026-08-13 10:17:09,660 - core_service.utils.caching - INFO - No cache entries found for pattern: dashboard:1:*
+2026-08-13 10:17:09,667 - core_service.categories.service - INFO - New category created for user 1 with name Cat 1
+2026-08-13 10:17:09,667 - core_service.utils.caching - INFO - No cache entries found for pattern: categories:1
+2026-08-13 10:17:09,668 - core_service.utils.caching - INFO - No cache entries found for pattern: dashboard:1:*
+2026-08-13 10:17:09,673 - core_service.categories.service - INFO - New category created for user 1 with name Cat 2
+2026-08-13 10:17:09,674 - core_service.utils.caching - INFO - No cache entries found for pattern: categories:1
+2026-08-13 10:17:09,674 - core_service.utils.caching - INFO - No cache entries found for pattern: dashboard:1:*
+2026-08-13 10:17:09,680 - core_service.categories.service - INFO - New category created for user 1 with name Cat 3
+2026-08-13 10:17:09,680 - core_service.utils.caching - INFO - No cache entries found for pattern: categories:1
+2026-08-13 10:17:09,681 - core_service.utils.caching - INFO - No cache entries found for pattern: dashboard:1:*
+2026-08-13 10:17:09,684 - core_service.utils.error_parser - WARNING - Business error on /api/v1/categories/: You have reached the limit of 10 categories

@@ -1,0 +1,3 @@
+2026-08-13 10:17:15,117 - core_service.monobank.service - INFO - No correct card found in Monobank
+2026-08-13 10:17:15,117 - core_service.monobank.service - INFO - Selected Account ID for sync: ACC_ID_001
+2026-08-13 10:17:15,118 - core_service.monobank.service - WARNING - Monobank API throttling error for user 1: Too many requests

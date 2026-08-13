@@ -1,1 +1,0 @@
-2026-08-08 23:38:54,059 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/categories/: ['name: String should have at least 1 character']

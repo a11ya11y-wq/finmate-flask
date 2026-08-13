@@ -1,0 +1,6 @@
+2026-08-13 10:17:10,099 - core_service.categories.service - INFO - New category created for user 1 with name TEST_CAT
+2026-08-13 10:17:10,100 - core_service.utils.caching - INFO - No cache entries found for pattern: categories:1
+2026-08-13 10:17:10,100 - core_service.utils.caching - INFO - No cache entries found for pattern: dashboard:1:*
+2026-08-13 10:17:10,111 - core_service.categories.service - INFO - Category 70 deleted for user 1
+2026-08-13 10:17:10,118 - core_service.utils.caching - INFO - No cache entries found for pattern: categories:1
+2026-08-13 10:17:10,118 - core_service.utils.caching - INFO - No cache entries found for pattern: dashboard:1:*

@@ -1,1 +1,0 @@
-2026-08-08 23:38:58,362 - core_service.categories.service - INFO - Category 1 updated for user 1

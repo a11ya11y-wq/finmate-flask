@@ -1,0 +1,1 @@
+2026-08-13 10:17:07,302 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/auth/register: ['username: Field required', 'password: String should have at least 6 characters']

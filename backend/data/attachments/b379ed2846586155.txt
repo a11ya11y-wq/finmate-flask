@@ -1,1 +1,0 @@
-2026-08-08 23:38:57,611 - core_service.auth.service - INFO - Triggering reset for demo user ID: 142

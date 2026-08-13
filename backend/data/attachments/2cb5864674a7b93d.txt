@@ -1,0 +1,2 @@
+2026-08-13 10:17:12,041 - core_service.reports.service - ERROR - Report 17 marked as success but no fileKey provided in Redis result.
+2026-08-13 10:17:12,043 - core_service.utils.caching - INFO - No cache entries found for pattern: reports:1*

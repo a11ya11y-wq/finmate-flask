@@ -1,0 +1,1 @@
+2026-08-13 10:17:16,458 - core_service.reports.service - WARNING - Report with id 999 not found for user_id: 1

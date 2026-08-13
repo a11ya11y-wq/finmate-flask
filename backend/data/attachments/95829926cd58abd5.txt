@@ -1,2 +1,0 @@
-2026-08-08 23:38:57,600 - core_service.auth.service - INFO - Triggering reset for demo user ID: 142
-2026-08-08 23:38:57,602 - core_service.auth.service - INFO - Demo account reset. Cleared 7 keys.
