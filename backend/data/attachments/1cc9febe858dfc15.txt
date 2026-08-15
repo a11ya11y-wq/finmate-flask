@@ -1,0 +1,4 @@
+2026-08-15 11:18:15,301 - core_service.utils.caching - INFO - No cache entries found for pattern: dashboard:1:*
+2026-08-15 11:18:15,302 - core_service.utils.caching - INFO - No cache entries found for pattern: categories:1
+2026-08-15 11:18:15,302 - core_service.utils.caching - INFO - No cache entries found for pattern: budgets:1
+2026-08-15 11:18:15,304 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/transactions/95: ['amount: Input should be greater than 0']

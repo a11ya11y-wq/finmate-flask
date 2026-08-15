@@ -1,0 +1,1 @@
+2026-08-15 11:18:19,269 - core_service.transactions.service - WARNING - Category 999 not found for update.
