@@ -38,7 +38,7 @@ You can evaluate the application without registering. Just click the **"Try Demo
 > **Note for Reviewers:** The demo environment is completely isolated and self-healing. Upon every demo login, a custom backend script automatically resets the PostgreSQL database and safely invalidates the Redis cache (O(1) deletion for static keys). This guarantees a pristine, wow-effect state with populated transactions and budgets for every new session.
 
 ## Overview
-**FinMate** is a modern, decoupled personal finance application designed to help users track income & expenses, manage budgets, and visualize financial health. The project employs a **Service-Oriented Architecture (SOA)**, featuring a **Flask** backend for core business logic, **Celery** for background task processing (such as automated bank synchronization), a stateless **NestJS** worker for asynchronous PDF report generation, and a responsive frontend built with **React**.
+**FinMate** is a modern, fully mobile-responsive (mobile-first) personal finance application designed to help users track income & expenses, manage budgets, and visualize financial health. The project employs a **Service-Oriented Architecture (SOA)**, featuring a **Flask** backend for core business logic, **Celery** for background task processing (such as automated bank synchronization), a stateless **NestJS** worker for asynchronous PDF report generation, and a responsive frontend built with **React**.
 
 > **Note:** The frontend architecture and UI logic were developed with the assistance of AI tools (GitHub Copilot), focusing on modern best practices and responsiveness.
 
@@ -72,7 +72,7 @@ You can evaluate the application without registering. Just click the **"Try Demo
 flowchart TD
     Client(["User Browser (React SPA)"])
     Mono(["Monobank API"])
-    S3[("DO Spaces (S3)")]
+    S3[("Cloudflare R2 (S3)")]
 
     Client ===>|"1. HTTPS (Load Static UI /)"| Proxy["Nginx: Reverse Proxy"]
     Client ===>|"2. HTTPS (REST /api/v1/*)"| Proxy
@@ -117,7 +117,7 @@ The diagram above illustrates three distinct interaction patterns within our sys
 
 3. **Stateless Microservice Flow (NestJS PDF Generation)**
    * **Purpose:** Offloading CPU-heavy PDF rendering to prevent the main Python API thread from hanging.
-   * **How it works:** Instead of complex RPC calls, Flask simply pushes payload data into a specific `Redis` queue (`RPUSH`). An isolated `NestJS Worker` listens to this queue using a blocking `BLPOP` command (consuming 0% CPU while idle). Upon receiving data, it renders the PDF, uploads it to `S3 (DO Spaces)`, and the React client downloads the file directly from the object storage bucket, bypassing the backend entirely.
+   * **How it works:** Instead of complex RPC calls, Flask simply pushes payload data into a specific `Redis` queue (`RPUSH`). An isolated `NestJS Worker` listens to this queue using a blocking `BLPOP` command (consuming 0% CPU while idle). Upon receiving data, it renders the PDF, uploads it to `S3 (Cloudflare R2)`, and the React client downloads the file directly from the object storage bucket, bypassing the backend entirely.
 
 ## Key Features
 - **Secure Authentication:**
@@ -141,7 +141,7 @@ The diagram above illustrates three distinct interaction patterns within our sys
 The project is fully containerized and deployed via a GitHub Actions CI/CD pipeline.
 * **Cloud Provider:** DigitalOcean Droplet (Ubuntu Linux).
 * **Containerization:** **Docker & Docker Compose** orchestrate the application services.
-* **Storage:** DigitalOcean Spaces (S3-compatible) for hosting generated PDF reports.
+* **Storage:** Cloudflare R2 (S3-compatible) for hosting generated PDF reports.
 * **Web Server:** Nginx as a reverse proxy with Let's Encrypt SSL.
 
 ## 💡 Technical Highlights & Architecture
@@ -195,6 +195,8 @@ Screenshots are located in `frontend_by_copilot/public/img/screenshots/`.
     cd finmate-flask
     ```
 
+    *Tip: We use `pyenv` for Python version management. Ensure you have the version specified in `.python-version` installed.*
+
 2.  **Environment Setup:**
     Create a `.env` file in the root directory. You can use the example below:
 
@@ -224,12 +226,12 @@ Screenshots are located in `frontend_by_copilot/public/img/screenshots/`.
     REDIS_HOST="redis"
     REDIS_PORT="6379"
 
-    #DigitalOcean Spaces
-    DO_SPACES_KEY=your_spaces_key_here
-    DO_SPACES_SECRET=your_spaces_secret_here
-    DO_SPACES_ENDPOINT=your_spaces_endpoint_here
-    DO_SPACES_REGION=your_spaces_region_here
-    DO_SPACES_BUCKET=your_spaces_bucket_here
+    # Cloudflare R2
+    R2_ACCESS_KEY_ID=your_r2_access_key
+    R2_SECRET_ACCESS_KEY=your_r2_secret_key
+    R2_ENDPOINT_URL=https://<account_id>.r2.cloudflarestorage.com
+    R2_REGION=auto
+    R2_BUCKET_NAME=finmate-reports
 
     # Testing Enviroment
     TEST_DATABASE_URL="postgresql+psycopg://postgres:password@db:5432/finmate_test_db"
@@ -261,6 +263,7 @@ Screenshots are located in `frontend_by_copilot/public/img/screenshots/`.
     * **E2E (Playwright):**
         ```bash
         cd frontend
+        npx playwright install  # Install browsers first
         npm run test:e2e
         ```
 

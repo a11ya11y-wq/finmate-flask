@@ -35,7 +35,7 @@ const AppShell = ({ children }: AppShellProps) => {
 			<header className="relative z-50 border-b border-white/10 bg-[#0b0f17]/80 backdrop-blur">
 				<div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
 					<Link to="/dashboard" className="flex items-center gap-3">
-					<img src="/img/finmatelogo1.png" alt="FinMate" className="h-10 w-10 sm:h-16 sm:w-16 md:h-20 md:w-20" />
+					<img src="/img/logo.png" alt="FinMate" className="h-7 w-auto sm:h-8 md:h-10" />
 				</Link>
 					{/* Мобільний аватар — просто посилання на профіль, без дропдауну */}
 				<Link
