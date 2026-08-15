@@ -1,2 +1,0 @@
-2026-08-15 11:18:17,338 - core_service.monobank.service - INFO - No correct card found in Monobank
-2026-08-15 11:18:17,338 - core_service.monobank.service - INFO - Selected Account ID for sync: ACC_ID_001

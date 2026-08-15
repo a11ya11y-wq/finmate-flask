@@ -1,0 +1,2 @@
+2026-08-15 12:55:42,320 - core_service.reports.service - ERROR - Report 13 stuck in PENDING for too long. Marking as FAILED.
+2026-08-15 12:55:42,321 - core_service.utils.caching - INFO - No cache entries found for pattern: reports:1*

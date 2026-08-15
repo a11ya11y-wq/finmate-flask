@@ -1,0 +1,1 @@
+2026-08-15 12:55:45,221 - core_service.profile.service - WARNING - User 1 attempted to change username to an already taken one: existinguser

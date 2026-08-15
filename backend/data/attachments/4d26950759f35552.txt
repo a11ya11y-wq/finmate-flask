@@ -1,8 +1,0 @@
-2026-08-15 11:18:16,732 - core_service.utils.caching - ERROR - Error building cache key in @redis_cache for dummy_func
-Traceback (most recent call last):
-  File "/home/runner/work/FinMate/FinMate/api-main/core_service/utils/caching.py", line 26, in wrapper
-    cache_key = key_builder(*args, **kwargs)
-                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/runner/work/FinMate/FinMate/api-main/tests/unit/test_caching.py", line 37, in faulty_key_builder
-    raise Exception("Key generation failed")
-Exception: Key generation failed

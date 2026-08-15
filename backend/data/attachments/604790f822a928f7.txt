@@ -1,1 +1,0 @@
-2026-08-15 11:18:18,239 - core_service.profile.service - INFO - User 1 deleted Monobank token.
