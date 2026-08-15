@@ -460,6 +460,8 @@ const ProfilePage = () => {
       toast({ variant: "success", message: "Category deleted successfully!" });
     } catch (err) {
       toast({ variant: "error", message: toErrorMessage(err) });
+      setIsDeleteCategoryOpen(false);
+      setDeleteCategoryId(null);
     }
   };
 
@@ -489,8 +491,8 @@ const ProfilePage = () => {
         {/* USER PROFILE INFO */}
         <Card className="surface-card border-blue-500/20 bg-gradient-to-r from-[#0b0f17] to-[#121826]">
           <CardContent className="py-8">
-            <div data-testid="profile-user-info-container" className="flex flex-col gap-8 md:flex-row md:items-center">
-              <div className="relative group">
+            <div data-testid="profile-user-info-container" className="flex flex-col items-center text-center gap-6 md:flex-row md:items-center md:text-left md:gap-8">
+              <div className="relative group shrink-0">
                 <div className="absolute -inset-1 rounded-3xl bg-blue-500/20 opacity-0 blur transition duration-500 group-hover:opacity-100"></div>
                 <img
                   src={`/${profileForm.avatar}`}
@@ -502,13 +504,14 @@ const ProfilePage = () => {
                   <i className={`bi ${user?.monobank_token_is_set ? "bi-check-circle-fill" : "bi-bank"}`} />
                 </div>
               </div>
-              <div className="flex-1 space-y-2">
-                <h2 data-testid="profile-username" className="text-3xl font-bold text-white">{user?.username}</h2>
-                <div className="flex flex-wrap gap-4 text-slate-400">
-                  <span data-testid="profile-email" className="flex items-center gap-2 rounded-lg bg-white/5 px-3 py-1 text-sm border border-white/5">
-                    <i className="bi bi-envelope text-blue-400" /> {user?.email}
+              <div className="flex-1 space-y-3 min-w-0">
+                <h2 data-testid="profile-username" className="text-2xl sm:text-3xl font-bold text-white truncate">{user?.username}</h2>
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 text-slate-400">
+                  <span data-testid="profile-email" className="flex items-center gap-2 rounded-lg bg-white/5 px-3 py-1.5 text-xs sm:text-sm border border-white/5 max-w-full">
+                    <i className="bi bi-envelope text-blue-400 shrink-0" />
+                    <span className="truncate">{user?.email}</span>
                   </span>
-                  <span data-testid="profile-currency" className="flex items-center gap-2 rounded-lg bg-white/5 px-3 py-1 text-sm border border-white/5">
+                  <span data-testid="profile-currency" className="flex items-center gap-2 rounded-lg bg-white/5 px-3 py-1.5 text-xs sm:text-sm border border-white/5 shrink-0">
                     <i className="bi bi-currency-exchange text-emerald-400" /> {user?.currency}
                   </span>
                 </div>
@@ -558,24 +561,23 @@ const ProfilePage = () => {
             </Button>
           </CardHeader>
           <CardContent>
-            {/* Замість великої форми - акуратний список */}
             <div className="grid gap-3 sm:grid-cols-2">
               {categories.map((cat) => (
-                <div key={cat.id} className="group flex items-center justify-between rounded-2xl border border-white/5 bg-[#0f172a]/40 p-4 transition-all hover:bg-[#121a2b] hover:border-blue-500/30">
-                  <div className="flex min-w-0 items-center gap-4">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-500/10 text-blue-400">
+                <div key={cat.id} className="group flex w-full min-w-0 items-center justify-between rounded-2xl border border-white/5 bg-[#0f172a]/40 p-3 sm:p-4 transition-all hover:bg-[#121a2b] hover:border-blue-500/30">
+                  <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
+                    <div className="flex shrink-0 h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-blue-500/10 text-blue-400">
                       <i className={`bi ${cat.icon} text-lg`} />
                     </div>
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-bold text-white">{cat.name}</p>
                       <p className="truncate text-[10px] font-medium uppercase tracking-wider text-slate-500">{cat.mcc_code || "No MCC"}</p>
                     </div>
                   </div>
-                  <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => { setEditCategory(cat); setEditCategorySnapshot(cat); setCategoryErrors({}); setIsEditCategoryOpen(true); }} data-testid="edit-category-button" className="h-8 w-8 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors">
+                  <div className="flex shrink-0 gap-1.5 sm:gap-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity ml-2">
+                    <button onClick={() => { setEditCategory(cat); setEditCategorySnapshot(cat); setCategoryErrors({}); setIsEditCategoryOpen(true); }} data-testid="edit-category-button" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors">
                       <i className="bi bi-pencil-fill text-xs" />
                     </button>
-                    <button onClick={() => { setDeleteCategoryId(cat.id); setIsDeleteCategoryOpen(true); }} data-testid="delete-category-button" className="h-8 w-8 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-colors">
+                    <button onClick={() => { setDeleteCategoryId(cat.id); setIsDeleteCategoryOpen(true); }} data-testid="delete-category-button" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-colors">
                       <i className="bi bi-trash-fill text-xs" />
                     </button>
                   </div>
@@ -733,6 +735,7 @@ const ProfilePage = () => {
         isOpen={isDeleteCategoryOpen}
         onClose={() => setIsDeleteCategoryOpen(false)}
         onConfirm={handleDeleteCategory}
+        title="Delete Category"
         description="Are you sure? All transactions in this category will become 'Uncategorized'."
       />
 

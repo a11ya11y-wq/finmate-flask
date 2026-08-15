@@ -24,24 +24,24 @@ const ToastContext = createContext<ToastContextValue | null>(null);
 
 const variantStyles: Record<ToastVariant, { wrapper: string; icon: string; iconColor: string }> = {
   info: {
-    wrapper: "border-blue-500/30 bg-[#0b0f17]/95",
-    icon: "bi-info-circle",
-    iconColor: "text-blue-300"
+    wrapper: "bg-[#0f172a]/80 border-blue-500/20 text-slate-100",
+    icon: "bi-info-circle-fill",
+    iconColor: "text-blue-400"
   },
   success: {
-    wrapper: "border-emerald-500/30 bg-[#0b0f17]/95",
-    icon: "bi-check-circle",
-    iconColor: "text-emerald-300"
+    wrapper: "bg-[#0f172a]/80 border-emerald-500/20 text-slate-100",
+    icon: "bi-check-circle-fill",
+    iconColor: "text-emerald-400"
   },
   warning: {
-    wrapper: "border-amber-500/30 bg-[#0b0f17]/95",
-    icon: "bi-exclamation-triangle",
-    iconColor: "text-amber-300"
+    wrapper: "bg-[#0f172a]/80 border-amber-500/20 text-slate-100",
+    icon: "bi-exclamation-triangle-fill",
+    iconColor: "text-amber-400"
   },
   error: {
-    wrapper: "border-rose-500/30 bg-[#0b0f17]/95",
-    icon: "bi-x-circle",
-    iconColor: "text-rose-300"
+    wrapper: "bg-[#0f172a]/80 border-rose-500/20 text-slate-100",
+    icon: "bi-x-circle-fill",
+    iconColor: "text-rose-400"
   }
 };
 
@@ -88,7 +88,7 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
     <ToastContext.Provider value={value}>
       {children}
       {createPortal(
-        <div className="fixed right-6 top-36 z-[100] flex w-[320px] max-w-[calc(100vw-3rem)] flex-col gap-3">
+        <div className="fixed left-1/2 top-4 z-[100] flex w-fit min-w-[280px] max-w-[calc(100vw-2rem)] -translate-x-1/2 flex-col gap-2 sm:left-auto sm:right-6 sm:top-24 sm:w-[320px] sm:translate-x-0">
           {toasts.map((item) => {
             const config = variantStyles[item.variant];
             const messageLines = item.message
@@ -100,35 +100,28 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
                 key={item.id}
                 data-testid="toast-item"
                 data-variant={item.variant}
+                onClick={() => removeToast(item.id)}
                 className={cn(
-                  "relative rounded-2xl border px-4 py-3 text-slate-100 shadow-[0_20px_40px_rgba(0,0,0,0.45)] backdrop-blur",
+                  "group relative cursor-pointer overflow-hidden rounded-[24px] border px-4 py-3 shadow-[0_8px_30px_rgb(0,0,0,0.24)] backdrop-blur-xl transition-all active:scale-95 sm:px-5 sm:py-3.5",
                   config.wrapper
                 )}
               >
-                <div className="flex items-start gap-3">
-                  <span data-testid="toast-icon" className={cn("text-lg", config.iconColor)}>
+                <div className="flex items-center gap-3">
+                  <span data-testid="toast-icon" className={cn("text-xl", config.iconColor)}>
                     <i className={`bi ${config.icon}`} />
                   </span>
                   <div className="flex-1">
-                    {item.title && <p className="text-sm font-semibold text-slate-100">{item.title}</p>}
+                    {item.title && <p className="text-sm font-bold">{item.title}</p>}
                     {messageLines.length > 1 ? (
-                      <div className="space-y-1 text-sm text-slate-200">
+                      <div className="space-y-0.5 text-sm font-medium opacity-90">
                         {messageLines.map((line, index) => (
                           <p key={`${item.id}-${index}`}>{line}</p>
                         ))}
                       </div>
                     ) : (
-                      <p className="text-sm text-slate-200">{item.message}</p>
+                      <p className="text-sm font-medium opacity-90">{item.message}</p>
                     )}
                   </div>
-                  <button
-                    type="button"
-                    className="text-slate-500 transition hover:text-slate-200"
-                    onClick={() => removeToast(item.id)}
-                    aria-label="Close notification"
-                  >
-                    <i className="bi bi-x-lg" />
-                  </button>
                 </div>
               </div>
             );

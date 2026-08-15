@@ -191,6 +191,7 @@ const DashboardPage = () => {
   const [txErrors, setTxErrors] = useState<Record<string, string>>({});
   const [taskId, setTaskId] = useState<string | null>(null);
   const [isSticky, setIsSticky] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [form, setForm] = useState({
@@ -555,67 +556,87 @@ const DashboardPage = () => {
 
   return (
     <AppShell>
-      <div className="space-y-6">
-        <div className="sticky top-4 z-30 mb-8 flex w-full justify-center">
+      <div className="space-y-4 sm:space-y-6 pb-16 sm:pb-0">
+        <div className="relative sm:sticky top-2 sm:top-4 z-30 mb-4 sm:mb-8 flex w-full justify-center">
 
           {/* Сам хедер, який динамічно змінює ширину */}
           <div data-testid="dashboard-toolbar"
-            className={`flex w-full flex-col gap-4 rounded-2xl border px-6 py-4 transition-all duration-500 lg:flex-row lg:items-center lg:justify-between ${isSticky
-              ? "max-w-[95%] lg:max-w-5xl border-blue-500/70 bg-[#0b0f17]/95 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.7)] backdrop-blur-xl"
+            className={`flex w-full flex-col gap-3 sm:gap-4 rounded-xl sm:rounded-2xl border px-4 py-3 sm:px-6 sm:py-4 transition-all duration-500 lg:flex-row lg:items-center lg:justify-between ${isSticky
+              ? "max-w-[95%] lg:max-w-5xl border-blue-500/70 bg-[#0b0f17]/95 shadow-[0_15px_30px_-10px_rgba(0,0,0,0.7)] backdrop-blur-xl"
               : "max-w-full border-blue-500/40 bg-[#0b0f17]/60 shadow-sm backdrop-blur-md"
               }`}
           >
 
             {/* Ліва частина: Іконка + Заголовок */}
-            <div className="flex items-center gap-4">
-              <i className="bi bi-speedometer2 text-3xl text-blue-400" />
-              <div>
-                <h1 className="text-2xl font-bold tracking-wide text-white">
-                  Dashboard
-                </h1>
-                <p className="text-sm font-medium text-slate-400">Overview for the selected period</p>
+            <div className="flex items-center justify-between w-full lg:w-auto">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <i className="bi bi-speedometer2 text-2xl sm:text-3xl text-blue-400" />
+                <div>
+                  <h1 className="text-xl sm:text-2xl font-bold tracking-wide text-white leading-tight">
+                    Dashboard
+                  </h1>
+                  <p className="hidden sm:block text-sm font-medium text-slate-400">Overview for the selected period</p>
+                </div>
               </div>
+
+              {/* Мобільна кнопка SYNC */}
+              <button
+                type="button"
+                className="flex items-center gap-1.5 rounded-full bg-blue-500/20 px-3 py-1.5 text-xs font-bold tracking-wide text-blue-400 transition-colors hover:bg-blue-500/30 sm:hidden"
+                onClick={triggerSync}
+                disabled={!!taskId}
+              >
+                <i className={`bi bi-arrow-repeat text-sm ${taskId ? "animate-spin" : ""}`} />
+                {taskId ? "SYNCING..." : "SYNC"}
+              </button>
             </div>
 
             {/* Права частина: Перемикачі та Кнопки */}
-            <div data-testid="dashboard-toolbar-actions" className="flex flex-wrap items-center gap-3">
-              <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-1 backdrop-blur-sm">
-                {periodOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    className={
-                      period === option.value
-                        ? "rounded-lg bg-blue-500/20 px-4 py-2 text-xs font-bold uppercase tracking-wider text-blue-200"
-                        : "rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-400 hover:bg-white/5 transition-colors"
-                    }
-                    onClick={() => {
-                      setPage(1);
-                      setPeriod(option.value);
-                    }}
-                  >
-                    {option.label}
-                  </button>
-                ))}
+            <div data-testid="dashboard-toolbar-actions" className="flex w-full flex-col sm:flex-row sm:flex-wrap items-center gap-3 lg:w-auto">
+              
+              {/* Горизонтально скролимий контейнер для періодів */}
+              <div className="flex w-full justify-center overflow-x-auto whitespace-nowrap pb-1 sm:w-auto sm:justify-start sm:pb-0 scrollbar-hide">
+                <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-1 backdrop-blur-sm min-w-max">
+                  {periodOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      className={
+                        period === option.value
+                          ? "rounded-lg bg-blue-500/20 px-4 py-2 text-xs font-bold uppercase tracking-wider text-blue-200"
+                          : "rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-400 hover:bg-white/5 transition-colors"
+                      }
+                      onClick={() => {
+                        setPage(1);
+                        setPeriod(option.value);
+                      }}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              <Button
-                variant="success"
-                className="flex items-center gap-1.5 px-5 font-bold uppercase tracking-wide"
-                onClick={openAddModal}
-              >
-                <i className="bi bi-plus-lg" /> ADD
-              </Button>
+              {/* Кнопки дій (тільки для Десктопу) */}
+              <div className="hidden sm:flex w-full gap-2 sm:w-auto">
+                <Button
+                  variant="success"
+                  className="flex flex-1 sm:flex-none items-center justify-center gap-1.5 px-5 font-bold uppercase tracking-wide"
+                  onClick={openAddModal}
+                >
+                  <i className="bi bi-plus-lg" /> ADD
+                </Button>
 
-              <Button
-                variant="primary"
-                className="flex items-center gap-1.5 px-5 font-bold uppercase tracking-wide transition-all"
-                onClick={triggerSync}
-                disabled={!!taskId} // Блокуємо кнопку від повторних кліків під час процесу
-              >
-                <i className={`bi bi-arrow-repeat ${taskId ? "animate-spin" : ""}`} />
-                {taskId ? "SYNCING..." : "SYNC"}
-              </Button>
+                <Button
+                  variant="primary"
+                  className="flex flex-1 sm:flex-none items-center justify-center gap-1.5 px-5 font-bold uppercase tracking-wide transition-all"
+                  onClick={triggerSync}
+                  disabled={!!taskId}
+                >
+                  <i className={`bi bi-arrow-repeat ${taskId ? "animate-spin" : ""}`} />
+                  {taskId ? "SYNCING..." : "SYNC"}
+                </Button>
+              </div>
             </div>
 
           </div>
@@ -623,73 +644,71 @@ const DashboardPage = () => {
 
         {data && (
           <>
-            <div data-testid="dashboard-stats-cards" className="grid gap-4 md:grid-cols-3">
-              <Card data-testid="dashboard-total-income" className="surface-card border-emerald-500/40 border-t-2 bg-gradient-to-br from-[#0c1913] via-[#0a120e] to-[#0a120e] shadow-[inset_0_1px_0_rgba(16,185,129,0.35),inset_20px_20px_60px_rgba(16,185,129,0.08)] transition hover:-translate-y-1 hover:shadow-[inset_0_1px_0_rgba(16,185,129,0.45),inset_20px_20px_60px_rgba(16,185,129,0.12),0_18px_50px_rgba(16,185,129,0.25)]">
-                <CardHeader>
+            <div data-testid="dashboard-stats-cards" className="grid grid-cols-2 gap-3 md:gap-4 md:grid-cols-3">
+
+              {/* Total Income */}
+              <Card data-testid="dashboard-total-income" className="surface-card border-emerald-500/30 border-t-2 bg-gradient-to-br from-[#0c1913] via-[#0a120e] to-[#0a120e] shadow-[inset_0_1px_0_rgba(16,185,129,0.25)] transition hover:-translate-y-1 hover:shadow-[0_18px_50px_rgba(16,185,129,0.2)]">
+                <CardHeader className="px-4 py-3 md:px-6 md:py-4">
                   <CardTitle>
-                    <span data-testid="dashboard-total-income-title" className="flex items-center gap-2 text-emerald-100/80">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/30 text-emerald-100">
+                    <span data-testid="dashboard-total-income-title" className="flex items-center gap-1.5 text-emerald-100/70 text-xs md:text-sm md:gap-2">
+                      <span className="flex h-6 w-6 md:h-8 md:w-8 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400 text-xs">
                         <i className="bi bi-arrow-down" />
                       </span>
-                      Total Income
+                      <span className="truncate">Income</span>
                     </span>
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  {/* ВИКОРИСТАНО formatWithSymbol */}
-                  <p data-testid="dashboard-total-income-amount" className="text-3xl font-black text-emerald-500">{formatWithSymbol(data.stats.current_income)}</p>
-                  <span data-testid="dashboard-total-income-change" className="mt-3 inline-flex items-center gap-2 rounded-md bg-black/40 px-2.5 py-1 text-xs font-semibold text-emerald-400">
-                    <i className="bi bi-arrow-up" />
+                <CardContent className="px-4 pb-4 pt-3 md:px-6 md:pb-4">
+                  <p data-testid="dashboard-total-income-amount" className="text-xl font-black text-emerald-400 md:text-3xl leading-tight">{formatWithSymbol(data.stats.current_income)}</p>
+                  <span data-testid="dashboard-total-income-change" className="mt-2 inline-flex items-center gap-1 rounded-md bg-black/40 px-2 py-0.5 text-xs font-semibold text-emerald-400">
+                    <i className="bi bi-arrow-up text-[10px]" />
                     {data.stats.income_percentage_change}%
                   </span>
                 </CardContent>
               </Card>
-              <Card data-testid="dashboard-total-expense" className="surface-card border-rose-500/40 border-t-2 bg-gradient-to-br from-[#1a0d0f] via-[#120a0a] to-[#120a0a] shadow-[inset_0_1px_0_rgba(244,63,94,0.35),inset_20px_20px_60px_rgba(244,63,94,0.08)] transition hover:-translate-y-1 hover:shadow-[inset_0_1px_0_rgba(244,63,94,0.45),inset_20px_20px_60px_rgba(244,63,94,0.12),0_18px_50px_rgba(244,63,94,0.25)]">
-                <CardHeader>
+
+              {/* Total Expense */}
+              <Card data-testid="dashboard-total-expense" className="surface-card border-rose-500/30 border-t-2 bg-gradient-to-br from-[#1a0d0f] via-[#120a0a] to-[#120a0a] shadow-[inset_0_1px_0_rgba(244,63,94,0.25)] transition hover:-translate-y-1 hover:shadow-[0_18px_50px_rgba(244,63,94,0.2)]">
+                <CardHeader className="px-4 py-3 md:px-6 md:py-4">
                   <CardTitle>
-                    <span data-testid="dashboard-total-expense-title" className="flex items-center gap-2 text-rose-100/80">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-rose-500/30 text-rose-100">
+                    <span data-testid="dashboard-total-expense-title" className="flex items-center gap-1.5 text-rose-100/70 text-xs md:text-sm md:gap-2">
+                      <span className="flex h-6 w-6 md:h-8 md:w-8 shrink-0 items-center justify-center rounded-full bg-rose-500/20 text-rose-400 text-xs">
                         <i className="bi bi-arrow-up" />
                       </span>
-                      Total Expense
+                      <span className="truncate">Expense</span>
                     </span>
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  {/* ВИКОРИСТАНО formatWithSymbol */}
-                  <p data-testid="dashboard-total-expense-amount" className="text-3xl font-black text-rose-500">{formatWithSymbol(data.stats.current_expense)}</p>
-                  <span data-testid="dashboard-total-expense-change" className="mt-3 inline-flex items-center gap-2 rounded-md bg-black/40 px-2.5 py-1 text-xs font-semibold text-rose-400">
-                    <i className="bi bi-arrow-down" />
+                <CardContent className="px-4 pb-4 pt-3 md:px-6 md:pb-4">
+                  <p data-testid="dashboard-total-expense-amount" className="text-xl font-black text-rose-400 md:text-3xl leading-tight">{formatWithSymbol(data.stats.current_expense)}</p>
+                  <span data-testid="dashboard-total-expense-change" className="mt-2 inline-flex items-center gap-1 rounded-md bg-black/40 px-2 py-0.5 text-xs font-semibold text-rose-400">
+                    <i className="bi bi-arrow-down text-[10px]" />
                     {data.stats.expense_percentage_change}%
                   </span>
                 </CardContent>
               </Card>
-              <Card data-testid="dashboard-current-balance" className="surface-card border-blue-500/40 border-t-2 bg-gradient-to-br from-[#0b121a] via-[#0a0d12] to-[#0a0d12] shadow-[inset_0_1px_0_rgba(59,130,246,0.35),inset_20px_20px_60px_rgba(59,130,246,0.08)] transition hover:-translate-y-1 hover:shadow-[inset_0_1px_0_rgba(59,130,246,0.45),inset_20px_20px_60px_rgba(59,130,246,0.12),0_18px_50px_rgba(59,130,246,0.25)]">
-                <CardHeader>
-                  <CardTitle>
-                    <span data-testid="dashboard-current-balance-title" className="flex items-center gap-2 text-blue-100/80">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-500/30 text-blue-100">
-                        <i className="bi bi-wallet2" />
-                      </span>
-                      Current Balance
-                    </span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {/* Сума тепер стає червоною, якщо баланс від'ємний */}
-                  {/* ВИКОРИСТАНО formatWithSymbol */}
-                  <p data-testid="dashboard-current-balance-amount" className={`text-3xl font-black ${data.stats.current_balance < 0 ? 'text-rose-500' : 'text-blue-200'}`}>
-                    {formatWithSymbol(data.stats.current_balance)}
-                  </p>
 
-                  {/* Динамічний статус-бейдж */}
-                  <span data-testid="dashboard-current-balance-status" className={`mt-3 inline-flex items-center gap-2 rounded-md bg-black/40 px-2.5 py-1 text-xs font-semibold ${data.stats.current_balance < 0 ? 'text-rose-400' : 'text-emerald-400'
-                    }`}>
-                    <i className={`bi ${data.stats.current_balance < 0 ? 'bi-exclamation-triangle-fill' : 'bi-shield-check'}`} />
+              {/* Current Balance — full width on mobile */}
+              <Card data-testid="dashboard-current-balance" className="col-span-2 md:col-span-1 surface-card border-blue-500/30 border-t-2 bg-gradient-to-br from-[#0b121a] via-[#0a0d12] to-[#0a0d12] shadow-[inset_0_1px_0_rgba(59,130,246,0.25)] transition hover:-translate-y-1 hover:shadow-[0_18px_50px_rgba(59,130,246,0.2)]">
+                <div className="flex items-center justify-between px-4 py-3 md:px-6 md:py-4 border-b border-white/5">
+                  <span data-testid="dashboard-current-balance-title" className="flex items-center gap-2 text-blue-100/70 text-xs md:text-sm">
+                    <span className="flex h-6 w-6 md:h-8 md:w-8 shrink-0 items-center justify-center rounded-full bg-blue-500/20 text-blue-400 text-xs">
+                      <i className="bi bi-wallet2" />
+                    </span>
+                    Current Balance
+                  </span>
+                  <span data-testid="dashboard-current-balance-status" className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${data.stats.current_balance < 0 ? 'bg-rose-500/10 text-rose-400' : 'bg-emerald-500/10 text-emerald-400'}`}>
+                    <i className={`bi ${data.stats.current_balance < 0 ? 'bi-exclamation-triangle-fill' : 'bi-shield-check'} text-[10px]`} />
                     {data.stats.current_balance < 0 ? 'Overdrawn' : 'Healthy'}
                   </span>
-                </CardContent>
+                </div>
+                <div className="px-4 py-3 md:px-6 md:py-4">
+                  <p data-testid="dashboard-current-balance-amount" className={`text-3xl font-black md:text-3xl ${data.stats.current_balance < 0 ? 'text-rose-400' : 'text-blue-200'}`}>
+                    {formatWithSymbol(data.stats.current_balance)}
+                  </p>
+                </div>
               </Card>
+
             </div>
             <div className="grid gap-4 lg:grid-cols-3">
               <Card data-testid="dashboard-expenses-by-category" className="surface-card transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/20 hover:shadow-[0_10px_40px_rgba(0,0,0,0.3)]">
@@ -1005,72 +1024,114 @@ const DashboardPage = () => {
                   {!tableLoading && history.length === 0 ? (
                     <TransactionsEmptyState />
                   ) : history.map((tx, index) => {
-                    const catStyles = getCategoryStyles(tx.category_name);
-                    return (
-                      <div
-                        key={tx.id}
-                        data-testid="transaction-row"
-                        // Використовуємо inset тіні для ідеально рівних смужок по краях, які не ламають заокруглення
-                        className="group relative flex flex-wrap items-center justify-between rounded-xl border border-white/5 bg-[#0f172a]/40 p-4 transition-all duration-300 hover:-translate-y-[1px] hover:border-blue-500/50 hover:bg-[#121a2b] hover:shadow-[inset_3px_0_0_#3b82f6,inset_-3px_0_0_#3b82f6,0_8px_20px_rgba(0,0,0,0.3)]"
-                      >
-                        {/* 1. Нумерація, Тайтл та Нотатка */}
-                        <div className="flex w-full min-w-0 items-center gap-4 md:w-[35%]">
-                          <span className="w-6 text-center text-sm font-medium text-slate-600 transition-colors group-hover:text-blue-400">
-                            {index + 1}
-                          </span>
-                          <div className="flex min-w-0 flex-col">
-                            <span className="truncate text-base font-bold tracking-wide text-slate-100 transition-colors group-hover:text-white">
-                              {tx.title}
-                            </span>
-                            {tx.note && <span className="mt-0.5 text-xs text-slate-500">{tx.note}</span>}
-                          </div>
-                        </div>
-
-                        {/* 2. Іконка та Назва категорії */}
-                        <div className="mt-2 flex w-full min-w-0 items-center gap-2 md:mt-0 md:w-[18%]">
-                          <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${catStyles.color}`}>
-                            <i className={`bi ${catStyles.icon} text-xs`} />
-                          </div>
-                          <span className="truncate text-xs font-semibold text-slate-300">{tx.category_name}</span>
-                        </div>
-
-                        {/* 3. Сума */}
-                        <div className="flex w-1/3 justify-start md:w-[15%] md:justify-end">
-                          <span
-                            className={`text-base font-black tracking-widest ${tx.transaction_type === "income" ? "text-emerald-400" : "text-rose-500"
-                              }`}
+                        const catStyles = getCategoryStyles(tx.category_name);
+                        return (
+                          <div
+                            key={tx.id}
+                            data-testid="transaction-row"
+                            onClick={() => setOpenMenuId(null)}
+                            className="group relative rounded-xl border border-white/5 bg-[#0f172a]/40 transition-all duration-300 hover:border-blue-500/30 hover:bg-[#121a2b]"
                           >
-                            {/* ВИКОРИСТАНО formatWithSymbol */}
-                            {tx.transaction_type === "income" ? "+" : "-"}{formatWithSymbol(tx.amount)}
-                          </span>
-                        </div>
+                            {/* === МОБІЛЬНИЙ LAYOUT (до md) === */}
+                            <div className="flex items-center gap-3 p-3 md:hidden">
+                              {/* Іконка категорії */}
+                              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${catStyles.color}`}>
+                                <i className={`bi ${catStyles.icon} text-sm`} />
+                              </div>
 
-                        {/* 4. Дата та День тижня */}
-                        <div className="flex w-1/3 flex-col items-center md:w-[15%] md:items-end">
-                          <span className="text-sm font-medium text-slate-300">{formatTxDate(tx.created_at)}</span>
-                          <span className="mt-0.5 text-xs text-slate-500">{formatTxDay(tx.created_at)}</span>
-                        </div>
+                              {/* Назва + Категорія */}
+                              <div className="flex min-w-0 flex-1 flex-col">
+                                <span className="truncate text-sm font-bold text-slate-100">{tx.title}</span>
+                                <span className="truncate text-xs text-slate-500">{tx.category_name}</span>
+                              </div>
 
-                        {/* 5. Кнопки дій (повернуто постійні кольори) */}
-                        <div className="flex w-1/3 justify-end gap-2 md:w-[10%]">
-                          <button
-                            className="flex h-9 w-9 items-center justify-center rounded-lg border border-blue-500/20 bg-blue-500/10 text-blue-400 transition-all hover:border-blue-500/40 hover:bg-blue-500/20 hover:text-blue-300"
-                            onClick={() => openEditModal(tx)}
-                            title="Edit"
-                          >
-                            <i className="bi bi-pencil-fill text-sm" />
-                          </button>
-                          <button
-                            className="flex h-9 w-9 items-center justify-center rounded-lg border border-rose-500/20 bg-rose-500/10 text-rose-400 transition-all hover:border-rose-500/40 hover:bg-rose-500/20 hover:text-rose-300"
-                            onClick={() => {
-                              setDeleteTx(tx);
-                              setIsDeleteOpen(true);
-                            }}
-                            title="Delete"
-                          >
-                            <i className="bi bi-trash-fill text-sm" />
-                          </button>
-                        </div>
+                              {/* Сума + Дата */}
+                              <div className="flex flex-col items-end shrink-0">
+                                <span className={`text-sm font-black ${tx.transaction_type === "income" ? "text-emerald-400" : "text-rose-400"}`}>
+                                  {tx.transaction_type === "income" ? "+" : "-"}{formatWithSymbol(tx.amount)}
+                                </span>
+                                <span className="text-xs text-slate-500">{formatTxDate(tx.created_at)}</span>
+                              </div>
+
+                              {/* Кнопка ⋯ */}
+                              <div className="relative shrink-0">
+                                <button
+                                  className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-600 hover:bg-white/10 hover:text-slate-300 transition-colors"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setOpenMenuId(openMenuId === tx.id ? null : tx.id);
+                                  }}
+                                >
+                                  <i className="bi bi-three-dots-vertical text-sm" />
+                                </button>
+                                {openMenuId === tx.id && (
+                                  <div
+                                    className="absolute right-0 top-8 z-50 min-w-[130px] rounded-xl border border-white/10 bg-[#0f172a] p-1.5 shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <button
+                                      className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-blue-400 hover:bg-blue-500/10 transition-colors"
+                                      onClick={() => { openEditModal(tx); setOpenMenuId(null); }}
+                                    >
+                                      <i className="bi bi-pencil-fill text-xs" /> Edit
+                                    </button>
+                                    <button
+                                      className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-rose-400 hover:bg-rose-500/10 transition-colors"
+                                      onClick={() => { setDeleteTx(tx); setIsDeleteOpen(true); setOpenMenuId(null); }}
+                                    >
+                                      <i className="bi bi-trash-fill text-xs" /> Delete
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* === ДЕСКТОПНИЙ LAYOUT (від md) === */}
+                            <div className="hidden md:flex items-center justify-between p-4 hover:-translate-y-[1px] hover:shadow-[inset_3px_0_0_#3b82f6,inset_-3px_0_0_#3b82f6,0_8px_20px_rgba(0,0,0,0.3)]">
+                              {/* 1. Нумерація + Тайтл */}
+                              <div className="flex w-[35%] min-w-0 items-center gap-4">
+                                <span className="w-6 text-center text-sm font-medium text-slate-600 transition-colors group-hover:text-blue-400">
+                                  {index + 1}
+                                </span>
+                                <div className="flex min-w-0 flex-col">
+                                  <span className="truncate text-base font-bold tracking-wide text-slate-100 transition-colors group-hover:text-white">{tx.title}</span>
+                                  {tx.note && <span className="mt-0.5 text-xs text-slate-500">{tx.note}</span>}
+                                </div>
+                              </div>
+                              {/* 2. Категорія */}
+                              <div className="flex w-[18%] min-w-0 items-center gap-2">
+                                <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${catStyles.color}`}>
+                                  <i className={`bi ${catStyles.icon} text-xs`} />
+                                </div>
+                                <span className="truncate text-xs font-semibold text-slate-300">{tx.category_name}</span>
+                              </div>
+                              {/* 3. Сума */}
+                              <div className="flex w-[15%] justify-end">
+                                <span className={`text-base font-black tracking-widest ${tx.transaction_type === "income" ? "text-emerald-400" : "text-rose-500"}`}>
+                                  {tx.transaction_type === "income" ? "+" : "-"}{formatWithSymbol(tx.amount)}
+                                </span>
+                              </div>
+                              {/* 4. Дата */}
+                              <div className="flex w-[15%] flex-col items-end">
+                                <span className="text-sm font-medium text-slate-300">{formatTxDate(tx.created_at)}</span>
+                                <span className="mt-0.5 text-xs text-slate-500">{formatTxDay(tx.created_at)}</span>
+                              </div>
+                              {/* 5. Кнопки */}
+                              <div className="flex w-[10%] justify-end gap-2">
+                                <button
+                                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-blue-500/20 bg-blue-500/10 text-blue-400 transition-all hover:bg-blue-500/20"
+                                  onClick={() => openEditModal(tx)} title="Edit"
+                                >
+                                  <i className="bi bi-pencil-fill text-sm" />
+                                </button>
+                                <button
+                                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-rose-500/20 bg-rose-500/10 text-rose-400 transition-all hover:bg-rose-500/20"
+                                  onClick={() => { setDeleteTx(tx); setIsDeleteOpen(true); }} title="Delete"
+                                >
+                                  <i className="bi bi-trash-fill text-sm" />
+                                </button>
+                              </div>
+                            </div>
                       </div>
                     );
                   })}
@@ -1155,7 +1216,7 @@ const DashboardPage = () => {
         />
       </FormModal>
 
-      <ConfirmDeleteModal
+    <ConfirmDeleteModal
         isOpen={isDeleteOpen}
         onClose={() => setIsDeleteOpen(false)}
         onConfirm={confirmDelete}
@@ -1163,6 +1224,14 @@ const DashboardPage = () => {
         description="Are you sure you want to delete this transaction?"
       />
 
+      {/* Mobile FAB for Add Transaction */}
+      <button
+        type="button"
+        className="fixed bottom-[112px] right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500 text-2xl text-white shadow-[0_10px_25px_rgba(16,185,129,0.5)] transition-transform hover:scale-105 active:scale-95 sm:hidden"
+        onClick={openAddModal}
+      >
+        <i className="bi bi-plus-lg" />
+      </button>
     </AppShell>
   );
 };

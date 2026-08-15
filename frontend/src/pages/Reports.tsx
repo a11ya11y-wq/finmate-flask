@@ -242,7 +242,7 @@ const ReportsPage = () => {
 
                 <div className="relative grid items-stretch gap-6 lg:grid-cols-[1fr_1.85fr]">
                     <div className="flex flex-col gap-6">
-                        <Card className="relative flex w-full flex-none h-[375px] flex-col overflow-hidden bg-[#161b22] shrink-0 min-h-0">
+                        <Card className="relative flex w-full flex-none h-auto lg:h-[375px] flex-col overflow-hidden bg-[#161b22] shrink-0 min-h-0">
                             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-transparent to-emerald-400/10" />
                             <CardHeader className="relative space-y-2">
                                 <div className="flex items-center gap-3">

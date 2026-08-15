@@ -31,7 +31,7 @@ export class Header {
         this.profileOption = this.userMenuContainer.getByRole('link', { name: 'Profile' });
         this.logoutOption = this.userMenuContainer.getByTestId('logout-button');
 
-        this.userAvatar = this.container.getByAltText('Avatar');
+        this.userAvatar = this.userMenuToggle.getByAltText('Avatar');
 
         this.logo = this.container.getByAltText('FinMate');
     }
