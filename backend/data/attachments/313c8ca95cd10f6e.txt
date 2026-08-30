@@ -1,1 +1,0 @@
-2026-08-30 22:58:04,145 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/auth/register: ['email: value is not a valid email address: An email address must have an @-sign.']

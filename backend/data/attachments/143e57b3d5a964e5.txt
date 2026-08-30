@@ -1,1 +1,0 @@
-2026-08-30 22:58:06,487 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/categories/: ['mcc_code: String should have at most 128 characters']

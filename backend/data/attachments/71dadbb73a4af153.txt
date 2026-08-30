@@ -1,0 +1,1 @@
+2026-08-30 23:05:50,102 - core_service.categories.service - WARNING - Category creation failed: invalid icon invalid-icon for user 1

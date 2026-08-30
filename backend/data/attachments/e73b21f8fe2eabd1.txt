@@ -1,1 +1,0 @@
-2026-08-30 22:58:08,474 - core_service.utils.caching - INFO - No cache entries found for pattern: reports:1*

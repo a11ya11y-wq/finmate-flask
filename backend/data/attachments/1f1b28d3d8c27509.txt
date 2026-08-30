@@ -1,0 +1,1 @@
+2026-08-30 23:05:48,396 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/transactions/: ['created_at: Input should be a valid datetime or date, invalid character in year']
