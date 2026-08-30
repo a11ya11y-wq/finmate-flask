@@ -1,1 +1,0 @@
-2026-08-30 22:47:16,676 - core_service.utils.caching - WARNING - Redis client not initialized in @redis_cache for dummy_func. Bypassing cache.

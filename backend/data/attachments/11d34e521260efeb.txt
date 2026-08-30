@@ -1,1 +1,0 @@
-2026-08-30 22:47:13,736 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/profile/me: ["currency: Input should be 'USD', 'EUR' or 'UAH'"]

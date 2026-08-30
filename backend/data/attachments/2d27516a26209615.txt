@@ -1,4 +1,0 @@
-2026-08-30 22:47:15,474 - core_service.utils.caching - INFO - No cache entries found for pattern: dashboard:1:*
-2026-08-30 22:47:15,475 - core_service.utils.caching - INFO - No cache entries found for pattern: categories:1
-2026-08-30 22:47:15,475 - core_service.utils.caching - INFO - No cache entries found for pattern: budgets:1
-2026-08-30 22:47:15,477 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/transactions/102: ['created_at: Input should be a valid datetime or date, month value is outside expected range of 1-12']

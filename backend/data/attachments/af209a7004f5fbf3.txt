@@ -1,0 +1,1 @@
+2026-08-30 22:58:08,924 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/transactions/: ['amount: Decimal input should have no more than 8 digits before the decimal point']

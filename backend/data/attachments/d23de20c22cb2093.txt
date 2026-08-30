@@ -1,0 +1,1 @@
+2026-08-30 22:58:10,724 - core_service.utils.caching - WARNING - Redis client not initialized. Cannot invalidate cache.

@@ -1,3 +1,0 @@
-2026-08-30 22:47:12,073 - core_service.budgets.service - INFO - New budget created for user 1 in category 1
-2026-08-30 22:47:12,076 - core_service.utils.caching - INFO - No cache entries found for pattern: budgets:1
-2026-08-30 22:47:12,077 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/budgets/: ['is_recurring: Input should be a valid boolean, unable to interpret input']
