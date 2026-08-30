@@ -1,3 +1,0 @@
-2026-08-30 22:43:05,684 - core_service.reports.routes - INFO - Received request to generate PDF report for user 1
-2026-08-30 22:43:05,691 - core_service.reports.service - ERROR - Failed to enqueue report generation task for user_id: 1 with report_id: 9. Error: Redis died
-2026-08-30 22:43:05,693 - core_service.utils.caching - INFO - No cache entries found for pattern: reports:1*

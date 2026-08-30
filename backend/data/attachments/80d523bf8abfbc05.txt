@@ -1,0 +1,3 @@
+2026-08-30 22:47:11,081 - core_service.auth.service - INFO - New user created with ID: 5
+2026-08-30 22:47:11,168 - core_service.auth.service - WARNING - Failed login attempt for email: test@example.com
+2026-08-30 22:47:11,169 - core_service.utils.error_parser - WARNING - Business error on /api/v1/auth/login: Invalid email or password.

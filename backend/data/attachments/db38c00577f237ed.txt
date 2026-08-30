@@ -1,0 +1,3 @@
+2026-08-30 22:47:10,489 - core_service.auth.service - INFO - New user created with ID: 2
+2026-08-30 22:47:10,576 - core_service.auth.service - WARNING - Registration failed: Email test@example.com already exists
+2026-08-30 22:47:10,576 - core_service.utils.error_parser - WARNING - Business error on /api/v1/auth/register: Email already registered.

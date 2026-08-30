@@ -1,6 +1,0 @@
-2026-08-30 22:43:05,567 - core_service.reports.routes - INFO - Received request to generate PDF report for user 1
-2026-08-30 22:43:05,575 - core_service.reports.service - INFO - Report generation task enqueued for user_id: 1 with report_id: 3
-2026-08-30 22:43:05,576 - core_service.utils.caching - INFO - No cache entries found for pattern: reports:1*
-2026-08-30 22:43:05,577 - core_service.reports.routes - INFO - Received request to generate PDF report for user 1
-2026-08-30 22:43:05,580 - core_service.reports.service - INFO - Existing report found for user_id: 1 in the specified period. Returning existing report.
-2026-08-30 22:43:05,580 - core_service.utils.error_parser - WARNING - Business error on /api/v1/report/generate-pdf: Report generation is already in progress for the specified period.

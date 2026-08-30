@@ -1,3 +1,0 @@
-2026-08-30 22:43:03,491 - core_service.budgets.service - INFO - New budget created for user 1 in category 1
-2026-08-30 22:43:03,493 - core_service.utils.caching - INFO - No cache entries found for pattern: budgets:1
-2026-08-30 22:43:03,495 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/budgets/: ['category_id: Input should be a valid integer, unable to parse string as an integer']

@@ -1,0 +1,1 @@
+2026-08-30 22:47:17,039 - core_service.dashboard.service - WARNING - Dashboard data retrieval failed: invalid period 'year' for user 1

@@ -1,0 +1,5 @@
+2026-08-30 22:47:17,577 - core_service.monobank.service - ERROR - Monobank sync failed for user 1
+Traceback (most recent call last):
+  File "/home/runner/work/FinMate/FinMate/api-main/core_service/monobank/service.py", line 60, in _get_client_info
+    raise ForbiddenError(client_info['errorDescription'])
+core_service.exceptions.ForbiddenError: Unknown 'X-Token'

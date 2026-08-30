@@ -1,1 +1,0 @@
-2026-08-30 22:43:06,328 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/transactions/: ['note: String should have at most 128 characters']

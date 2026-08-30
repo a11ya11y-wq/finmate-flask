@@ -1,0 +1,1 @@
+2026-08-30 22:47:16,944 - core_service.categories.service - WARNING - Attempt to update non-existing category 999 by user 1

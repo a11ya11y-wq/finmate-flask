@@ -1,0 +1,1 @@
+2026-08-30 22:47:18,567 - core_service.transactions.service - WARNING - Category 1 not found
