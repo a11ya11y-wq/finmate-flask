@@ -1,2 +1,0 @@
-2026-08-30 17:42:43,331 - core_service.auth.service - INFO - New user created with ID: 4
-2026-08-30 17:42:43,420 - core_service.auth.service - INFO - User 4 logged in successfully.

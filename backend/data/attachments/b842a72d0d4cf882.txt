@@ -1,1 +1,0 @@
-2026-08-30 17:42:44,329 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/budgets/: ['amount: Input should be a valid decimal']

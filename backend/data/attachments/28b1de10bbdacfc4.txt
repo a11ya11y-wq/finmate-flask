@@ -1,0 +1,14 @@
+2026-08-30 17:51:18,922 - core_service.utils.caching - ERROR - Error invalidating cache for pattern dummy:*
+Traceback (most recent call last):
+  File "/home/runner/work/FinMate/FinMate/api-main/core_service/utils/caching.py", line 66, in invalidate_cache
+    keys_to_delete = [key for key in extensions.redis_client.scan_iter(match=key_pattern)]
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/unittest/mock.py", line 1198, in _execute_mock_call
+    raise effect
+Exception: Redis scan failed

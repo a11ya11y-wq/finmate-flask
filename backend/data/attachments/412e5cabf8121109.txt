@@ -1,0 +1,2 @@
+2026-08-30 17:51:15,893 - core_service.profile.service - INFO - User 1 changed password.
+2026-08-30 17:51:15,895 - core_service.utils.caching - INFO - No cache entries found for pattern: profile:1

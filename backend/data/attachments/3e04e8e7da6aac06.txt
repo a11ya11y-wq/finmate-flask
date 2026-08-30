@@ -1,1 +1,0 @@
-2026-08-30 17:42:47,729 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/transactions/: ['created_at: Input should be a valid datetime or date, invalid date separator, expected `-`']

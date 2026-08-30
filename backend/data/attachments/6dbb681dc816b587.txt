@@ -1,0 +1,2 @@
+2026-08-30 17:51:17,196 - core_service.transactions.service - WARNING - Category 100 not found
+2026-08-30 17:51:17,197 - core_service.utils.error_parser - WARNING - Business error on /api/v1/transactions/: Category 100 not found or access denied.
