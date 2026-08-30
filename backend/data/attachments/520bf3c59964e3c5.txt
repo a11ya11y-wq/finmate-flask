@@ -1,0 +1,1 @@
+2026-08-30 22:35:15,643 - core_service.categories.service - WARNING - Attempt to delete non-existing category 999 by user 1

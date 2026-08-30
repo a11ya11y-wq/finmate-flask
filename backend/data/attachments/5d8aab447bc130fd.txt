@@ -1,0 +1,6 @@
+2026-08-30 22:35:14,624 - core_service.utils.caching - INFO - No cache entries found for pattern: dashboard:1:*
+2026-08-30 22:35:14,625 - core_service.utils.caching - INFO - No cache entries found for pattern: categories:1
+2026-08-30 22:35:14,625 - core_service.utils.caching - INFO - No cache entries found for pattern: budgets:1
+2026-08-30 22:35:14,628 - core_service.utils.caching - INFO - No cache entries found for pattern: dashboard:1:*
+2026-08-30 22:35:14,628 - core_service.utils.caching - INFO - No cache entries found for pattern: categories:1
+2026-08-30 22:35:14,629 - core_service.utils.caching - INFO - No cache entries found for pattern: budgets:1

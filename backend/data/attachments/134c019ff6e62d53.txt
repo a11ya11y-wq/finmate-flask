@@ -1,3 +1,0 @@
-2026-08-30 20:26:17,232 - core_service.budgets.service - INFO - New budget created for user 1 in category 1
-2026-08-30 20:26:17,235 - core_service.utils.caching - INFO - No cache entries found for pattern: budgets:1
-2026-08-30 20:26:17,237 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/budgets/: ['amount: Field required', 'category_id: Field required', 'is_recurring: Field required']

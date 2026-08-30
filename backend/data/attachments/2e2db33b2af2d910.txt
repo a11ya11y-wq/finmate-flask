@@ -1,1 +1,0 @@
-2026-08-30 20:26:22,831 - core_service.profile.service - INFO - User 1 profile updated.

@@ -1,0 +1,1 @@
+2026-08-30 22:35:11,686 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/budgets/: ['category_id: Input should be a valid integer, unable to parse string as an integer']
