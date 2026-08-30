@@ -587,6 +587,16 @@ const ProfilePage = () => {
           </CardContent>
         </Card>
 
+        {/* MOBILE LOGOUT */}
+        <button
+          data-testid="mobile-logout-button"
+          onClick={logout}
+          className="sm:hidden flex w-full items-center justify-center gap-2 rounded-2xl border border-rose-500/20 bg-rose-500/10 p-4 font-bold text-rose-400 transition-colors hover:bg-rose-500/20"
+        >
+          <i className="bi bi-box-arrow-right text-xl" />
+          Sign Out
+        </button>
+
         {/* DANGER ZONE */}
         <div className="rounded-2xl border border-rose-500/20 bg-rose-500/5 p-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">

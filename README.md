@@ -128,6 +128,7 @@ The diagram above illustrates three distinct interaction patterns within our sys
 - **Transactions & Categories:** Full CRUD operations for managing finances.
 - **Monobank Integration:** Async synchronization of transactions using **Celery** workers.
 - **Budgets:** Set and track monthly spending limits.
+- **Progressive Web App (PWA):** Installable as a native-like application on iOS/Android and Desktop, with offline-first capabilities (caching UI and auth state) and seamless automatic background updates.
 - **Distributed PDF Reporting (SOA):** A dedicated, stateless **NestJS** worker handles asynchronous financial report rendering to prevent blocking the main API thread.
 - **Performance:** **Redis** is heavily utilized, performing a triple role:
     1.  **Caching:** Stores heavy analytical queries (Dashboard) and user profiles.

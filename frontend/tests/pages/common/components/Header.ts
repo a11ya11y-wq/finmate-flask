@@ -16,8 +16,9 @@ export class Header {
     readonly logoutOption: Locator;
 
     readonly userAvatar: Locator;
-
     readonly logo: Locator;
+
+    readonly installPwaButton: Locator;
 
     constructor(page: Page) {
         this.page = page;
@@ -34,6 +35,8 @@ export class Header {
         this.userAvatar = this.userMenuToggle.getByAltText('Avatar');
 
         this.logo = this.container.getByAltText('FinMate');
+        
+        this.installPwaButton = this.container.locator('button[title="Install App"]');
     }
 
     async logout() {
@@ -41,4 +44,16 @@ export class Header {
         await this.logoutOption.click();
     }
 
+    async simulatePwaInstallPrompt() {
+        await this.page.evaluate(() => {
+            const event = new Event('beforeinstallprompt') as any;
+            event.prompt = () => { (window as any).__PWA_PROMPT_CALLED = true; };
+            event.userChoice = Promise.resolve({ outcome: 'accepted' });
+            window.dispatchEvent(event);
+        });
+    }
+
+    async wasPwaPromptCalled(): Promise<boolean> {
+        return await this.page.evaluate(() => (window as any).__PWA_PROMPT_CALLED === true);
+    }
 }
