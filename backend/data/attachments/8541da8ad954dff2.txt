@@ -1,0 +1,8 @@
+2026-08-30 20:26:17,374 - core_service.budgets.service - INFO - New budget created for user 1 in category 1
+2026-08-30 20:26:17,376 - core_service.utils.caching - INFO - No cache entries found for pattern: budgets:1
+2026-08-30 20:26:17,384 - core_service.utils.caching - INFO - No cache entries found for pattern: dashboard:1:*
+2026-08-30 20:26:17,384 - core_service.utils.caching - INFO - No cache entries found for pattern: categories:1
+2026-08-30 20:26:17,385 - core_service.utils.caching - INFO - No cache entries found for pattern: budgets:1
+2026-08-30 20:26:17,390 - core_service.utils.caching - INFO - No cache entries found for pattern: dashboard:1:*
+2026-08-30 20:26:17,390 - core_service.utils.caching - INFO - No cache entries found for pattern: categories:1
+2026-08-30 20:26:17,391 - core_service.utils.caching - INFO - No cache entries found for pattern: budgets:1

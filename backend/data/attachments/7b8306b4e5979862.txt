@@ -1,3 +1,0 @@
-2026-08-30 17:51:14,863 - core_service.categories.service - INFO - Category 2 updated for user 1
-2026-08-30 17:51:14,865 - core_service.utils.caching - INFO - No cache entries found for pattern: categories:1
-2026-08-30 17:51:14,865 - core_service.utils.caching - INFO - No cache entries found for pattern: budgets:1

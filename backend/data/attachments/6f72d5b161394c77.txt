@@ -1,0 +1,1 @@
+2026-08-30 20:26:17,630 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/categories/: ['name: Input should be a valid string']

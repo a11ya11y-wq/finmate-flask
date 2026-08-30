@@ -1,3 +1,0 @@
-2026-08-30 17:51:14,652 - core_service.budgets.service - INFO - New budget created for user 1 in category 1
-2026-08-30 17:51:14,654 - core_service.utils.caching - INFO - No cache entries found for pattern: budgets:1
-2026-08-30 17:51:14,656 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/budgets/: ['amount: Decimal input should have no more than 8 digits before the decimal point']
