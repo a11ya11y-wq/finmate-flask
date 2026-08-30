@@ -1,1 +1,0 @@
-2026-08-30 22:35:12,287 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/categories/: ['mcc_code: Input should be a valid string']

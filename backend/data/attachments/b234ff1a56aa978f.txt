@@ -1,0 +1,1 @@
+2026-08-30 22:39:44,576 - core_service.categories.service - INFO - Category 1 deleted for user 1

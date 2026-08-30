@@ -1,0 +1,4 @@
+2026-08-30 22:39:41,710 - core_service.auth.service - INFO - Triggering reset for demo user ID: 9999
+2026-08-30 22:39:41,713 - core_service.auth.service - INFO - Demo account reset. Cleared 7 keys.
+2026-08-30 22:39:41,714 - core_service.auth.service - INFO - User 9999 logged in successfully.
+2026-08-30 22:39:41,719 - core_service.utils.error_parser - WARNING - Business error on /api/v1/profile/me: This action is prohibited for the demo account.

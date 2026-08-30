@@ -1,0 +1,4 @@
+2026-08-30 22:39:42,985 - core_service.utils.caching - INFO - No cache entries found for pattern: dashboard:1:*
+2026-08-30 22:39:42,985 - core_service.utils.caching - INFO - No cache entries found for pattern: categories:1
+2026-08-30 22:39:42,986 - core_service.utils.caching - INFO - No cache entries found for pattern: budgets:1
+2026-08-30 22:39:42,988 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/transactions/98: ['category_id: Input should be a valid integer, unable to parse string as an integer']

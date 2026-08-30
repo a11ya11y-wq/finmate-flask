@@ -1,1 +1,0 @@
-2026-08-30 22:35:14,697 - core_service.auth.service - INFO - User 142 logged in successfully.

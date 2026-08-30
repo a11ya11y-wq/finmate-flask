@@ -1,3 +1,0 @@
-2026-08-30 22:35:16,600 - core_service.reports.service - INFO - Existing report found for user_id: 1 in the specified period. Returning existing report.
-2026-08-30 22:35:16,601 - core_service.reports.service - INFO - Previous report generation failed or expired for user_id: 1. Generating a new report.
-2026-08-30 22:35:16,602 - core_service.reports.service - INFO - Report generation task enqueued for user_id: 1 with report_id: 49
