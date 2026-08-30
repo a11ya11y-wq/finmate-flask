@@ -1,0 +1,4 @@
+2026-08-30 17:42:48,529 - core_service.utils.caching - INFO - No cache entries found for pattern: dashboard:1:*
+2026-08-30 17:42:48,530 - core_service.utils.caching - INFO - No cache entries found for pattern: categories:1
+2026-08-30 17:42:48,530 - core_service.utils.caching - INFO - No cache entries found for pattern: budgets:1
+2026-08-30 17:42:48,532 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/transactions/105: ['amount: Decimal input should have no more than 8 digits before the decimal point']

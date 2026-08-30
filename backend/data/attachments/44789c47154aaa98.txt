@@ -1,0 +1,4 @@
+2026-08-30 17:42:45,892 - core_service.profile.service - INFO - User 1 deleted.
+2026-08-30 17:42:45,908 - core_service.utils.caching - INFO - No cache entries found for pattern: profile:1
+2026-08-30 17:42:45,908 - core_service.utils.caching - INFO - No cache entries found for pattern: categories:1
+2026-08-30 17:42:45,909 - core_service.utils.caching - INFO - No cache entries found for pattern: dashboard:1:*

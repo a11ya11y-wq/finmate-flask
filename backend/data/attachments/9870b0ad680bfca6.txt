@@ -1,0 +1,1 @@
+2026-08-30 17:42:51,359 - core_service.profile.service - INFO - User 1: Initial point recalculated to 700

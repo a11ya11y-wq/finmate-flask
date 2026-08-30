@@ -1,0 +1,1 @@
+2026-08-30 17:42:45,212 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/categories/: ['name: String should have at most 50 characters']

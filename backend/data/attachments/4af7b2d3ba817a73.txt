@@ -1,1 +1,0 @@
-2026-08-15 12:55:44,437 - core_service.categories.service - WARNING - Category update failed: duplicate name Existing Category for user 1

@@ -1,1 +1,0 @@
-2026-08-15 12:55:44,285 - core_service.utils.caching - ERROR - Key pattern must be provided for cache invalidation.

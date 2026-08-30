@@ -1,1 +1,0 @@
-2026-08-15 12:55:44,242 - core_service.utils.caching - ERROR - Error in @redis_cache for dummy_func : key_builder function is required.

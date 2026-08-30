@@ -1,1 +1,0 @@
-2026-08-15 12:55:45,514 - core_service.profile.service - WARNING - User entity not found for user_id: 999

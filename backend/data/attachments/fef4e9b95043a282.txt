@@ -1,0 +1,1 @@
+2026-08-30 17:42:44,454 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/budgets/: ['amount: Decimal input should have no more than 2 decimal places']
