@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import type { User } from "../api/types";
 import { getProfile } from "../api/profile";
 import { login as loginRequest, logout as logoutRequest, refresh } from "../api/auth";
@@ -20,7 +21,9 @@ type AuthState = {
   logout: () => Promise<void>;
 };
 
-export const useAuthStore = create<AuthState>((set, get) => ({
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set, get) => ({
   accessToken: null,
   user: null,
   status: "idle",
@@ -60,6 +63,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         set({ user: profile });
         return true;
       } catch (error) {
+        // Якщо помилка через відсутність інтернету — не розлогінюємо юзера!
+        if (!navigator.onLine || (error instanceof TypeError && error.message === 'Failed to fetch')) {
+          console.warn('Offline mode: skipping auth clear');
+          return false;
+        }
+        
         queryClient.removeQueries({ queryKey: queryKeys.profile });
         get().clearAuth();
         return false;
@@ -80,5 +89,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       clearAuth();
     }
   }
-}));
+    }),
+    {
+      name: "auth-storage",
+      partialize: (state) => ({ user: state.user, accessToken: state.accessToken }),
+    }
+  )
+);
 

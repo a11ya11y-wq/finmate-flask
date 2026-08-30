@@ -104,6 +104,11 @@ const humanizeMessage = (message: string) => {
 };
 
 export const toErrorMessage = (error: unknown) => {
+  // Перехоплюємо офлайн-помилку від fetch
+  if (!navigator.onLine || (error instanceof TypeError && error.message === 'Failed to fetch')) {
+    return "No internet connection. Please check your network.";
+  }
+
   if (typeof error === "string") {
     return error.trim();
   }

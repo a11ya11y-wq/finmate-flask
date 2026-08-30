@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { cn } from "../../lib/utils";
 import { useAuthStore } from "../../store/authStore";
+import { InstallPWA } from "../ui/InstallPWA";
 
 const navItems = [
 	{ to: "/dashboard", label: "Dashboard", icon: "bi-speedometer2" },
@@ -37,22 +38,26 @@ const AppShell = ({ children }: AppShellProps) => {
 					<Link to="/dashboard" className="flex items-center gap-3">
 					<img src="/img/logo.png" alt="FinMate" className="h-7 w-auto sm:h-8 md:h-10" />
 				</Link>
-					{/* Мобільний аватар — просто посилання на профіль, без дропдауну */}
-				<Link
-					to="/profile"
-					className="flex sm:hidden items-center justify-center"
-				>
-					<img
-						data-testid="user-avatar"
-						src={`/${user?.avatar ?? "avatars/default/default.svg"}`}
-						alt="Avatar"
-						className="h-9 w-9 rounded-full border-2 border-blue-500/40"
-					/>
-				</Link>
+					{/* Права частина хедера: InstallPWA + Аватар/Меню */}
+					<div className="flex items-center gap-2 sm:gap-4">
+						<InstallPWA />
 
-				{/* Десктопний дропдаун */}
-				<div className="relative hidden sm:block" ref={menuRef}>
-					<button
+						{/* Мобільний аватар — просто посилання на профіль, без дропдауну */}
+						<Link
+							to="/profile"
+							className="flex sm:hidden items-center justify-center"
+						>
+							<img
+								data-testid="user-avatar"
+								src={`/${user?.avatar ?? "avatars/default/default.svg"}`}
+								alt="Avatar"
+								className="h-9 w-9 rounded-full border-2 border-blue-500/40"
+							/>
+						</Link>
+
+						{/* Десктопний дропдаун */}
+						<div className="relative hidden sm:block" ref={menuRef}>
+							<button
 						data-testid="user-menu-toggle"
 						type="button"
 						className="flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-200"
@@ -100,6 +105,7 @@ const AppShell = ({ children }: AppShellProps) => {
 							</button>
 						</div>
 					)}
+				</div>
 				</div>
 				</div>
 			</header>
