@@ -1,0 +1,4 @@
+2026-08-30 22:43:06,938 - core_service.utils.caching - INFO - No cache entries found for pattern: dashboard:1:*
+2026-08-30 22:43:06,938 - core_service.utils.caching - INFO - No cache entries found for pattern: categories:1
+2026-08-30 22:43:06,939 - core_service.utils.caching - INFO - No cache entries found for pattern: budgets:1
+2026-08-30 22:43:06,940 - core_service.utils.error_parser - WARNING - Business error on /api/v1/transactions/109: No valid fields to update.

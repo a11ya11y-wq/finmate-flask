@@ -1,1 +1,0 @@
-2026-08-30 22:39:41,361 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/profile/monobank: ['token: String should have at least 44 characters']

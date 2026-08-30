@@ -1,0 +1,2 @@
+2026-08-30 22:43:05,087 - core_service.profile.service - INFO - User 1 updated Monobank token.
+2026-08-30 22:43:05,088 - core_service.utils.caching - INFO - No cache entries found for pattern: profile:1

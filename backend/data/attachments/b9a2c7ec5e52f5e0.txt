@@ -1,0 +1,1 @@
+2026-08-30 22:43:04,520 - core_service.utils.error_parser - WARNING - Validation error on /api/v1/profile/me: ['username: String should have at least 4 characters']

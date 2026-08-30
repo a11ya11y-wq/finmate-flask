@@ -1,1 +1,0 @@
-2026-08-30 22:39:43,453 - core_service.auth.service - INFO - Access token refreshed for user 142

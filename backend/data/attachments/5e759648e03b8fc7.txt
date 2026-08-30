@@ -1,0 +1,2 @@
+2026-08-30 22:43:04,212 - core_service.categories.service - WARNING - Attempt to update non-existing category 100 by user 1
+2026-08-30 22:43:04,212 - core_service.utils.error_parser - WARNING - Business error on /api/v1/categories/100: Category 100 not found or access denied.

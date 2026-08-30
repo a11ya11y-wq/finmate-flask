@@ -1,0 +1,3 @@
+2026-08-30 22:43:02,096 - core_service.auth.service - INFO - New user created with ID: 3
+2026-08-30 22:43:02,184 - core_service.auth.service - WARNING - Registration failed: Username testuser already exists
+2026-08-30 22:43:02,185 - core_service.utils.error_parser - WARNING - Business error on /api/v1/auth/register: Username already registered
